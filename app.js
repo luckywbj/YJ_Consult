@@ -1,21 +1,11 @@
 // app.js
+const consultStore = require('./utils/consultStore');
+
 App({
   onLaunch() {
     console.log('岩姐商业咨询小程序初始化成功');
-    // 初始化本地存储的预约数据
-    if (!wx.getStorageSync('my_consult_appointments')) {
-      wx.setStorageSync('my_consult_appointments', [
-        {
-          id: 'YY2026112001',
-          name: '李总',
-          phone: '138****8899',
-          industry: '高端私域美业',
-          type: '1对1商业闭门私董会',
-          status: '已安排顾问对接',
-          createTime: '2026-11-18 14:30'
-        }
-      ]);
-    }
+    // 初始化咨询订单、每次咨询过程与交付结果数据中心
+    consultStore.getProjects();
   },
   globalData: {
     brandName: '岩姐咨询',

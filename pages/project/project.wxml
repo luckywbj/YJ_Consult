@@ -1,0 +1,310 @@
+<!-- pages/project/project.wxml -->
+<view class="project-page" wx:if="{{project}}">
+  <!-- 顶部黑金尊享项目总览头部 -->
+  <view class="hero-header">
+    <!-- 顶部多项目切换栏 -->
+    <view class="switcher-bar" wx:if="{{allProjects.length > 1}}">
+      <picker bindchange="onSwitchProject" value="{{currentProjIndex}}" range="{{projectTitles}}">
+        <view class="switcher-pill">
+          <text class="switcher-label">切换咨询项目：</text>
+          <text class="switcher-val">{{project.name}} · {{project.type}}</text>
+          <text class="switcher-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 订单状态与编号 -->
+    <view class="hero-top-row">
+      <text class="order-id">项目编号：{{project.id}}</text>
+      <view class="status-group">
+        <text class="pay-badge">{{project.payMode}}</text>
+        <text class="status-badge {{project.status === '已交付结案' ? 'done' : ''}}">{{project.status}}</text>
+      </view>
+    </view>
+
+    <text class="hero-plan-name">{{project.type}}</text>
+    <text class="hero-client-info">客户：{{project.name}}（{{project.industry}}） · 操盘：{{project.consultant}}</text>
+
+    <!-- 若未支付定金，提供一键支付立项入口 -->
+    <view class="unpaid-alert" wx:if="{{project.paidAmount === 0}}">
+      <text class="unpaid-txt">当前处于资质初审阶段，支付立项定金后即刻启动 1V1 深度问诊排期</text>
+      <view class="unpaid-btn" bindtap="handlePayNow">立即支付定金立项</view>
+    </view>
+
+    <!-- 5 步闭环水平进度条 -->
+    <view class="milestone-bar">
+      <view 
+        class="ms-node {{project.currentStep >= item.step ? 'reached' : ''}} {{project.currentStep === item.step ? 'current' : ''}}" 
+        wx:for="{{steps}}" 
+        wx:key="step">
+        <view class="ms-circle">
+          <text wx:if="{{project.currentStep > item.step}}">✓</text>
+          <text wx:else>{{item.code}}</text>
+        </view>
+        <text class="ms-title">{{item.title}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 三大核心模块 Tab 切换 -->
+  <view class="tab-nav">
+    <view class="tab-item {{activeTab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">
+      <text class="tab-txt">咨询过程记录 ({{project.sessions.length}})</text>
+      <view class="tab-line" wx:if="{{activeTab === 0}}"></view>
+    </view>
+    <view class="tab-item {{activeTab === 1 ? 'active' : ''}}" bindtap="switchTab" data-tab="1">
+      <text class="tab-txt">交付结果看板 ({{project.deliverables.length}})</text>
+      <view class="tab-line" wx:if="{{activeTab === 1}}"></view>
+    </view>
+    <view class="tab-item {{activeTab === 2 ? 'active' : ''}}" bindtap="switchTab" data-tab="2">
+      <text class="tab-txt">五步闭环与订单</text>
+      <view class="tab-line" wx:if="{{activeTab === 2}}"></view>
+    </view>
+  </view>
+
+  <!-- ==================== TAB 0：每次咨询过程记录 ==================== -->
+  <view class="tab-content" wx:if="{{activeTab === 0}}">
+    <view class="section-intro-bar">
+      <text class="intro-txt">全程留档每一次 1V1 闭门诊断推演结论，点击课后行动项可打钩确认落地进度。</text>
+    </view>
+
+    <view class="timeline-list">
+      <view class="session-card luxury-card" wx:for="{{project.sessions}}" wx:key="sessionId" wx:for-item="ses">
+        <!-- 场次序号与标题 -->
+        <view class="ses-header">
+          <view class="ses-no-badge">第 {{ses.sessionNo}} 次咨询</view>
+          <text class="ses-date">{{ses.date}}</text>
+        </view>
+
+        <text class="ses-title">{{ses.title}}</text>
+
+        <view class="ses-meta-box">
+          <text class="ses-meta-line">📍 咨询形式：{{ses.mode}}</text>
+          <text class="ses-meta-line">👥 参会人员：{{ses.participants}}</text>
+        </view>
+
+        <!-- 核心诊断与破局方案 -->
+        <view class="ses-block">
+          <view class="block-tag-row">
+            <view class="dot-gold"></view>
+            <text class="block-tag-title">核心商业痛点诊断</text>
+          </view>
+          <text class="block-p">{{ses.diagnosis}}</text>
+        </view>
+
+        <view class="ses-block highlight">
+          <view class="block-tag-row">
+            <view class="dot-gold"></view>
+            <text class="block-tag-title">岩姐咨询破局重构方案</text>
+          </view>
+          <text class="block-p">{{ses.solution}}</text>
+        </view>
+
+        <!-- 课后落地行动清单（客户可勾选 & 写反馈） -->
+        <view class="action-checklist">
+          <view class="checklist-header">
+            <text class="checklist-title">本次咨询落地行动清单 (Action Items)</text>
+            <text class="checklist-tip">点击方框打卡完成</text>
+          </view>
+
+          <view 
+            class="action-row {{act.done ? 'completed' : ''}}" 
+            wx:for="{{ses.actionItems}}" 
+            wx:for-item="act" 
+            wx:key="id">
+            
+            <view class="action-main" bindtap="onToggleAction" data-ses="{{ses.sessionId}}" data-act="{{act.id}}">
+              <view class="checkbox {{act.done ? 'checked' : ''}}">
+                <text wx:if="{{act.done}}">✓</text>
+              </view>
+              <text class="action-text">{{act.text}}</text>
+            </view>
+
+            <view class="action-feedback-box">
+              <text class="feedback-content" wx:if="{{act.feedback}}">落地反馈：{{act.feedback}}</text>
+              <text 
+                class="feedback-edit-btn" 
+                bindtap="openFeedbackModal" 
+                data-ses="{{ses.sessionId}}" 
+                data-act="{{act.id}}" 
+                data-old="{{act.feedback}}"
+                data-title="{{act.text}}">
+                {{act.feedback ? '修改执行反馈' : '+ 填写落地执行反馈'}}
+              </text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 顾问复盘批注 -->
+        <view class="consultant-remark" wx:if="{{ses.consultantNote}}">
+          <text class="remark-label">顾问复盘批注：</text>
+          <text class="remark-txt">{{ses.consultantNote}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== TAB 1：交付结果与增长看板 ==================== -->
+  <view class="tab-content" wx:if="{{activeTab === 1}}">
+    <!-- 模块1：商业增长数据前后对比看板 -->
+    <view class="result-dashboard luxury-card">
+      <view class="dash-header">
+        <text class="dash-title">商业增长交付战果看板</text>
+        <text class="dash-sub">服务前基准 vs 操盘落地后核心指标</text>
+      </view>
+
+      <view class="metrics-grid">
+        <view class="metric-card">
+          <text class="m-name">平均客单价</text>
+          <view class="m-compare">
+            <text class="m-before">前: {{project.metrics.ticketBefore}}</text>
+            <text class="m-after">后: {{project.metrics.ticketAfter}}</text>
+          </view>
+        </view>
+
+        <view class="metric-card">
+          <text class="m-name">综合毛利率</text>
+          <view class="m-compare">
+            <text class="m-before">前: {{project.metrics.marginBefore}}</text>
+            <text class="m-after">后: {{project.metrics.marginAfter}}</text>
+          </view>
+        </view>
+
+        <view class="metric-card">
+          <text class="m-name">营收业绩规模</text>
+          <view class="m-compare">
+            <text class="m-before">前: {{project.metrics.revenueBefore}}</text>
+            <text class="m-after">后: {{project.metrics.revenueAfter}}</text>
+          </view>
+        </view>
+
+        <view class="metric-card">
+          <text class="m-name">高客单转化率</text>
+          <view class="m-compare">
+            <text class="m-before">前: {{project.metrics.conversionBefore}}</text>
+            <text class="m-after">后: {{project.metrics.conversionAfter}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="highlight-box">
+        <text class="hl-title">✦ 阶段实战战果复盘：</text>
+        <text class="hl-desc">{{project.metrics.highlightSummary}}</text>
+      </view>
+    </view>
+
+    <!-- 模块2：核心交付成果文档库 -->
+    <view class="deliverables-section">
+      <view class="sec-bar">
+        <text class="sec-title">核心交付方案与 SOP 文档库</text>
+        <text class="sec-count">共 {{project.deliverables.length}} 份交付物</text>
+      </view>
+
+      <view class="deliv-card luxury-card" wx:for="{{project.deliverables}}" wx:key="delivId">
+        <view class="deliv-top">
+          <text class="deliv-stage">{{item.stage}}</text>
+          <text class="deliv-status {{item.status === '已确认验收' ? 'accepted' : 'pending'}}">{{item.status}}</text>
+        </view>
+
+        <text class="deliv-title">{{item.title}}</text>
+        <text class="deliv-summary">{{item.summary}}</text>
+
+        <view class="deliv-meta">
+          <text class="deliv-type">📄 {{item.fileType}}</text>
+          <text class="deliv-time">交付于 {{item.deliverTime}}</text>
+        </view>
+
+        <view class="deliv-actions">
+          <view class="d-btn preview" bindtap="previewDeliverable" data-id="{{item.delivId}}">
+            查阅方案详情
+          </view>
+          <view 
+            class="d-btn accept" 
+            wx:if="{{item.status !== '已确认验收'}}" 
+            bindtap="onAcceptDeliverable" 
+            data-id="{{item.delivId}}">
+            确认验收此成果
+          </view>
+          <view class="d-btn accepted-tag" wx:else>
+            ✓ 已完成客户签收
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 模块3：客户验收评价与复盘感言 -->
+    <view class="review-card luxury-card">
+      <text class="review-title">客户阶段验收评价与感言</text>
+      <textarea 
+        class="review-input" 
+        placeholder="您可以在此记录对本次咨询过程及交付成果的评价与收获..." 
+        value="{{reviewDraft}}" 
+        bindinput="onReviewInput"></textarea>
+      <button class="gold-btn review-save-btn" bindtap="submitReview">保存验收评价</button>
+    </view>
+  </view>
+
+  <!-- ==================== TAB 2：五步闭环与订单信息 ==================== -->
+  <view class="tab-content" wx:if="{{activeTab === 2}}">
+    <view class="steps-detail-card luxury-card">
+      <text class="sd-header-title">岩姐咨询 · 5 步全闭环交付里程碑</text>
+      <view class="sd-list">
+        <view 
+          class="sd-item {{project.currentStep > item.step ? 'done' : (project.currentStep === item.step ? 'active' : '')}}" 
+          wx:for="{{steps}}" 
+          wx:key="step">
+          <view class="sd-num">{{item.code}}</view>
+          <view class="sd-body">
+            <view class="sd-row">
+              <text class="sd-name">{{item.title}}</text>
+              <text class="sd-state">
+                {{project.currentStep > item.step ? '已完成交付' : (project.currentStep === item.step ? '● 当前进行中' : '待开启')}}
+              </text>
+            </view>
+            <text class="sd-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="order-info-card luxury-card">
+      <text class="oi-title">咨询立项订单档案</text>
+      <view class="oi-row"><text class="oi-k">订单编号</text><text class="oi-v">{{project.id}}</text></view>
+      <view class="oi-row"><text class="oi-k">咨询方案</text><text class="oi-v">{{project.type}}</text></view>
+      <view class="oi-row"><text class="oi-k">客户信息</text><text class="oi-v">{{project.name}} ({{project.phone}})</text></view>
+      <view class="oi-row"><text class="oi-k">所属行业</text><text class="oi-v">{{project.industry}}</text></view>
+      <view class="oi-row"><text class="oi-k">全案总价</text><text class="oi-v highlight">¥{{project.totalPrice}}</text></view>
+      <view class="oi-row"><text class="oi-k">支付状态</text><text class="oi-v">{{project.payMode}}</text></view>
+      <view class="oi-row"><text class="oi-k">立项时间</text><text class="oi-v">{{project.createTime}}</text></view>
+      <view class="oi-row"><text class="oi-k">最近更新</text><text class="oi-v">{{project.updateTime}}</text></view>
+      <view class="oi-row"><text class="oi-k">诊前核心卡点</text><text class="oi-v">{{project.problem}}</text></view>
+    </view>
+  </view>
+
+  <!-- 底部固定操作栏：严格按角色隔离，普通客户绝不显示顾问录入工作台 -->
+  <view class="bottom-fixed-bar" wx:if="{{auth.role === 'admin'}}">
+    <view class="bf-btn outline" bindtap="contactConsultant">💬 联系客户</view>
+    <view class="bf-btn gold" bindtap="goToConsultantAdmin">🛠️ 顾问录入工作台（管理此项）</view>
+  </view>
+  <view class="bottom-fixed-bar" wx:else>
+    <view class="bf-btn outline" bindtap="callHotline">📞 VIP 顾问专线</view>
+    <view class="bf-btn gold" bindtap="contactConsultant">💬 联系专属操盘顾问微信</view>
+  </view>
+
+  <!-- 弹窗：客户填写行动项执行反馈 -->
+  <view class="modal-mask" wx:if="{{feedbackModal.visible}}" bindtap="closeFeedbackModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <text class="modal-title">填写行动项落地反馈</text>
+      <text class="modal-sub">行动任务：{{feedbackModal.taskTitle}}</text>
+      <textarea 
+        class="modal-textarea" 
+        placeholder="请简述您或团队对该项任务的执行结果与数据反馈..." 
+        value="{{feedbackModal.text}}" 
+        bindinput="onFeedbackInput"></textarea>
+      <view class="modal-btns">
+        <view class="m-btn cancel" bindtap="closeFeedbackModal">取消</view>
+        <view class="m-btn confirm" bindtap="saveActionFeedback">保存并打卡完成</view>
+      </view>
+    </view>
+  </view>
+</view>

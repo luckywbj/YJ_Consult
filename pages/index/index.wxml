@@ -9,6 +9,23 @@
     <text class="brand-subtitle">YANJIE BUSINESS CONSULTING</text>
   </view>
 
+  <!-- 顶部常驻：当前登录权限状态与快捷登录栏 -->
+  <view class="top-auth-bar luxury-card">
+    <view class="tab-status-row">
+      <text class="tab-role-label" wx:if="{{auth.role === 'guest'}}">🔒 当前权限：未登录访客</text>
+      <text class="tab-role-label client" wx:elif="{{auth.role === 'client'}}">👤 当前权限：客户（{{auth.clientName}} {{auth.clientPhone}}）</text>
+      <text class="tab-role-label admin" wx:elif="{{auth.role === 'admin'}}">🛠️ 当前权限：顾问后台管理员</text>
+    </view>
+    <view class="tab-btn-row">
+      <view class="mini-login-btn client-btn" bindtap="goToLoginWithMode" data-mode="client">
+        👤 客户手机号登录
+      </view>
+      <view class="mini-login-btn admin-btn" bindtap="goToLoginWithMode" data-mode="admin">
+        🛠️ 顾问后台登录
+      </view>
+    </view>
+  </view>
+
   <!-- 使命 / 愿景 / 理念 卡片 -->
   <view class="value-card luxury-card">
     <view class="value-item">
@@ -35,6 +52,46 @@
         <text class="value-label">理念</text>
       </view>
       <text class="value-desc">所有行业都值得用奢侈品思维重做一遍</text>
+    </view>
+  </view>
+
+  <!-- 实时进行中的咨询交付空间快捷入口（严格按登录身份隔离） -->
+  <view class="active-portal-card" wx:if="{{auth.role === 'guest'}}" bindtap="goToLogin">
+    <view class="portal-top">
+      <view class="portal-badge-group">
+        <text class="portal-live-dot">🔒</text>
+        <text class="portal-badge-txt">专属咨询交付空间 · 一客一档加密保护</text>
+      </view>
+      <text class="portal-enter">客户登录 ›</text>
+    </view>
+    <view class="portal-body">
+      <text class="portal-plan">已下单或线下签约客户，请登录查阅咨询过程与交付方案</text>
+    </view>
+    <view class="portal-actions">
+      <view class="portal-btn primary">手机号登录查阅我的项目</view>
+      <view class="portal-btn secondary" catchtap="openConsultModal">新客户预约立项</view>
+    </view>
+  </view>
+
+  <view class="active-portal-card" wx:elif="{{latestProject}}">
+    <view class="portal-top" bindtap="goToLatestProject">
+      <view class="portal-badge-group">
+        <text class="portal-live-dot">●</text>
+        <text class="portal-badge-txt">{{auth.role === 'admin' ? '顾问管理视角' : '我的专属咨询交付空间'}} · {{latestProject.status}}</text>
+      </view>
+      <text class="portal-enter">进入空间 ›</text>
+    </view>
+    <view class="portal-body" bindtap="goToLatestProject">
+      <text class="portal-plan">{{latestProject.type}}（{{latestProject.name}}）</text>
+      <view class="portal-meta-row">
+        <text class="portal-meta-tag">当前进度：{{latestProject.stepName}} ({{latestProject.currentStep}}/5)</text>
+        <text class="portal-meta-tag">已记录 {{latestProject.sessions.length}} 次咨询</text>
+        <text class="portal-meta-tag">{{latestProject.deliverables.length}} 份交付成果</text>
+      </view>
+    </view>
+    <view class="portal-actions">
+      <view class="portal-btn primary" bindtap="goToLatestProject">查看咨询过程与交付结果</view>
+      <view class="portal-btn secondary" wx:if="{{auth.role === 'admin'}}" bindtap="goToAdmin">顾问录入工作台</view>
     </view>
   </view>
 

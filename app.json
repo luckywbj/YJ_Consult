@@ -3,7 +3,9 @@
     "pages/index/index",
     "pages/cases/cases",
     "pages/services/services",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/project/project",
+    "pages/admin/admin"
   ],
   "window": {
     "navigationBarBackgroundColor": "#E7D5BF",

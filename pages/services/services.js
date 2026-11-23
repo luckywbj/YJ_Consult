@@ -1,67 +1,22 @@
 // pages/services/services.js
+const consultStore = require('../../utils/consultStore');
+
 Page({
   data: {
     currentPlan: 0,
     typeIndex: 0,
-    typeOptions: [
-      '1对1 商业闭门深度私董会',
-      '高客单商业操盘全案',
-      '年度战略商业顾问（限额）'
-    ],
+    payMode: 'deposit', // 'deposit' | 'full' | 'audit'
+    typeOptions: consultStore.SERVICES_CATALOG.map(s => s.name),
     formData: {
       name: '',
       phone: '',
       industry: '',
+      ticketBefore: '',
+      revenueBefore: '',
       problem: ''
     },
-    servicesList: [
-      {
-        id: 's1',
-        tier: '旗舰单品 · 深度问诊',
-        name: '1对1 商业闭门深度私董会',
-        quota: '每月仅限 5 席',
-        target: '年营收500万以上、客单价遇瓶颈的企业主 / 知识商业IP',
-        deliverables: [
-          '3小时面对面闭门深度商业逻辑推演',
-          '重构企业“奢侈品思维”产品定价与溢价体系',
-          '独家定制《企业高客单破局行动路线图》',
-          '交付后 14 天顾问团队答疑答辩追踪'
-        ]
-      },
-      {
-        id: 's2',
-        tier: '全案赋能 · 体系操盘',
-        name: '高客单商业操盘全案',
-        quota: '每季度仅接 2 席',
-        target: '希望打造销冠级成交体系与高转化会销漏斗的成熟团队',
-        deliverables: [
-          '顾问团队进驻调研，拆解现有产品交付漏洞',
-          '全套奢侈品成交话术库、朋友圈发售剧本SOP输出',
-          '现场销冠级高客单谈单培训与模拟演练',
-          '全程协助落地一场高产出发售活动'
-        ]
-      },
-      {
-        id: 's3',
-        tier: '长期陪跑 · 顶层协同',
-        name: '年度战略商业顾问（限额）',
-        quota: '全年仅开放 3 个席位',
-        target: '志在成为细分赛道领头羊的高成长型企业',
-        deliverables: [
-          '全年战略股东级定期闭门复盘与经营研讨',
-          '重大商业并购、合伙人机制、融资顶层设计把关',
-          '岩姐高净值商业圈层与异业核心生态资源引荐',
-          '随时为创始人提供重大商业决策参谋支持'
-        ]
-      }
-    ],
-    steps: [
-      { step: '01', title: '资质初筛', desc: '提交企业经营现状，匹配最适合的咨询产品与顾问排期' },
-      { step: '02', title: '深度问诊', desc: '全维度剖析客群画像、定价模式、销售卡点与交付链路' },
-      { step: '03', title: '全案输出', desc: '产出可执行、可衡量的 10 倍客单跃迁操盘方案' },
-      { step: '04', title: '陪跑落地', desc: '协助团队打通成交闭环，确保方案落到实处' },
-      { step: '05', title: '复盘迭代', desc: '复盘关键指标转化率，沉淀企业长期商业资产' }
-    ]
+    servicesList: consultStore.SERVICES_CATALOG,
+    steps: consultStore.DELIVERY_STEPS
   },
 
   selectPlan(e) {
@@ -69,11 +24,17 @@ Page({
     this.setData({ currentPlan: idx, typeIndex: idx });
   },
 
+  selectPayMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({ payMode: mode });
+  },
+
   appointSpecificPlan(e) {
     const planName = e.currentTarget.dataset.name;
+    const mode = e.currentTarget.dataset.mode || 'deposit';
     const idx = this.data.typeOptions.indexOf(planName);
     if (idx !== -1) {
-      this.setData({ typeIndex: idx, currentPlan: idx });
+      this.setData({ typeIndex: idx, currentPlan: idx, payMode: mode });
     }
     wx.pageScrollTo({
       selector: '#appointment-form',
@@ -82,22 +43,27 @@ Page({
   },
 
   bindTypeChange(e) {
-    this.setData({ typeIndex: Number(e.detail.value) });
+    const idx = Number(e.detail.value);
+    this.setData({ typeIndex: idx, currentPlan: idx });
   },
 
   bindName(e) { this.setData({ 'formData.name': e.detail.value }); },
   bindPhone(e) { this.setData({ 'formData.phone': e.detail.value }); },
   bindIndustry(e) { this.setData({ 'formData.industry': e.detail.value }); },
+  bindTicketBefore(e) { this.setData({ 'formData.ticketBefore': e.detail.value }); },
+  bindRevenueBefore(e) { this.setData({ 'formData.revenueBefore': e.detail.value }); },
   bindProblem(e) { this.setData({ 'formData.problem': e.detail.value }); },
 
   submitForm() {
-    const { name, phone, industry, problem } = this.data.formData;
+    const { name, phone, industry, ticketBefore, revenueBefore, problem } = this.data.formData;
+    const { typeIndex, typeOptions, servicesList, payMode } = this.data;
+
     if (!name.trim()) {
-      wx.showToast({ title: '请填写称呼', icon: 'none' });
+      wx.showToast({ title: '请填写您的称呼', icon: 'none' });
       return;
     }
     if (!phone.trim()) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+      wx.showToast({ title: '请填写联系电话或微信', icon: 'none' });
       return;
     }
     if (!industry.trim()) {
@@ -105,31 +71,74 @@ Page({
       return;
     }
 
-    const appt = {
-      id: 'YY' + Date.now().toString().slice(-8),
-      name: name.trim(),
-      phone: phone.trim(),
-      industry: industry.trim(),
-      problem: problem.trim() || '期待高客单突破',
-      type: this.data.typeOptions[this.data.typeIndex],
-      status: '审核中',
-      createTime: new Date().toLocaleString()
-    };
+    const currentService = servicesList[typeIndex];
 
-    const list = wx.getStorageSync('my_consult_appointments') || [];
-    list.unshift(appt);
-    wx.setStorageSync('my_consult_appointments', list);
+    // 如果是支付定金或全款模式，唤起模拟微信支付收银台确认
+    if (payMode === 'deposit' || payMode === 'full') {
+      const amountText = payMode === 'full' ? `¥${currentService.price.toLocaleString()}` : currentService.depositText;
+      wx.showModal({
+        title: '微信支付 · 咨询立项确认',
+        content: `服务方案：${currentService.name}\n立项支付金额：${amountText}\n\n支付后将立即为您开通「专属咨询交付空间」，记录每次咨询过程与交付结果。`,
+        confirmText: '确认支付',
+        cancelText: '暂不支付',
+        confirmColor: '#8D6238',
+        success: (res) => {
+          if (res.confirm) {
+            wx.showLoading({ title: '正在立项建档...' });
+            setTimeout(() => {
+              wx.hideLoading();
+              const newOrder = consultStore.createOrder({
+                name,
+                phone,
+                industry,
+                ticketBefore,
+                revenueBefore,
+                problem,
+                type: typeOptions[typeIndex],
+                isPaid: true,
+                payType: payMode
+              });
+              this.afterOrderCreated(newOrder, true);
+            }, 500);
+          }
+        }
+      });
+    } else {
+      // 免付定金初审模式
+      const newOrder = consultStore.createOrder({
+        name,
+        phone,
+        industry,
+        ticketBefore,
+        revenueBefore,
+        problem,
+        type: typeOptions[typeIndex],
+        isPaid: false,
+        payType: 'audit'
+      });
+      this.afterOrderCreated(newOrder, false);
+    }
+  },
+
+  afterOrderCreated(newOrder, isPaid) {
+    this.setData({
+      formData: { name: '', phone: '', industry: '', ticketBefore: '', revenueBefore: '', problem: '' }
+    });
 
     wx.showModal({
-      title: '预约申请已提交',
-      content: '感谢您的信任！岩姐团队将在 24 小时内完成初审并与您联系。',
-      showCancel: false,
-      confirmText: '好的',
+      title: isPaid ? '立项成功 · 交付空间已开启' : '预约申请已建档',
+      content: isPaid
+        ? `项目编号：${newOrder.id}\n已为您生成 5 步交付空间与首次 1V1 问诊准备清单，是否立即前往查看？`
+        : `项目编号：${newOrder.id}\n您可以前往专属咨询空间查看初审进度、补充资料或随时在线支付立项。`,
+      confirmText: '进入交付空间',
+      cancelText: '留在本页',
       confirmColor: '#8D6238',
-      success: () => {
-        this.setData({
-          formData: { name: '', phone: '', industry: '', problem: '' }
-        });
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({
+            url: `/pages/project/project?id=${newOrder.id}`
+          });
+        }
       }
     });
   },

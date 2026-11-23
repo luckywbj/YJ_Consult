@@ -1,0 +1,905 @@
+/* pages/project/project.wxss */
+.project-page {
+  min-height: 100vh;
+  background-color: #F8F6F2;
+  padding-bottom: 160rpx;
+}
+
+/* 顶部黑金尊享项目头部 */
+.hero-header {
+  background: linear-gradient(160deg, #1E1915 0%, #332820 100%);
+  color: #FFFFFF;
+  padding: 28rpx 32rpx 36rpx 32rpx;
+  border-bottom-left-radius: 32rpx;
+  border-bottom-right-radius: 32rpx;
+  box-shadow: 0 12rpx 36rpx rgba(30, 25, 21, 0.25);
+}
+
+.switcher-bar {
+  margin-bottom: 22rpx;
+}
+
+.switcher-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1rpx solid rgba(226, 182, 120, 0.35);
+  border-radius: 30rpx;
+  padding: 10rpx 24rpx;
+  font-size: 22rpx;
+}
+
+.switcher-label {
+  color: #C2B2A0;
+}
+
+.switcher-val {
+  color: #F3E3CE;
+  font-weight: 600;
+  margin-right: 10rpx;
+}
+
+.switcher-arrow {
+  color: #E2B678;
+  font-size: 18rpx;
+}
+
+.hero-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.order-id {
+  font-size: 22rpx;
+  color: #B6A797;
+  letter-spacing: 1rpx;
+}
+
+.status-group {
+  display: flex;
+  gap: 12rpx;
+}
+
+.pay-badge {
+  font-size: 20rpx;
+  color: #E6C79C;
+  background: rgba(230, 199, 156, 0.14);
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+}
+
+.status-badge {
+  font-size: 20rpx;
+  color: #241E1A;
+  background: #E2B678;
+  font-weight: 600;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.status-badge.done {
+  background: #87C38F;
+  color: #142817;
+}
+
+.hero-plan-name {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #FFF7EB;
+  margin-bottom: 10rpx;
+  letter-spacing: 1rpx;
+}
+
+.hero-client-info {
+  display: block;
+  font-size: 24rpx;
+  color: #C7B9A8;
+  margin-bottom: 28rpx;
+}
+
+.unpaid-alert {
+  background: rgba(226, 182, 120, 0.16);
+  border: 1rpx solid #E2B678;
+  border-radius: 14rpx;
+  padding: 18rpx 22rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.unpaid-txt {
+  font-size: 22rpx;
+  color: #F5E6D3;
+  flex: 1;
+  margin-right: 16rpx;
+}
+
+.unpaid-btn {
+  background: #E2B678;
+  color: #241E1A;
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 12rpx 22rpx;
+  border-radius: 28rpx;
+  flex-shrink: 0;
+}
+
+/* 5步里程碑进度条 */
+.milestone-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 18rpx;
+  padding: 22rpx 16rpx;
+}
+
+.ms-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  opacity: 0.45;
+}
+
+.ms-node.reached {
+  opacity: 0.9;
+}
+
+.ms-node.current {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.ms-circle {
+  width: 46rpx;
+  height: 46rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #DCD0C2;
+  font-size: 22rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8rpx;
+}
+
+.ms-node.reached .ms-circle {
+  background: #8D6238;
+  color: #FFFFFF;
+}
+
+.ms-node.current .ms-circle {
+  background: #E2B678;
+  color: #241E1A;
+  box-shadow: 0 0 16rpx rgba(226, 182, 120, 0.6);
+}
+
+.ms-title {
+  font-size: 20rpx;
+  color: #EBDCCB;
+}
+
+/* Tab 导航 */
+.tab-nav {
+  display: flex;
+  background: #FFFFFF;
+  border-bottom: 1rpx solid #ECE4D9;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 26rpx 0;
+  position: relative;
+}
+
+.tab-txt {
+  font-size: 26rpx;
+  color: #7D736A;
+  font-weight: 500;
+}
+
+.tab-item.active .tab-txt {
+  color: #8D6238;
+  font-weight: 600;
+}
+
+.tab-line {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64rpx;
+  height: 6rpx;
+  background: #8D6238;
+  border-radius: 3rpx;
+}
+
+.tab-content {
+  padding: 28rpx 32rpx;
+}
+
+.section-intro-bar {
+  background: #F3ECE2;
+  border-radius: 12rpx;
+  padding: 16rpx 22rpx;
+  margin-bottom: 24rpx;
+}
+
+.intro-txt {
+  font-size: 22rpx;
+  color: #6E5D4F;
+}
+
+/* 咨询过程卡片 */
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+.session-card {
+  padding: 36rpx 32rpx;
+  background: #FFFFFF;
+}
+
+.ses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.ses-no-badge {
+  background: #241E1A;
+  color: #EBDCCB;
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 6rpx 18rpx;
+  border-radius: 8rpx;
+}
+
+.ses-date {
+  font-size: 22rpx;
+  color: #8C8074;
+}
+
+.ses-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 16rpx;
+  line-height: 1.4;
+}
+
+.ses-meta-box {
+  background: #F9F7F3;
+  border-radius: 10rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.ses-meta-line {
+  font-size: 22rpx;
+  color: #6B6158;
+}
+
+.ses-block {
+  margin-bottom: 22rpx;
+  padding: 20rpx 22rpx;
+  background: #FAF8F5;
+  border-radius: 12rpx;
+  border-left: 6rpx solid #C8B6A2;
+}
+
+.ses-block.highlight {
+  background: #FDF9F3;
+  border-left-color: #8D6238;
+}
+
+.block-tag-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.dot-gold {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #8D6238;
+  margin-right: 12rpx;
+}
+
+.block-tag-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #3A3028;
+}
+
+.block-p {
+  font-size: 26rpx;
+  color: #4A413A;
+  line-height: 1.6;
+}
+
+/* 课后落地行动清单 */
+.action-checklist {
+  margin-top: 26rpx;
+  border-top: 1rpx solid #EFEAE2;
+  padding-top: 24rpx;
+}
+
+.checklist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.checklist-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.checklist-tip {
+  font-size: 20rpx;
+  color: #9A8D7F;
+}
+
+.action-row {
+  background: #F9F7F3;
+  border-radius: 12rpx;
+  padding: 18rpx 20rpx;
+  margin-bottom: 14rpx;
+  border: 1rpx solid #EAE2D7;
+}
+
+.action-row.completed {
+  background: #F4F8F4;
+  border-color: #CFE3D2;
+}
+
+.action-main {
+  display: flex;
+  align-items: flex-start;
+}
+
+.checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #8D6238;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 24rpx;
+  margin-top: 2rpx;
+}
+
+.checkbox.checked {
+  background: #8D6238;
+}
+
+.action-text {
+  font-size: 26rpx;
+  color: #2E2722;
+  line-height: 1.45;
+  flex: 1;
+}
+
+.action-row.completed .action-text {
+  color: #5C6B5E;
+}
+
+.action-feedback-box {
+  margin-top: 12rpx;
+  padding-left: 52rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.feedback-content {
+  font-size: 22rpx;
+  color: #61584F;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 10rpx 14rpx;
+  border-radius: 8rpx;
+}
+
+.feedback-edit-btn {
+  font-size: 22rpx;
+  color: #8D6238;
+  font-weight: 500;
+}
+
+.consultant-remark {
+  margin-top: 18rpx;
+  padding: 16rpx 20rpx;
+  background: #F6EFE6;
+  border-radius: 10rpx;
+}
+
+.remark-label {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #8D6238;
+}
+
+.remark-txt {
+  font-size: 22rpx;
+  color: #594D43;
+}
+
+/* ==================== TAB 1：交付结果看板 ==================== */
+.result-dashboard {
+  padding: 36rpx 32rpx;
+  background: #FFFFFF;
+  margin-bottom: 36rpx;
+}
+
+.dash-header {
+  margin-bottom: 24rpx;
+}
+
+.dash-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.dash-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8C8074;
+  margin-top: 4rpx;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin-bottom: 24rpx;
+}
+
+.metric-card {
+  background: #FAF7F2;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 14rpx;
+  padding: 20rpx;
+}
+
+.m-name {
+  display: block;
+  font-size: 24rpx;
+  color: #7D736A;
+  margin-bottom: 10rpx;
+}
+
+.m-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.m-before {
+  font-size: 22rpx;
+  color: #9A8E82;
+}
+
+.m-after {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #8D6238;
+}
+
+.highlight-box {
+  background: linear-gradient(135deg, #27211C 0%, #3A2F26 100%);
+  border-radius: 14rpx;
+  padding: 24rpx;
+  color: #FFFFFF;
+}
+
+.hl-title {
+  display: block;
+  font-size: 24rpx;
+  color: #E2B678;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.hl-desc {
+  display: block;
+  font-size: 25rpx;
+  color: #F4EAE0;
+  line-height: 1.55;
+}
+
+/* 交付物清单 */
+.sec-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.sec-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.sec-count {
+  font-size: 22rpx;
+  color: #8C8074;
+}
+
+.deliv-card {
+  padding: 32rpx;
+  background: #FFFFFF;
+  margin-bottom: 24rpx;
+}
+
+.deliv-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.deliv-stage {
+  font-size: 20rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 4rpx 14rpx;
+  border-radius: 6rpx;
+  font-weight: 600;
+}
+
+.deliv-status {
+  font-size: 20rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 6rpx;
+}
+
+.deliv-status.accepted {
+  background: #E9F5EB;
+  color: #2E6F3A;
+}
+
+.deliv-status.pending {
+  background: #FFF3E0;
+  color: #B86B14;
+}
+
+.deliv-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 10rpx;
+}
+
+.deliv-summary {
+  display: block;
+  font-size: 24rpx;
+  color: #5C534A;
+  line-height: 1.5;
+  margin-bottom: 18rpx;
+}
+
+.deliv-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 22rpx;
+  color: #9A8E82;
+  margin-bottom: 22rpx;
+}
+
+.deliv-actions {
+  display: flex;
+  gap: 16rpx;
+  border-top: 1rpx solid #F0EAE1;
+  padding-top: 20rpx;
+}
+
+.d-btn {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.d-btn.preview {
+  border: 1rpx solid #8D6238;
+  color: #8D6238;
+}
+
+.d-btn.accept {
+  background: #8D6238;
+  color: #FFFFFF;
+}
+
+.d-btn.accepted-tag {
+  background: #F4F7F4;
+  color: #4E7A55;
+}
+
+/* 客户评价 */
+.review-card {
+  padding: 32rpx;
+  background: #FFFFFF;
+  margin-top: 28rpx;
+}
+
+.review-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 16rpx;
+}
+
+.review-input {
+  width: 100%;
+  height: 150rpx;
+  background: #F9F7F3;
+  border: 1rpx solid #E5DDD2;
+  border-radius: 12rpx;
+  padding: 18rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+  margin-bottom: 20rpx;
+}
+
+.review-save-btn {
+  width: 100%;
+}
+
+/* ==================== TAB 2：五步详情与订单信息 ==================== */
+.steps-detail-card {
+  padding: 32rpx;
+  background: #FFFFFF;
+  margin-bottom: 28rpx;
+}
+
+.sd-header-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 24rpx;
+}
+
+.sd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.sd-item {
+  display: flex;
+  align-items: flex-start;
+  opacity: 0.5;
+}
+
+.sd-item.done,
+.sd-item.active {
+  opacity: 1;
+}
+
+.sd-num {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #E5DDD2;
+  color: #6B6158;
+  font-size: 22rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.sd-item.done .sd-num {
+  background: #8D6238;
+  color: #FFFFFF;
+}
+
+.sd-item.active .sd-num {
+  background: #241E1A;
+  color: #E2B678;
+}
+
+.sd-body {
+  flex: 1;
+}
+
+.sd-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4rpx;
+}
+
+.sd-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.sd-state {
+  font-size: 22rpx;
+  color: #8D6238;
+}
+
+.sd-desc {
+  font-size: 24rpx;
+  color: #7D736A;
+}
+
+.order-info-card {
+  padding: 32rpx;
+  background: #FFFFFF;
+}
+
+.oi-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 20rpx;
+}
+
+.oi-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F4EFE8;
+  font-size: 25rpx;
+}
+
+.oi-k {
+  color: #8C8074;
+  width: 180rpx;
+  flex-shrink: 0;
+}
+
+.oi-v {
+  color: #2E2722;
+  text-align: right;
+  flex: 1;
+}
+
+.oi-v.highlight {
+  color: #8D6238;
+  font-weight: 700;
+}
+
+/* 底部悬浮栏 */
+.bottom-fixed-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-top: 1rpx solid #EAE1D5;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom)) 32rpx;
+  display: flex;
+  gap: 20rpx;
+  z-index: 99;
+}
+
+.bf-btn {
+  text-align: center;
+  padding: 22rpx 20rpx;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.bf-btn.outline {
+  flex: 2;
+  border: 2rpx solid #8D6238;
+  color: #8D6238;
+}
+
+.bf-btn.gold {
+  flex: 3;
+  background: linear-gradient(135deg, #322A24 0%, #1E1915 100%);
+  color: #E8CBA1;
+}
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+}
+
+.modal-box {
+  background: #FFFFFF;
+  width: 100%;
+  border-radius: 24rpx;
+  padding: 36rpx;
+}
+
+.modal-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 10rpx;
+}
+
+.modal-sub {
+  display: block;
+  font-size: 24rpx;
+  color: #7D736A;
+  margin-bottom: 20rpx;
+}
+
+.modal-textarea {
+  width: 100%;
+  height: 180rpx;
+  background: #F9F7F3;
+  border: 1rpx solid #E5DDD2;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+  margin-bottom: 24rpx;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 20rpx;
+}
+
+.m-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+}
+
+.m-btn.cancel {
+  background: #F2EDE6;
+  color: #6B6158;
+}
+
+.m-btn.confirm {
+  background: #8D6238;
+  color: #FFFFFF;
+}

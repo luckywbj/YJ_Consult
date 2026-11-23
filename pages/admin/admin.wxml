@@ -1,0 +1,296 @@
+<!-- pages/admin/admin.wxml -->
+<!-- 若非顾问管理员身份，显示后台权限口令锁屏，彻底阻断非授权访问 -->
+<view class="admin-auth-guard" wx:if="{{auth.role !== 'admin'}}">
+  <view class="guard-card luxury-card">
+    <text class="guard-icon">🔐</text>
+    <text class="guard-title">岩姐顾问后台 · 权限验证</text>
+    <text class="guard-sub">此工作台仅限岩姐咨询顾问与内部工作人员进入，请输入后台管理口令解锁：</text>
+    <input 
+      class="guard-input" 
+      password="true" 
+      placeholder="请输入顾问后台口令（演示口令：8888）" 
+      value="{{passInput}}" 
+      bindinput="onGuardPassInput" />
+    <button class="gold-btn full-btn" bindtap="unlockAdmin">验证并进入工作台</button>
+    <view class="guard-back" bindtap="goBackClient">返回客户端首页</view>
+  </view>
+</view>
+
+<view class="admin-page" wx:elif="{{project}}">
+  <!-- 顶部工作台横幅与项目选择 -->
+  <view class="admin-header">
+    <view class="ah-top">
+      <text class="ah-badge">CONSULTANT WORKSPACE · 顾问管理端</text>
+      <view class="preview-client-btn" bindtap="goToClientPortal">预览客户视角 ›</view>
+    </view>
+    <text class="ah-title">咨询过程与交付成果录入台</text>
+
+    <!-- 选择当前操作的客户订单 -->
+    <view class="client-selector-box">
+      <text class="cs-label">当前管理客户订单（点击切换）：</text>
+      <scroll-view class="client-pills-scroll" scroll-x="true" enable-flex="true">
+        <view 
+          class="client-pill {{item.id === project.id ? 'active' : ''}}" 
+          wx:for="{{allProjects}}" 
+          wx:key="id"
+          bindtap="selectProject"
+          data-id="{{item.id}}">
+          <text class="cp-name">{{item.name}} · {{item.industry}}</text>
+          <text class="cp-plan">{{item.type}} ({{item.stepName}})</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 操作模块切换导航 -->
+  <view class="admin-tabs">
+    <view class="a-tab {{adminTab === 0 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="0">
+      1. 录咨询过程
+    </view>
+    <view class="a-tab {{adminTab === 1 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="1">
+      2. 发交付方案
+    </view>
+    <view class="a-tab {{adminTab === 2 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="2">
+      3. 战果与进度
+    </view>
+    <view class="a-tab {{adminTab === 3 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="3">
+      4. 新客户建档
+    </view>
+  </view>
+
+  <!-- ==================== 模块 0：录入每次咨询过程记录 ==================== -->
+  <view class="admin-panel" wx:if="{{adminTab === 0}}">
+    <view class="panel-card luxury-card">
+      <view class="panel-title-row">
+        <text class="panel-title">新增第 {{project.sessions.length + 1}} 次咨询过程纪要</text>
+        <text class="quick-fill-btn" bindtap="fillDemoSession">⚡ 一键填入示例数据</text>
+      </view>
+      <text class="panel-sub">保存后将实时同步至【{{project.name}}】的咨询过程时间轴，并向客户派发课后落地行动项。</text>
+
+      <view class="f-group">
+        <text class="f-label">本次咨询主题 *</text>
+        <input class="f-input" placeholder="如：高客单产品矩阵重构与首场私享会发售推演" value="{{sessionForm.title}}" bindinput="onSesTitle" />
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">咨询形式 / 地点</text>
+          <input class="f-input" placeholder="如：线下闭门 / 腾讯会议" value="{{sessionForm.mode}}" bindinput="onSesMode" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">参会人员</text>
+          <input class="f-input" placeholder="如：岩姐、创始人及高管" value="{{sessionForm.participants}}" bindinput="onSesParticipants" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">01 · 核心商业痛点诊断 *</text>
+        <textarea class="f-textarea" placeholder="记录本次咨询剖析出的客户核心经营卡点与利润漏洞..." value="{{sessionForm.diagnosis}}" bindinput="onSesDiagnosis"></textarea>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">02 · 岩姐咨询破局重构解法 *</text>
+        <textarea class="f-textarea" placeholder="记录本次给出的高客单定价策略、成交漏斗设计或组织操盘解法..." value="{{sessionForm.solution}}" bindinput="onSesSolution"></textarea>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">03 · 课后落地行动清单（每行一条，客户可打钩打卡）</text>
+        <textarea class="f-textarea" placeholder="每行输入一条要求客户团队完成的落地动作，例如：\n1. 筛选近半年TOP 30高净值老客名单\n2. 完成销售团队高客单话术通关考核" value="{{sessionForm.actionsText}}" bindinput="onSesActions"></textarea>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">04 · 顾问复盘批注（选填）</text>
+        <input class="f-input" placeholder="对客户团队执行力的点评或下一阶段重点叮嘱" value="{{sessionForm.consultantNote}}" bindinput="onSesNote" />
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="submitNewSession">保存并同步至客户交付空间</button>
+    </view>
+
+    <!-- 已录入的咨询场次列表预览 -->
+    <view class="history-card luxury-card">
+      <text class="his-title">该项目已录入的咨询过程 ({{project.sessions.length}} 场)</text>
+      <view class="his-item" wx:for="{{project.sessions}}" wx:key="sessionId">
+        <view class="his-top">
+          <text class="his-badge">第 {{item.sessionNo}} 次</text>
+          <text class="his-date">{{item.date}}</text>
+        </view>
+        <text class="his-name">{{item.title}}</text>
+        <text class="his-sub">含 {{item.actionItems.length}} 项课后落地任务</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 模块 1：上传/发布阶段交付成果方案 ==================== -->
+  <view class="admin-panel" wx:if="{{adminTab === 1}}">
+    <view class="panel-card luxury-card">
+      <view class="panel-title-row">
+        <text class="panel-title">发布阶段交付方案 / SOP 文档</text>
+        <text class="quick-fill-btn" bindtap="fillDemoDeliverable">⚡ 一键填入示例方案</text>
+      </view>
+      <text class="panel-sub">发布后客户可在「交付结果看板」查阅方案详情并进行在线确认验收。</text>
+
+      <view class="f-group">
+        <text class="f-label">交付成果文档标题 *</text>
+        <input class="f-input" placeholder="如：《企业10倍客单破局行动路线图与话术SOP》" value="{{delivForm.title}}" bindinput="onDelivTitle" />
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">所属交付阶段</text>
+          <picker bindchange="onDelivStageChange" value="{{delivForm.stageIndex}}" range="{{stageOptions}}">
+            <view class="f-picker">{{stageOptions[delivForm.stageIndex]}} ▼</view>
+          </picker>
+        </view>
+        <view class="f-group half">
+          <text class="f-label">文档类型标注</text>
+          <input class="f-input" placeholder="如：PDF / 操盘全案" value="{{delivForm.fileType}}" bindinput="onDelivType" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">交付方案核心内容与执行要点摘要 *</text>
+        <textarea class="f-textarea tall" placeholder="详细描述该份交付物包含的核心模块、定价表、发售剧本或SOP执行标准..." value="{{delivForm.summary}}" bindinput="onDelivSummary"></textarea>
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="submitNewDeliverable">发布交付成果至客户空间</button>
+    </view>
+
+    <!-- 已发布交付物列表 -->
+    <view class="history-card luxury-card">
+      <text class="his-title">该项目已发布的交付成果 ({{project.deliverables.length}} 份)</text>
+      <view class="his-item" wx:for="{{project.deliverables}}" wx:key="delivId">
+        <view class="his-top">
+          <text class="his-badge">{{item.stage}}</text>
+          <text class="his-status">{{item.status}}</text>
+        </view>
+        <text class="his-name">{{item.title}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 模块 2：推进五步阶段与更新商业战果看板 ==================== -->
+  <view class="admin-panel" wx:if="{{adminTab === 2}}">
+    <!-- 推进 5 步里程碑 -->
+    <view class="panel-card luxury-card">
+      <text class="panel-title">推进项目 5 步闭环交付阶段</text>
+      <text class="panel-sub">点击下方阶段节点，立即切换【{{project.name}}】当前所处的交付里程碑：</text>
+
+      <view class="step-selector-grid">
+        <view 
+          class="step-select-btn {{project.currentStep === item.step ? 'current' : (project.currentStep > item.step ? 'passed' : '')}}" 
+          wx:for="{{steps}}" 
+          wx:key="step"
+          bindtap="onChangeStep"
+          data-step="{{item.step}}">
+          <text class="ss-code">{{item.code}}</text>
+          <text class="ss-name">{{item.title}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 更新客户服务前后业绩增长看板 -->
+    <view class="panel-card luxury-card">
+      <text class="panel-title">更新商业增长战果对比看板</text>
+      <text class="panel-sub">实时维护客户服务前后的客单价、毛利率、营收规模与阶段战果复盘：</text>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">服务前客单价</text>
+          <input class="f-input" value="{{metricsForm.ticketBefore}}" bindinput="onMetTicketBefore" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">服务后达成客单价 *</text>
+          <input class="f-input highlight" value="{{metricsForm.ticketAfter}}" bindinput="onMetTicketAfter" />
+        </view>
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">服务前综合毛利率</text>
+          <input class="f-input" value="{{metricsForm.marginBefore}}" bindinput="onMetMarginBefore" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">服务后达成毛利率 *</text>
+          <input class="f-input highlight" value="{{metricsForm.marginAfter}}" bindinput="onMetMarginAfter" />
+        </view>
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">服务前月均营收</text>
+          <input class="f-input" value="{{metricsForm.revenueBefore}}" bindinput="onMetRevBefore" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">服务后达成营收 *</text>
+          <input class="f-input highlight" value="{{metricsForm.revenueAfter}}" bindinput="onMetRevAfter" />
+        </view>
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">服务前转化率</text>
+          <input class="f-input" value="{{metricsForm.conversionBefore}}" bindinput="onMetConvBefore" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">服务后高客单转化率 *</text>
+          <input class="f-input highlight" value="{{metricsForm.conversionAfter}}" bindinput="onMetConvAfter" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">阶段实战战果复盘总结</text>
+        <textarea class="f-textarea" value="{{metricsForm.highlightSummary}}" bindinput="onMetSummary"></textarea>
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="saveMetricsUpdate">保存并更新客户战果看板</button>
+    </view>
+  </view>
+
+  <!-- ==================== 模块 3：为线下签约客户建档立项 ==================== -->
+  <view class="admin-panel" wx:if="{{adminTab === 3}}">
+    <view class="panel-card luxury-card">
+      <text class="panel-title">为线下签约客户新建咨询档案</text>
+      <text class="panel-sub">建档后，客户在小程序「我的」页面输入下方绑定的手机号登录，即可查看自己的专属咨询交付空间（与其他客户严格隔离）。</text>
+
+      <view class="f-group">
+        <text class="f-label">客户称呼 / 创始人姓名 *</text>
+        <input class="f-input" placeholder="如：王总 / 林女士" value="{{newClientForm.name}}" bindinput="onNewClientName" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">客户登录绑定手机号 *（客户凭此号码登录）</text>
+        <input class="f-input highlight" type="number" placeholder="如：13688889999" value="{{newClientForm.phone}}" bindinput="onNewClientPhone" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">客户所在行业 *</text>
+        <input class="f-input" placeholder="如：高定珠宝 / 知识付费 / 医疗美容" value="{{newClientForm.industry}}" bindinput="onNewClientIndustry" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">签约咨询方案</text>
+        <picker bindchange="onNewClientPlanChange" value="{{newClientForm.planIndex}}" range="{{planOptions}}">
+          <view class="f-picker">{{planOptions[newClientForm.planIndex]}} ▼</view>
+        </picker>
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">服务前客单价基准</text>
+          <input class="f-input" placeholder="如：¥1,800" value="{{newClientForm.ticketBefore}}" bindinput="onNewClientTicket" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">服务前月营收基准</text>
+          <input class="f-input" placeholder="如：50万/月" value="{{newClientForm.revenueBefore}}" bindinput="onNewClientRev" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">诊前核心痛点备注</text>
+        <textarea class="f-textarea" placeholder="录入该客户签约时的核心痛点与破局目标..." value="{{newClientForm.problem}}" bindinput="onNewClientProblem"></textarea>
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="createOfflineClientOrder">确认建档并开通该客户专属交付空间</button>
+    </view>
+  </view>
+</view>

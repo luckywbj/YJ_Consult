@@ -1,9 +1,11 @@
 // pages/index/index.js
-const app = getApp();
+const consultStore = require('../../utils/consultStore');
 
 Page({
   data: {
     showModal: false,
+    auth: { role: 'guest' },
+    latestProject: null,
     form: {
       name: '',
       phone: '',
@@ -13,7 +15,49 @@ Page({
   },
 
   onLoad() {
-    console.log('首页加载完成');
+    this.refreshLatestProject();
+  },
+
+  onShow() {
+    this.refreshLatestProject();
+  },
+
+  refreshLatestProject() {
+    const auth = consultStore.getAuthSession();
+    const visibleProjects = consultStore.getVisibleProjects();
+    this.setData({
+      auth,
+      latestProject: visibleProjects.length > 0 ? visibleProjects[0] : null
+    });
+  },
+
+  goToLogin() {
+    wx.setStorageSync('pending_login_modal', 'client');
+    wx.switchTab({
+      url: '/pages/mine/mine'
+    });
+  },
+
+  goToLoginWithMode(e) {
+    const mode = e.currentTarget.dataset.mode || 'client';
+    wx.setStorageSync('pending_login_modal', mode);
+    wx.switchTab({
+      url: '/pages/mine/mine'
+    });
+  },
+
+  goToLatestProject() {
+    if (!this.data.latestProject) return;
+    wx.navigateTo({
+      url: `/pages/project/project?id=${this.data.latestProject.id}`
+    });
+  },
+
+  goToAdmin() {
+    const id = this.data.latestProject ? this.data.latestProject.id : '';
+    wx.navigateTo({
+      url: `/pages/admin/admin?id=${id}`
+    });
   },
 
   openConsultModal() {
@@ -49,35 +93,39 @@ Page({
       return;
     }
     if (!phone || !phone.trim()) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+      wx.showToast({ title: '请填写手机号（用于登录查询交付进度）', icon: 'none' });
       return;
     }
 
-    const newAppointment = {
-      id: 'YY' + Date.now().toString().slice(-8),
+    const newOrder = consultStore.createOrder({
       name: name.trim(),
       phone: phone.trim(),
-      industry: industry.trim() || '未注明',
-      problem: problem.trim() || '期待商业诊断',
-      type: '1对1商业闭门私董会',
-      status: '审核中',
-      createTime: new Date().toLocaleString()
-    };
-
-    // 保存到本地 Storage
-    const list = wx.getStorageSync('my_consult_appointments') || [];
-    list.unshift(newAppointment);
-    wx.setStorageSync('my_consult_appointments', list);
-
-    wx.showToast({
-      title: '预约申请已提交',
-      icon: 'success',
-      duration: 2000
+      industry: industry.trim() || '未注明行业',
+      problem: problem.trim() || '期待1V1商业模式诊断与客单价破局',
+      type: '1对1 商业闭门深度私董会',
+      isPaid: true,
+      payType: 'deposit'
     });
 
     this.setData({
       showModal: false,
       form: { name: '', phone: '', industry: '', problem: '' }
+    });
+    this.refreshLatestProject();
+
+    wx.showModal({
+      title: '预约立项成功',
+      content: `已为您自动绑定手机号（${newOrder.phone}）并开通专属咨询交付空间，仅您本人可查阅。`,
+      confirmText: '进入我的空间',
+      cancelText: '稍后查看',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({
+            url: `/pages/project/project?id=${newOrder.id}`
+          });
+        }
+      }
     });
   }
 });

@@ -80,6 +80,77 @@
   margin-bottom: 24rpx;
 }
 
+/* 价格横幅 */
+.price-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #FDFBF8 0%, #F6EFE6 100%);
+  border: 1rpx solid #E8DCCB;
+  border-radius: 12rpx;
+  padding: 16rpx 22rpx;
+  margin-bottom: 20rpx;
+}
+
+.price-main {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.price-label {
+  font-size: 22rpx;
+  color: #7D736A;
+}
+
+.price-val {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #8D6238;
+}
+
+.deposit-tag {
+  font-size: 22rpx;
+  color: #FFFFFF;
+  background: #241E1A;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+/* 数字化交付保障提示 */
+.digital-guarantee {
+  display: flex;
+  align-items: flex-start;
+  background: #F9F7F3;
+  border-radius: 10rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.dg-icon {
+  color: #B88B4A;
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}
+
+.dg-text {
+  font-size: 22rpx;
+  color: #6E6257;
+  line-height: 1.4;
+}
+
+.card-action-bar.two-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 10rpx;
+}
+
+.plan-btn-half {
+  flex: 1;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+}
+
 .service-divider {
   height: 1rpx;
   background: #F0ECE4;
@@ -252,6 +323,87 @@
 .picker-arrow {
   font-size: 20rpx;
   color: #999;
+}
+
+.highlight-picker {
+  border-color: #C7AD8E;
+  background: #FCF9F4;
+}
+
+.picker-main-text {
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.picker-price-tag {
+  font-size: 24rpx;
+  color: #8D6238;
+  font-weight: 600;
+}
+
+/* 下单模式选择器 */
+.pay-mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.pay-mode-item {
+  border: 2rpx solid #E6DDD0;
+  background: #FAF8F5;
+  border-radius: 14rpx;
+  padding: 20rpx 24rpx;
+  transition: all 0.2s ease;
+}
+
+.pay-mode-item.active {
+  border-color: #8D6238;
+  background: #FDF9F3;
+  box-shadow: 0 6rpx 18rpx rgba(141, 98, 56, 0.1);
+}
+
+.pm-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.pm-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.pm-badge {
+  font-size: 20rpx;
+  color: #FFFFFF;
+  background: #8D6238;
+  padding: 2rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.pm-price {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #8D6238;
+  margin-bottom: 4rpx;
+}
+
+.pm-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #7D736A;
+}
+
+.form-row-two {
+  display: flex;
+  gap: 20rpx;
+}
+
+.form-group.half {
+  flex: 1;
 }
 
 .form-textarea {

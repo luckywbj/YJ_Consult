@@ -1,6 +1,132 @@
 <!-- pages/mine/mine.wxml -->
 <view class="container mine-container">
-  <!-- 顶部顾问 IP 名片 -->
+  <!-- 顶部身份与登录状态卡片（始终展示当前权限与「客户手机号登录 / 顾问后台登录」切换按钮） -->
+  <view class="auth-status-card luxury-card">
+    <!-- 状态 1：未登录访客 -->
+    <view class="auth-row" wx:if="{{auth.role === 'guest'}}">
+      <view class="auth-avatar guest">🔒</view>
+      <view class="auth-info">
+        <view class="auth-name-line">
+          <text class="auth-title">当前权限：未登录访客</text>
+        </view>
+        <text class="auth-desc">为保护客户商业机密，登录后方可查阅专属咨询过程与交付方案</text>
+      </view>
+    </view>
+
+    <!-- 状态 2：已登录客户（仅看自己项目） -->
+    <view class="auth-row" wx:elif="{{auth.role === 'client'}}">
+      <view class="auth-avatar client">VIP</view>
+      <view class="auth-info">
+        <view class="auth-name-line">
+          <text class="auth-title">{{auth.clientName}}</text>
+          <text class="role-pill client">当前权限：签约客户</text>
+        </view>
+        <text class="auth-desc">登录手机号：{{auth.clientPhone}}（仅显示您本人的咨询项目）</text>
+      </view>
+      <view class="logout-link" bindtap="handleLogout">退出</view>
+    </view>
+
+    <!-- 状态 3：已登录顾问/后台工作人员 -->
+    <view class="auth-row" wx:elif="{{auth.role === 'admin'}}">
+      <image class="avatar-img small" src="/images/avatar.png" mode="aspectFill"></image>
+      <view class="auth-info">
+        <view class="auth-name-line">
+          <text class="auth-title">{{auth.staffName}}</text>
+          <text class="role-pill admin">当前权限：顾问后台</text>
+        </view>
+        <text class="auth-desc">可查阅并录入全部客户的咨询过程与交付结果</text>
+      </view>
+      <view class="logout-link" bindtap="handleLogout">退出</view>
+    </view>
+
+    <!-- 始终可见的登录/切换身份按钮组 -->
+    <view class="auth-btn-group">
+      <view class="auth-action-btn primary" bindtap="openLoginModal" data-mode="client">
+        👤 客户手机号登录
+      </view>
+      <view class="auth-action-btn admin-outline" bindtap="openLoginModal" data-mode="admin">
+        🛠️ 顾问后台登录
+      </view>
+    </view>
+  </view>
+
+  <!-- 顾问端工作台入口卡片（仅在顾问后台登录 role === 'admin' 时显示，客户完全不可见！） -->
+  <view class="workspace-banner" wx:if="{{auth.role === 'admin'}}" bindtap="openAdminWorkspace">
+    <view class="wb-left">
+      <view class="wb-tag-row">
+        <text class="wb-badge">内部专用</text>
+        <text class="wb-title">岩姐顾问录入工作台</text>
+      </view>
+      <text class="wb-desc">为客户建档立项、录入每次咨询过程、派发行动清单、上传交付方案与更新战果</text>
+    </view>
+    <view class="wb-btn">进入工作台 ›</view>
+  </view>
+
+  <!-- 我的咨询项目与交付空间（严格按登录身份隔离展示） -->
+  <view class="section-block luxury-card">
+    <view class="block-header">
+      <text class="block-title">{{auth.role === 'admin' ? '全部客户咨询项目档案' : '我的专属咨询交付空间'}}</text>
+      <text class="record-count" wx:if="{{auth.role !== 'guest'}}">共 {{appointments.length}} 个项目</text>
+    </view>
+
+    <!-- 未登录时的隐私保护锁屏提示 -->
+    <view class="privacy-lock-box" wx:if="{{auth.role === 'guest'}}">
+      <text class="lock-icon">🛡️</text>
+      <text class="lock-title">客户商业咨询档案已加密隔离</text>
+      <text class="lock-sub">每位客户的痛点诊断、咨询过程纪要及交付方案仅限本人登录后查阅。</text>
+      <view class="lock-actions">
+        <button class="gold-btn lock-btn" bindtap="openLoginModal" data-mode="client">客户手机号登录查阅</button>
+        <view class="go-order-link" bindtap="goToServices">尚未立项？前往「服务」页在线下单 ›</view>
+      </view>
+    </view>
+
+    <!-- 已登录且有可见项目 -->
+    <view class="appointment-list" wx:elif="{{appointments.length > 0}}">
+      <view 
+        class="appointment-item" 
+        wx:for="{{appointments}}" 
+        wx:key="id"
+        bindtap="openProjectSpace"
+        data-id="{{item.id}}"
+        data-tab="0">
+        
+        <view class="item-top">
+          <text class="item-type">{{item.type}}</text>
+          <text class="item-status {{item.status === '已交付结案' ? 'done' : ''}}">{{item.status}}</text>
+        </view>
+
+        <view class="item-detail">
+          <text class="detail-line">项目编号：{{item.id}} · {{item.payMode}}</text>
+          <text class="detail-line">专属客户：{{item.name}}（{{item.industry}} · {{item.phone}}）</text>
+          <text class="detail-line milestone">当前阶段：{{item.stepName}} ({{item.currentStep}}/5)</text>
+        </view>
+
+        <!-- 咨询过程与交付统计标签 -->
+        <view class="item-stats-bar">
+          <text class="stat-pill">📋 {{item.sessions ? item.sessions.length : 0}} 次咨询过程记录</text>
+          <text class="stat-pill">📄 {{item.deliverables ? item.deliverables.length : 0}} 份阶段交付成果</text>
+          <text class="stat-pill">📈 战果：{{item.metrics ? item.metrics.ticketAfter : '推进中'}}</text>
+        </view>
+
+        <!-- 快捷操作按钮 -->
+        <view class="item-actions">
+          <view class="act-btn outline" catchtap="openProjectSpace" data-id="{{item.id}}" data-tab="0">
+            查看咨询过程
+          </view>
+          <view class="act-btn primary" catchtap="openProjectSpace" data-id="{{item.id}}" data-tab="1">
+            查看交付结果看板
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已登录但暂无项目 -->
+    <view class="empty-tip" wx:else>
+      <text>当前账号下暂无咨询项目，可前往“服务”页在线下单立项</text>
+    </view>
+  </view>
+
+  <!-- 首席顾问 IP 名片 -->
   <view class="profile-card luxury-card">
     <view class="profile-top">
       <image class="avatar-img" src="/images/avatar.png" mode="aspectFill"></image>
@@ -14,7 +140,6 @@
     </view>
     <text class="slogan-line">“所有行业都值得用奢侈品思维重做一遍”</text>
 
-    <!-- 三大商业数据 -->
     <view class="kpi-grid">
       <view class="kpi-cell">
         <text class="kpi-num">300+</text>
@@ -30,30 +155,6 @@
         <text class="kpi-num">8.6x</text>
         <text class="kpi-txt">客户平均客单提升</text>
       </view>
-    </view>
-  </view>
-
-  <!-- 我的预约记录 -->
-  <view class="section-block luxury-card">
-    <view class="block-header">
-      <text class="block-title">我的咨询预约</text>
-      <text class="record-count">共 {{appointments.length}} 条记录</text>
-    </view>
-
-    <view class="appointment-list" wx:if="{{appointments.length > 0}}">
-      <view class="appointment-item" wx:for="{{appointments}}" wx:key="id">
-        <view class="item-top">
-          <text class="item-type">{{item.type}}</text>
-          <text class="item-status">{{item.status}}</text>
-        </view>
-        <view class="item-detail">
-          <text class="detail-line">申请人：{{item.name}} · {{item.industry}}</text>
-          <text class="detail-line time">提交时间：{{item.createTime}}</text>
-        </view>
-      </view>
-    </view>
-    <view class="empty-tip" wx:else>
-      <text>暂无预约记录，可前往“服务”页提交咨询需求</text>
     </view>
   </view>
 
@@ -85,13 +186,26 @@
 
     <view class="menu-divider"></view>
 
-    <view class="menu-row" bindtap="openAbout">
+    <view class="menu-row" bindtap="openLoginModal" data-mode="admin" wx:if="{{auth.role !== 'admin'}}">
       <view class="menu-left">
-        <text class="menu-icon">🏛️</text>
-        <text class="menu-label">关于岩姐咨询</text>
+        <text class="menu-icon">🔐</text>
+        <text class="menu-label">内部顾问工作人员入口</text>
       </view>
       <view class="menu-right">
-        <text class="menu-val">使命与愿景</text>
+        <text class="menu-val">口令验证</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-divider" wx:if="{{auth.role === 'admin'}}"></view>
+
+    <view class="menu-row" bindtap="resetDemo" wx:if="{{auth.role === 'admin'}}">
+      <view class="menu-left">
+        <text class="menu-icon">🔄</text>
+        <text class="menu-label">恢复初始演示项目数据</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-val">一键重置</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
@@ -115,5 +229,73 @@
   <view class="copyright-bar">
     <text>岩姐商业咨询 · 版权所有</text>
     <text class="copyright-en">YANJIE CONSULTING © 2026 ALL RIGHTS RESERVED</text>
+  </view>
+
+  <!-- ==================== 弹窗：客户登录 / 顾问后台登录 ==================== -->
+  <view class="login-mask" wx:if="{{loginModal.visible}}" bindtap="closeLoginModal">
+    <view class="login-box" catchtap="preventBubble">
+      <!-- 登录角色切换 Tab -->
+      <view class="login-tabs">
+        <view 
+          class="l-tab {{loginModal.mode === 'client' ? 'active' : ''}}" 
+          bindtap="switchLoginMode" 
+          data-mode="client">
+          客户手机号登录
+        </view>
+        <view 
+          class="l-tab {{loginModal.mode === 'admin' ? 'active' : ''}}" 
+          bindtap="switchLoginMode" 
+          data-mode="admin">
+          顾问后台登录
+        </view>
+      </view>
+
+      <!-- 模式 A：客户手机号登录 -->
+      <view class="login-body" wx:if="{{loginModal.mode === 'client'}}">
+        <text class="login-tip">请输入您在线下单或线下签约建档时预留的手机号，系统将为您加载专属咨询空间（仅显示您本人的项目）：</text>
+        <input 
+          class="login-input" 
+          type="number" 
+          placeholder="请输入客户手机号" 
+          value="{{loginModal.phone}}" 
+          bindinput="onLoginPhoneInput" />
+        <input 
+          class="login-input" 
+          type="number" 
+          placeholder="短信验证码 / 项目口令（演示任意填如 6666）" 
+          value="{{loginModal.code}}" 
+          bindinput="onLoginCodeInput" />
+
+        <!-- 快捷体验测试账号（方便演示不同客户之间的数据完全隔离） -->
+        <view class="demo-accounts-box">
+          <text class="da-label">⚡ 点击下方演示客户账号可一键填入测试（体验数据隔离）：</text>
+          <view class="da-pills">
+            <view class="da-pill" bindtap="quickFillClient" data-phone="13888888899">
+              客户1：李总 (13888888899)
+            </view>
+            <view class="da-pill" bindtap="quickFillClient" data-phone="13988885520">
+              客户2：陈老师 (13988885520)
+            </view>
+          </view>
+        </view>
+
+        <button class="gold-btn login-submit-btn" bindtap="submitClientLogin">验证并进入我的交付空间</button>
+      </view>
+
+      <!-- 模式 B：顾问/后台工作人员登录 -->
+      <view class="login-body" wx:if="{{loginModal.mode === 'admin'}}">
+        <text class="login-tip">仅限岩姐咨询顾问团队及后台助教人员登录。验证通过后可查看全部客户档案并录入咨询过程与交付结果：</text>
+        <input 
+          class="login-input" 
+          password="true" 
+          placeholder="请输入顾问后台管理口令（演示口令：8888）" 
+          value="{{loginModal.adminPass}}" 
+          bindinput="onAdminPassInput" />
+        <view class="demo-accounts-box">
+          <text class="da-label">💡 演示默认后台管理口令为：8888</text>
+        </view>
+        <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">解锁顾问录入工作台</button>
+      </view>
+    </view>
   </view>
 </view>

@@ -4,7 +4,7 @@
   <view class="page-header">
     <text class="page-title">核 心 服 务 矩 阵</text>
     <view class="section-indicator"></view>
-    <text class="page-subtitle">以顶级奢侈品思维 · 重塑企业增长与高客单定价权</text>
+    <text class="page-subtitle">在线下单立项 · 全程记录每次咨询推演与可衡量交付成果</text>
   </view>
 
   <!-- 三大核心服务方案列表 -->
@@ -22,6 +22,18 @@
       </view>
 
       <text class="service-name">{{item.name}}</text>
+
+      <!-- 价格与立项定金展示行 -->
+      <view class="price-banner">
+        <view class="price-main">
+          <text class="price-label">尊享全案价</text>
+          <text class="price-val">{{item.priceText}}</text>
+        </view>
+        <view class="price-deposit">
+          <text class="deposit-tag">立项定金 {{item.depositText}}</text>
+        </view>
+      </view>
+
       <text class="service-target">适合：{{item.target}}</text>
       <view class="service-divider"></view>
 
@@ -33,10 +45,19 @@
         </view>
       </view>
 
-      <!-- 预约当前方案按钮 -->
-      <view class="card-action-bar">
-        <button class="gold-btn plan-btn" catchtap="appointSpecificPlan" data-name="{{item.name}}">
-          申请预约此项服务
+      <!-- 数字化交付保障标签 -->
+      <view class="digital-guarantee">
+        <text class="dg-icon">✦</text>
+        <text class="dg-text">下单即开通专属交付空间：全程记录每次咨询纪要、行动清单与交付文档</text>
+      </view>
+
+      <!-- 预约/下单当前方案按钮组 -->
+      <view class="card-action-bar two-btns">
+        <button class="gold-btn-outline plan-btn-half" catchtap="appointSpecificPlan" data-name="{{item.name}}" data-mode="audit">
+          申请资质初审
+        </button>
+        <button class="gold-btn plan-btn-half" catchtap="appointSpecificPlan" data-name="{{item.name}}" data-mode="deposit">
+          立即下单立项
         </button>
       </view>
     </view>
@@ -45,13 +66,13 @@
   <!-- 咨询交付 5 步流程 -->
   <view class="process-section luxury-card">
     <view class="process-title-box">
-      <text class="process-title">岩姐咨询 · 5 步全闭环交付</text>
-      <text class="process-sub">严苛筛选 · 高质量一对一输出</text>
+      <text class="process-title">岩姐咨询 · 5 步全闭环数字化交付</text>
+      <text class="process-sub">每一阶段过程与交付物均在小程序内实时留档可查</text>
     </view>
 
     <view class="steps-wrapper">
       <view class="step-node" wx:for="{{steps}}" wx:key="step">
-        <view class="step-num">{{item.step}}</view>
+        <view class="step-num">{{item.code}}</view>
         <view class="step-info">
           <text class="step-name">{{item.title}}</text>
           <text class="step-desc">{{item.desc}}</text>
@@ -60,11 +81,63 @@
     </view>
   </view>
 
-  <!-- 意向预约表单 -->
+  <!-- 在线下单 & 意向预约表单 -->
   <view class="appointment-form-card luxury-card" id="appointment-form">
     <view class="form-header">
-      <text class="form-title">预约深度咨询评估</text>
-      <text class="form-tip">请客观填写企业经营情况，审核通过后由岩姐团队直接联系安排。</text>
+      <text class="form-title">在线下单立项 / 咨询建档</text>
+      <text class="form-tip">填写企业基准信息后即可下单开启专属咨询交付空间，实时追踪每次咨询过程与交付结果。</text>
+    </view>
+
+    <!-- 选择咨询服务方案 -->
+    <view class="form-group">
+      <text class="form-label">选择咨询服务方案 *</text>
+      <picker bindchange="bindTypeChange" value="{{typeIndex}}" range="{{typeOptions}}">
+        <view class="form-picker highlight-picker">
+          <text class="picker-main-text">{{typeOptions[typeIndex]}}</text>
+          <text class="picker-price-tag">{{servicesList[typeIndex].priceText}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 选择下单与立项方式 -->
+    <view class="form-group">
+      <text class="form-label">下单与立项方式 *</text>
+      <view class="pay-mode-selector">
+        <view 
+          class="pay-mode-item {{payMode === 'deposit' ? 'active' : ''}}" 
+          bindtap="selectPayMode" 
+          data-mode="deposit">
+          <view class="pm-top">
+            <text class="pm-title">支付立项定金</text>
+            <text class="pm-badge">推荐 · 立即立项</text>
+          </view>
+          <text class="pm-price">{{servicesList[typeIndex].depositText}}</text>
+          <text class="pm-desc">即刻开通交付空间并锁定排期</text>
+        </view>
+
+        <view 
+          class="pay-mode-item {{payMode === 'full' ? 'active' : ''}}" 
+          bindtap="selectPayMode" 
+          data-mode="full">
+          <view class="pm-top">
+            <text class="pm-title">全款直付立项</text>
+            <text class="pm-badge">VIP 优先排期</text>
+          </view>
+          <text class="pm-price">¥{{servicesList[typeIndex].price}}</text>
+          <text class="pm-desc">享岩姐本人在内全套资源直通</text>
+        </view>
+
+        <view 
+          class="pay-mode-item {{payMode === 'audit' ? 'active' : ''}}" 
+          bindtap="selectPayMode" 
+          data-mode="audit">
+          <view class="pm-top">
+            <text class="pm-title">免付定金初审</text>
+          </view>
+          <text class="pm-price">¥0 提交</text>
+          <text class="pm-desc">顾问审核沟通后再行签约付款</text>
+        </view>
+      </view>
     </view>
 
     <view class="form-group">
@@ -74,30 +147,34 @@
 
     <view class="form-group">
       <text class="form-label">联系电话 / 微信 *</text>
-      <input class="form-input" type="number" placeholder="方便顾问与您取得联系" value="{{formData.phone}}" bindinput="bindPhone" />
+      <input class="form-input" type="number" placeholder="方便顾问团队与您对接排期" value="{{formData.phone}}" bindinput="bindPhone" />
     </view>
 
     <view class="form-group">
       <text class="form-label">所在行业及经营类目 *</text>
-      <input class="form-input" placeholder="例如：医美大健康 / 知识IP / 高端制造" value="{{formData.industry}}" bindinput="bindIndustry" />
+      <input class="form-input" placeholder="例如：高端美业 / 知识IP / 定制珠宝" value="{{formData.industry}}" bindinput="bindIndustry" />
+    </view>
+
+    <!-- 服务前基准数据（用于交付结果对比看板） -->
+    <view class="form-row-two">
+      <view class="form-group half">
+        <text class="form-label">当前平均客单价（选填）</text>
+        <input class="form-input" placeholder="如：¥1,500" value="{{formData.ticketBefore}}" bindinput="bindTicketBefore" />
+      </view>
+      <view class="form-group half">
+        <text class="form-label">当前月均营收（选填）</text>
+        <input class="form-input" placeholder="如：30万/月" value="{{formData.revenueBefore}}" bindinput="bindRevenueBefore" />
+      </view>
     </view>
 
     <view class="form-group">
-      <text class="form-label">意向咨询服务类型</text>
-      <picker bindchange="bindTypeChange" value="{{typeIndex}}" range="{{typeOptions}}">
-        <view class="form-picker">
-          <text>{{typeOptions[typeIndex]}}</text>
-          <text class="picker-arrow">▼</text>
-        </view>
-      </picker>
+      <text class="form-label">目前面临的最大商业卡点（作为首次问诊议题）</text>
+      <textarea class="form-textarea" placeholder="例如：客单价难提升、销售不敢报高价、缺乏高溢价产品矩阵等" value="{{formData.problem}}" bindinput="bindProblem"></textarea>
     </view>
 
-    <view class="form-group">
-      <text class="form-label">目前面临的最大商业困惑（选填）</text>
-      <textarea class="form-textarea" placeholder="例如：客单价难提升、团队销售转化率低、缺乏商业模型闭环等" value="{{formData.problem}}" bindinput="bindProblem"></textarea>
-    </view>
-
-    <button class="gold-btn submit-btn" bindtap="submitForm">提交预约申请</button>
+    <button class="gold-btn submit-btn" bindtap="submitForm">
+      {{payMode === 'audit' ? '提交资质初审申请' : (payMode === 'full' ? '支付全款并开通咨询交付空间' : '支付定金并开通咨询交付空间')}}
+    </button>
   </view>
 
   <!-- 底部官方客服浮条 -->

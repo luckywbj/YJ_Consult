@@ -1,16 +1,26 @@
 // pages/mine/mine.js
+const consultStore = require('../../utils/consultStore');
+
 Page({
   data: {
+    auth: { role: 'guest' },
     appointments: [],
+    loginModal: {
+      visible: false,
+      mode: 'client', // 'client' | 'admin'
+      phone: '',
+      code: '6666',
+      adminPass: ''
+    },
     faqList: [
       {
-        q: '什么样的企业适合找岩姐做商业咨询？',
-        a: '已经拥有成熟产品或交付能力，但客单价较低、销售很辛苦、利润微薄，希望通过重构顶层商业模型、打造奢侈品高溢价交付的创始人及高管团队。',
-        open: false
+        q: '我的商业咨询记录和交付方案会被其他人看到吗？',
+        a: '绝对不会！系统实行严格的一客一档权限隔离。未登录访客无法查看任何项目；您使用下单手机号登录后，仅能查阅您本人名下的咨询过程与交付方案，其他客户无法访问。',
+        open: true
       },
       {
-        q: '1对1 闭门私董会是如何交付的？',
-        a: '审核通过后，岩姐将与创始人进行 3 小时面对面或高密闭门推演，直击商业卡点，并现场产出针对您行业的《高客单破局行动路线图》。',
+        q: '下单立项后如何查看每次咨询过程与交付结果？',
+        a: '您在线下单后系统会自动绑定您的手机号并开通「专属咨询交付空间」，点击上方订单即可查看 5 步里程碑进度、每次咨询的痛点诊断与破局方案、课后行动打卡清单以及阶段交付文档。',
         open: false
       },
       {
@@ -22,12 +32,145 @@ Page({
   },
 
   onShow() {
-    this.loadAppointments();
+    this.refreshState();
+    const pendingLoginMode = wx.getStorageSync('pending_login_modal');
+    if (pendingLoginMode) {
+      wx.removeStorageSync('pending_login_modal');
+      this.openLoginModal({ currentTarget: { dataset: { mode: pendingLoginMode } } });
+    }
   },
 
-  loadAppointments() {
-    const list = wx.getStorageSync('my_consult_appointments') || [];
-    this.setData({ appointments: list });
+  refreshState() {
+    const auth = consultStore.getAuthSession();
+    const visibleList = consultStore.getVisibleProjects();
+    this.setData({
+      auth,
+      appointments: visibleList
+    });
+  },
+
+  openLoginModal(e) {
+    const mode = (e && e.currentTarget && e.currentTarget.dataset.mode) || 'client';
+    this.setData({
+      loginModal: {
+        visible: true,
+        mode,
+        phone: '',
+        code: '6666',
+        adminPass: mode === 'admin' ? '8888' : ''
+      }
+    });
+  },
+
+  closeLoginModal() {
+    this.setData({ 'loginModal.visible': false });
+  },
+
+  preventBubble() {},
+
+  switchLoginMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({
+      'loginModal.mode': mode,
+      'loginModal.adminPass': mode === 'admin' ? '8888' : ''
+    });
+  },
+
+  onLoginPhoneInput(e) {
+    this.setData({ 'loginModal.phone': e.detail.value });
+  },
+
+  onLoginCodeInput(e) {
+    this.setData({ 'loginModal.code': e.detail.value });
+  },
+
+  onAdminPassInput(e) {
+    this.setData({ 'loginModal.adminPass': e.detail.value });
+  },
+
+  quickFillClient(e) {
+    const phone = e.currentTarget.dataset.phone;
+    this.setData({
+      'loginModal.phone': phone,
+      'loginModal.code': '6666'
+    });
+  },
+
+  submitClientLogin() {
+    const { phone, code } = this.data.loginModal;
+    const res = consultStore.loginAsClient(phone, code);
+    if (!res.ok) {
+      wx.showToast({ title: res.msg, icon: 'none', duration: 2500 });
+      return;
+    }
+    this.setData({ 'loginModal.visible': false });
+    this.refreshState();
+    wx.showToast({
+      title: `欢迎您，${res.session.clientName}`,
+      icon: 'success'
+    });
+  },
+
+  submitAdminLogin() {
+    const { adminPass } = this.data.loginModal;
+    const res = consultStore.loginAsAdmin(adminPass);
+    if (!res.ok) {
+      wx.showToast({ title: res.msg, icon: 'none', duration: 2500 });
+      return;
+    }
+    this.setData({ 'loginModal.visible': false });
+    this.refreshState();
+    wx.showToast({
+      title: '已进入顾问管理视角',
+      icon: 'success'
+    });
+  },
+
+  handleLogout() {
+    wx.showModal({
+      title: '退出当前身份',
+      content: '退出后将回到未登录访客视角，所有私密咨询项目将被隐藏保护。确定退出吗？',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          consultStore.logout();
+          this.refreshState();
+          wx.showToast({ title: '已退出登录', icon: 'none' });
+        }
+      }
+    });
+  },
+
+  goToServices() {
+    wx.switchTab({ url: '/pages/services/services' });
+  },
+
+  openProjectSpace(e) {
+    const { id, tab } = e.currentTarget.dataset;
+    wx.navigateTo({
+      url: `/pages/project/project?id=${id}&tab=${tab || 0}`
+    });
+  },
+
+  openAdminWorkspace() {
+    wx.navigateTo({
+      url: '/pages/admin/admin'
+    });
+  },
+
+  resetDemo() {
+    wx.showModal({
+      title: '重置演示数据',
+      content: '确定恢复为初始的 2 个完整演示咨询项目吗？',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          consultStore.resetDemoData();
+          this.refreshState();
+          wx.showToast({ title: '已恢复演示数据', icon: 'success' });
+        }
+      }
+    });
   },
 
   toggleFaq(e) {
@@ -52,16 +195,6 @@ Page({
       fail: () => {
         wx.showToast({ title: '暂未唤起拨号', icon: 'none' });
       }
-    });
-  },
-
-  openAbout() {
-    wx.showModal({
-      title: '岩姐商业咨询',
-      content: '使命：让每个IP抓住属于自己的风口\n愿景：让每一个初创企业都能享受一流的商业咨询服务\n理念：所有行业都值得用奢侈品思维重做一遍',
-      showCancel: false,
-      confirmText: '知晓',
-      confirmColor: '#8D6238'
     });
   }
 });
