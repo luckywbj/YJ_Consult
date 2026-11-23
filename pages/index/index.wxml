@@ -1,0 +1,160 @@
+<!-- pages/index/index.wxml -->
+<view class="index-container">
+  <!-- 顶部奢华暖金渐变背景装饰 -->
+  <view class="header-glow"></view>
+
+  <!-- 品牌主标题 -->
+  <view class="brand-section">
+    <text class="brand-title">岩 姐 咨 询</text>
+    <text class="brand-subtitle">YANJIE BUSINESS CONSULTING</text>
+  </view>
+
+  <!-- 使命 / 愿景 / 理念 卡片 -->
+  <view class="value-card luxury-card">
+    <view class="value-item">
+      <view class="value-label-box">
+        <view class="gold-bar"></view>
+        <text class="value-label">使命</text>
+      </view>
+      <text class="value-desc">让每个IP抓住属于自己的风口</text>
+    </view>
+    <view class="divider"></view>
+
+    <view class="value-item">
+      <view class="value-label-box">
+        <view class="gold-bar"></view>
+        <text class="value-label">愿景</text>
+      </view>
+      <text class="value-desc">让每一个初创企业都能享受一流的商业咨询服务</text>
+    </view>
+    <view class="divider"></view>
+
+    <view class="value-item">
+      <view class="value-label-box">
+        <view class="gold-bar"></view>
+        <text class="value-label">理念</text>
+      </view>
+      <text class="value-desc">所有行业都值得用奢侈品思维重做一遍</text>
+    </view>
+  </view>
+
+  <!-- 服务对比区域 -->
+  <view class="comparison-section">
+    <view class="section-header">
+      <text class="section-title">服务对比</text>
+      <view class="section-indicator"></view>
+    </view>
+
+    <!-- 错层堆叠对比卡片容器 -->
+    <view class="contrast-wrapper">
+      <!-- 左侧底层：服务前卡片 -->
+      <view class="before-card">
+        <text class="before-title">服务前</text>
+        <view class="before-items">
+          <text class="before-text">客单低</text>
+          <text class="before-text">很辛苦</text>
+          <text class="before-text">不赚钱</text>
+        </view>
+      </view>
+
+      <!-- 右侧浮层：服务后卡片 -->
+      <view class="after-card">
+        <text class="after-title">服务后</text>
+
+        <view class="service-features">
+          <!-- 特性 1：亿万营销 -->
+          <view class="feature-row">
+            <view class="icon-circle">
+              <image class="icon-img" src="/images/icons/car.png" mode="aspectFit"></image>
+            </view>
+            <view class="feature-content">
+              <text class="feature-title">亿万营销</text>
+              <text class="feature-desc">高客单的销售体系打造</text>
+            </view>
+          </view>
+
+          <!-- 特性 2：奢侈品全案 -->
+          <view class="feature-row">
+            <view class="icon-circle">
+              <image class="icon-img" src="/images/icons/plane.png" mode="aspectFit"></image>
+            </view>
+            <view class="feature-content">
+              <text class="feature-title">奢侈品全案</text>
+              <text class="feature-desc">10倍利润商业模式操盘</text>
+            </view>
+          </view>
+
+          <!-- 特性 3：战略股东 -->
+          <view class="feature-row">
+            <view class="icon-circle">
+              <image class="icon-img" src="/images/icons/bell.png" mode="aspectFit"></image>
+            </view>
+            <view class="feature-content">
+              <text class="feature-title">战略股东</text>
+              <text class="feature-desc">千万级组织搭建和运作</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 导师背书与认知专栏 -->
+  <view class="mentor-section luxury-card">
+    <view class="mentor-header">
+      <image class="mentor-avatar" src="/images/avatar.png" mode="aspectFill"></image>
+      <view class="mentor-meta">
+        <view class="mentor-name-tag">
+          <text class="mentor-name">岩姐</text>
+          <text class="mentor-badge">首席商业操盘顾问</text>
+        </view>
+        <text class="mentor-motto">“做商业，不要做平庸的追随者，要做稀缺的价值定义者。”</text>
+      </view>
+    </view>
+    <view class="mentor-stats">
+      <view class="stat-col">
+        <text class="stat-num">300+</text>
+        <text class="stat-tag">高端企业私董</text>
+      </view>
+      <view class="stat-line"></view>
+      <view class="stat-col">
+        <text class="stat-num">10倍+</text>
+        <text class="stat-tag">客单溢价操盘</text>
+      </view>
+      <view class="stat-line"></view>
+      <view class="stat-col">
+        <text class="stat-num">98.5%</text>
+        <text class="stat-tag">好评满意度</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部预约咨询引导 -->
+  <view class="cta-banner">
+    <view class="cta-text-wrap">
+      <text class="cta-main">打破低客单内卷，重构你的商业底盘</text>
+      <text class="cta-sub">仅限创始人 / 转型期企业主 / 高净值IP申请</text>
+    </view>
+    <button class="gold-btn" bindtap="openConsultModal">预约 1V1 深度问诊</button>
+  </view>
+
+  <!-- 弹窗：预约咨询登记 -->
+  <view class="modal-mask" wx:if="{{showModal}}" bindtap="closeConsultModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <view class="modal-header">
+        <text class="modal-title">预约 1V1 商业闭门咨询</text>
+        <view class="modal-close" bindtap="closeConsultModal">×</view>
+      </view>
+      <view class="modal-body">
+        <text class="modal-tip">请留下您的联系方式与企业现状，岩姐团队将在 24 小时内与您初步沟通并安排深度问诊。</text>
+        <input class="modal-input" placeholder="您的姓名 / 称呼" value="{{form.name}}" bindinput="onInputName" />
+        <input class="modal-input" type="number" placeholder="联系电话 / 微信" value="{{form.phone}}" bindinput="onInputPhone" />
+        <input class="modal-input" placeholder="当前所在行业 / 经营项目" value="{{form.industry}}" bindinput="onInputIndustry" />
+        <textarea class="modal-textarea" placeholder="当前面临的核心商业卡点（选填）" value="{{form.problem}}" bindinput="onInputProblem"></textarea>
+      </view>
+      <view class="modal-footer">
+        <button class="gold-btn" bindtap="submitAppointment">提交意向申请</button>
+      </view>
+    </view>
+  </view>
+</view>

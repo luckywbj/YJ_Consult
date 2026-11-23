@@ -1,0 +1,15 @@
+{
+  "description": "岩姐商业咨询小程序",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.3.4",
+  "appid": "wxa091734f65f5d85b",
+  "projectname": "yanjie-consulting",
+  "simulatorPluginLibVersion": {}
+}

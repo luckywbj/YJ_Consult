@@ -1,0 +1,115 @@
+<!-- pages/services/services.wxml -->
+<view class="container services-container">
+  <!-- 顶部轻奢标题 -->
+  <view class="page-header">
+    <text class="page-title">核 心 服 务 矩 阵</text>
+    <view class="section-indicator"></view>
+    <text class="page-subtitle">以顶级奢侈品思维 · 重塑企业增长与高客单定价权</text>
+  </view>
+
+  <!-- 三大核心服务方案列表 -->
+  <view class="products-list">
+    <view 
+      class="service-card luxury-card {{currentPlan === index ? 'selected' : ''}}" 
+      wx:for="{{servicesList}}" 
+      wx:key="id"
+      bindtap="selectPlan"
+      data-index="{{index}}">
+      
+      <view class="service-badge-row">
+        <text class="tier-name">{{item.tier}}</text>
+        <text class="quota-text">{{item.quota}}</text>
+      </view>
+
+      <text class="service-name">{{item.name}}</text>
+      <text class="service-target">适合：{{item.target}}</text>
+      <view class="service-divider"></view>
+
+      <!-- 核心交付项 -->
+      <view class="deliverables-list">
+        <view class="del-item" wx:for="{{item.deliverables}}" wx:for-item="del" wx:key="*this">
+          <text class="del-icon">✓</text>
+          <text class="del-text">{{del}}</text>
+        </view>
+      </view>
+
+      <!-- 预约当前方案按钮 -->
+      <view class="card-action-bar">
+        <button class="gold-btn plan-btn" catchtap="appointSpecificPlan" data-name="{{item.name}}">
+          申请预约此项服务
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 咨询交付 5 步流程 -->
+  <view class="process-section luxury-card">
+    <view class="process-title-box">
+      <text class="process-title">岩姐咨询 · 5 步全闭环交付</text>
+      <text class="process-sub">严苛筛选 · 高质量一对一输出</text>
+    </view>
+
+    <view class="steps-wrapper">
+      <view class="step-node" wx:for="{{steps}}" wx:key="step">
+        <view class="step-num">{{item.step}}</view>
+        <view class="step-info">
+          <text class="step-name">{{item.title}}</text>
+          <text class="step-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 意向预约表单 -->
+  <view class="appointment-form-card luxury-card" id="appointment-form">
+    <view class="form-header">
+      <text class="form-title">预约深度咨询评估</text>
+      <text class="form-tip">请客观填写企业经营情况，审核通过后由岩姐团队直接联系安排。</text>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">您的称呼 *</text>
+      <input class="form-input" placeholder="例如：张总 / 李女士" value="{{formData.name}}" bindinput="bindName" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">联系电话 / 微信 *</text>
+      <input class="form-input" type="number" placeholder="方便顾问与您取得联系" value="{{formData.phone}}" bindinput="bindPhone" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">所在行业及经营类目 *</text>
+      <input class="form-input" placeholder="例如：医美大健康 / 知识IP / 高端制造" value="{{formData.industry}}" bindinput="bindIndustry" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">意向咨询服务类型</text>
+      <picker bindchange="bindTypeChange" value="{{typeIndex}}" range="{{typeOptions}}">
+        <view class="form-picker">
+          <text>{{typeOptions[typeIndex]}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">目前面临的最大商业困惑（选填）</text>
+      <textarea class="form-textarea" placeholder="例如：客单价难提升、团队销售转化率低、缺乏商业模型闭环等" value="{{formData.problem}}" bindinput="bindProblem"></textarea>
+    </view>
+
+    <button class="gold-btn submit-btn" bindtap="submitForm">提交预约申请</button>
+  </view>
+
+  <!-- 底部官方客服浮条 -->
+  <view class="footer-contact">
+    <view class="contact-item" bindtap="makePhoneCall">
+      <text class="contact-icon">📞</text>
+      <text class="contact-text">电话咨询</text>
+    </view>
+    <view class="contact-divider"></view>
+    <view class="contact-item" bindtap="copyWechat">
+      <text class="contact-icon">💬</text>
+      <text class="contact-text">加顾问微信</text>
+    </view>
+  </view>
+</view>

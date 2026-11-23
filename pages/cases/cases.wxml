@@ -1,0 +1,112 @@
+<!-- pages/cases/cases.wxml -->
+<view class="container cases-container">
+  <!-- 顶部轻奢标题 -->
+  <view class="page-header">
+    <text class="page-title">实 战 操 盘 案 例</text>
+    <view class="section-indicator"></view>
+    <text class="page-subtitle">不讲空泛理论 · 只交付可落地的 10 倍商业增长成果</text>
+  </view>
+
+  <!-- 分类筛选导航 -->
+  <scroll-view class="filter-bar" scroll-x="true" enable-flex="true">
+    <view 
+      wx:for="{{categories}}" 
+      wx:key="*this" 
+      class="filter-item {{currentCategory === item ? 'active' : ''}}"
+      bindtap="switchCategory"
+      data-cat="{{item}}">
+      {{item}}
+    </view>
+  </scroll-view>
+
+  <!-- 案例列表 -->
+  <view class="cases-list">
+    <view 
+      class="case-card luxury-card" 
+      wx:for="{{filteredCases}}" 
+      wx:key="id"
+      bindtap="viewDetail"
+      data-id="{{item.id}}">
+      
+      <!-- 案例顶部标签行 -->
+      <view class="card-tag-row">
+        <text class="cat-tag">{{item.category}}</text>
+        <text class="highlight-badge">{{item.badge}}</text>
+      </view>
+
+      <!-- 案例核心主标题 -->
+      <text class="case-title">{{item.title}}</text>
+      <text class="case-summary">{{item.summary}}</text>
+
+      <!-- 对比数据横幅 -->
+      <view class="data-contrast-box">
+        <view class="data-item before">
+          <text class="data-label">服务前</text>
+          <text class="data-val">{{item.beforeVal}}</text>
+        </view>
+        <view class="data-arrow">➔</view>
+        <view class="data-item after">
+          <text class="data-label">服务后</text>
+          <text class="data-val">{{item.afterVal}}</text>
+        </view>
+      </view>
+
+      <!-- 核心操盘抓手 -->
+      <view class="strategy-preview">
+        <text class="strategy-title">核心操盘抓手：</text>
+        <text class="strategy-desc">{{item.coreStrategy}}</text>
+      </view>
+
+      <!-- 底部查看更多 -->
+      <view class="card-bottom-bar">
+        <text class="case-author">客户：{{item.clientName}}</text>
+        <view class="view-more-btn">
+          <text>查看操盘全案</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 案例详情抽屉弹窗 -->
+  <view class="detail-mask" wx:if="{{activeCase}}" bindtap="closeDetail">
+    <view class="detail-drawer" catchtap="preventBubble">
+      <view class="drawer-header">
+        <text class="drawer-title">{{activeCase.title}}</text>
+        <view class="drawer-close" bindtap="closeDetail">×</view>
+      </view>
+      
+      <scroll-view class="drawer-content" scroll-y="true">
+        <view class="detail-section">
+          <text class="section-badge">01 · 客户背景与核心痛点</text>
+          <text class="section-p">{{activeCase.detailBackground}}</text>
+        </view>
+
+        <view class="detail-section">
+          <text class="section-badge">02 · 岩姐咨询操盘重构解法</text>
+          <text class="section-p">{{activeCase.detailSolution}}</text>
+        </view>
+
+        <view class="detail-section">
+          <text class="section-badge">03 · 交付战果与数据复盘</text>
+          <view class="result-box">
+            <view class="res-item" wx:for="{{activeCase.results}}" wx:key="*this">
+              <text class="res-dot">◆</text>
+              <text class="res-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="detail-quote">
+          <text class="quote-mark">“</text>
+          <text class="quote-content">{{activeCase.clientFeedback}}</text>
+          <text class="quote-by">—— {{activeCase.clientName}}</text>
+        </view>
+      </scroll-view>
+
+      <view class="drawer-footer">
+        <button class="gold-btn" bindtap="appointForCase">预约同款商业定制咨询</button>
+      </view>
+    </view>
+  </view>
+</view>

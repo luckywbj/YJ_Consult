@@ -1,0 +1,329 @@
+/* pages/cases/cases.wxss */
+.cases-container {
+  padding: 30rpx 32rpx;
+  background-color: #F8F6F2;
+}
+
+.page-header {
+  text-align: center;
+  margin-top: 20rpx;
+  margin-bottom: 36rpx;
+}
+
+.page-title {
+  font-size: 42rpx;
+  font-weight: 500;
+  color: #241E1A;
+  letter-spacing: 8rpx;
+}
+
+.page-subtitle {
+  font-size: 22rpx;
+  color: #8C8074;
+  margin-top: 10rpx;
+  display: block;
+  letter-spacing: 1rpx;
+}
+
+/* 分类滚动条 */
+.filter-bar {
+  display: flex;
+  white-space: nowrap;
+  margin-bottom: 36rpx;
+  padding: 8rpx 0;
+}
+
+.filter-item {
+  display: inline-block;
+  font-size: 26rpx;
+  color: #6B6259;
+  background: #FFFFFF;
+  padding: 14rpx 32rpx;
+  border-radius: 32rpx;
+  margin-right: 20rpx;
+  border: 1rpx solid #ECE5DC;
+  transition: all 0.2s ease;
+}
+
+.filter-item.active {
+  background: #8D6238;
+  color: #FFFFFF;
+  border-color: #8D6238;
+  box-shadow: 0 6rpx 18rpx rgba(141, 98, 56, 0.25);
+}
+
+/* 案例卡片列表 */
+.cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 36rpx;
+}
+
+.case-card {
+  padding: 36rpx 32rpx;
+  background: #FFFFFF;
+  transition: transform 0.2s ease;
+}
+
+.case-card:active {
+  transform: translateY(2rpx);
+}
+
+.card-tag-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.cat-tag {
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F7EFE5;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.highlight-badge {
+  font-size: 22rpx;
+  color: #C27D38;
+  font-weight: 600;
+}
+
+.case-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #241E1A;
+  line-height: 1.4;
+  margin-bottom: 14rpx;
+}
+
+.case-summary {
+  display: block;
+  font-size: 25rpx;
+  color: #6C6258;
+  line-height: 1.5;
+  margin-bottom: 24rpx;
+}
+
+/* 数据对比容器 */
+.data-contrast-box {
+  display: flex;
+  align-items: center;
+  background: #F9F7F3;
+  border-radius: 16rpx;
+  padding: 20rpx 28rpx;
+  margin-bottom: 24rpx;
+  border: 1rpx dashed #E2D7CA;
+}
+
+.data-item {
+  flex: 1;
+}
+
+.data-label {
+  display: block;
+  font-size: 20rpx;
+  color: #94887D;
+  margin-bottom: 4rpx;
+}
+
+.data-item.before .data-val {
+  font-size: 26rpx;
+  color: #7D736A;
+  text-decoration: line-through;
+}
+
+.data-arrow {
+  font-size: 32rpx;
+  color: #8D6238;
+  padding: 0 20rpx;
+}
+
+.data-item.after .data-val {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #8D6238;
+}
+
+/* 操盘抓手 */
+.strategy-preview {
+  font-size: 24rpx;
+  line-height: 1.5;
+  margin-bottom: 24rpx;
+  color: #4A423B;
+  background: #FAF9F6;
+  padding: 16rpx 20rpx;
+  border-left: 6rpx solid #8D6238;
+  border-radius: 4rpx;
+}
+
+.strategy-title {
+  font-weight: 600;
+  color: #8D6238;
+}
+
+/* 底部栏 */
+.card-bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1rpx solid #F0ECE4;
+  padding-top: 20rpx;
+}
+
+.case-author {
+  font-size: 22rpx;
+  color: #9E9388;
+}
+
+.view-more-btn {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #8D6238;
+  font-weight: 500;
+}
+
+.arrow {
+  font-size: 32rpx;
+  margin-left: 6rpx;
+  line-height: 1;
+}
+
+/* 详情抽屉 */
+.detail-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.detail-drawer {
+  background: #FFFFFF;
+  width: 100%;
+  max-height: 85vh;
+  border-radius: 36rpx 36rpx 0 0;
+  padding: 40rpx 36rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28rpx;
+}
+
+.drawer-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #241E1A;
+  flex: 1;
+  padding-right: 20rpx;
+  line-height: 1.4;
+}
+
+.drawer-close {
+  font-size: 52rpx;
+  color: #999;
+  line-height: 0.8;
+  padding: 10rpx;
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 24rpx;
+}
+
+.detail-section {
+  margin-bottom: 32rpx;
+}
+
+.section-badge {
+  display: inline-block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #8D6238;
+  background: #F8F1E7;
+  padding: 6rpx 18rpx;
+  border-radius: 8rpx;
+  margin-bottom: 14rpx;
+}
+
+.section-p {
+  display: block;
+  font-size: 26rpx;
+  color: #4D443D;
+  line-height: 1.6;
+}
+
+.result-box {
+  background: #F9F7F3;
+  padding: 20rpx;
+  border-radius: 12rpx;
+}
+
+.res-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10rpx;
+}
+
+.res-dot {
+  font-size: 20rpx;
+  color: #8D6238;
+  margin-right: 12rpx;
+  margin-top: 6rpx;
+}
+
+.res-text {
+  font-size: 26rpx;
+  color: #332B25;
+  line-height: 1.5;
+}
+
+.detail-quote {
+  background: #251F1B;
+  color: #E6D7C5;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-top: 24rpx;
+  margin-bottom: 30rpx;
+}
+
+.quote-mark {
+  font-size: 48rpx;
+  color: #9E7448;
+  line-height: 1;
+  display: block;
+}
+
+.quote-content {
+  font-size: 25rpx;
+  line-height: 1.6;
+  font-style: italic;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.quote-by {
+  font-size: 22rpx;
+  color: #A39688;
+  text-align: right;
+  display: block;
+}
+
+.drawer-footer {
+  padding-top: 10rpx;
+}

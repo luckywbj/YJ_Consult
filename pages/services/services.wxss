@@ -1,0 +1,305 @@
+/* pages/services/services.wxss */
+.services-container {
+  padding: 30rpx 32rpx 100rpx 32rpx;
+  background-color: #F8F6F2;
+}
+
+.page-header {
+  text-align: center;
+  margin-top: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.page-title {
+  font-size: 42rpx;
+  font-weight: 500;
+  color: #241E1A;
+  letter-spacing: 8rpx;
+}
+
+.page-subtitle {
+  font-size: 22rpx;
+  color: #8C8074;
+  margin-top: 10rpx;
+  display: block;
+}
+
+/* 服务方案卡片 */
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 36rpx;
+  margin-bottom: 50rpx;
+}
+
+.service-card {
+  padding: 40rpx 36rpx;
+  background: #FFFFFF;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.service-card.selected {
+  border: 2rpx solid #8D6238;
+}
+
+.service-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.tier-name {
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F7EFE5;
+  padding: 6rpx 18rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.quota-text {
+  font-size: 22rpx;
+  color: #A09386;
+}
+
+.service-name {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 12rpx;
+}
+
+.service-target {
+  display: block;
+  font-size: 24rpx;
+  color: #7D736A;
+  margin-bottom: 24rpx;
+}
+
+.service-divider {
+  height: 1rpx;
+  background: #F0ECE4;
+  margin-bottom: 24rpx;
+}
+
+.deliverables-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.del-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.del-icon {
+  color: #8D6238;
+  font-size: 24rpx;
+  margin-right: 14rpx;
+  font-weight: bold;
+}
+
+.del-text {
+  font-size: 26rpx;
+  color: #4A413A;
+  line-height: 1.5;
+}
+
+.card-action-bar {
+  margin-top: 10rpx;
+}
+
+.plan-btn {
+  width: 100%;
+}
+
+/* 交付流程 */
+.process-section {
+  padding: 40rpx 36rpx;
+  background: #FFFFFF;
+  margin-bottom: 50rpx;
+}
+
+.process-title-box {
+  text-align: center;
+  margin-bottom: 36rpx;
+}
+
+.process-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.process-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8D8277;
+  margin-top: 8rpx;
+}
+
+.steps-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.step-node {
+  display: flex;
+  align-items: flex-start;
+}
+
+.step-num {
+  width: 52rpx;
+  height: 52rpx;
+  background: #8D6238;
+  color: #FFFFFF;
+  border-radius: 50%;
+  font-size: 24rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 22rpx;
+}
+
+.step-info {
+  flex: 1;
+}
+
+.step-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2E2723;
+  margin-bottom: 4rpx;
+}
+
+.step-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #7A7067;
+  line-height: 1.4;
+}
+
+/* 预约表单 */
+.appointment-form-card {
+  padding: 40rpx 36rpx;
+  background: #FFFFFF;
+  margin-bottom: 40rpx;
+}
+
+.form-header {
+  margin-bottom: 30rpx;
+}
+
+.form-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 8rpx;
+}
+
+.form-tip {
+  display: block;
+  font-size: 22rpx;
+  color: #8C8074;
+  line-height: 1.4;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #38312B;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+
+.form-input {
+  background: #F9F7F3;
+  border: 1rpx solid #E4DACD;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-picker {
+  background: #F9F7F3;
+  border: 1rpx solid #E4DACD;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.picker-arrow {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.form-textarea {
+  background: #F9F7F3;
+  border: 1rpx solid #E4DACD;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  height: 160rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 20rpx;
+}
+
+/* 底部联系条 */
+.footer-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #241E1A;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-top: 30rpx;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.contact-icon {
+  font-size: 32rpx;
+}
+
+.contact-text {
+  font-size: 26rpx;
+  color: #EBDCCB;
+  letter-spacing: 1rpx;
+}
+
+.contact-divider {
+  width: 1rpx;
+  height: 36rpx;
+  background: #473E37;
+}
