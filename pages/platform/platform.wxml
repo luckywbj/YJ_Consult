@@ -1,0 +1,97 @@
+<!-- pages/platform/platform.wxml -->
+<!-- 平台方（您本人）专用：管理所有入驻的导师工作室 -->
+<view class="pf-guard" wx:if="{{!isPlatform}}">
+  <view class="guard-card luxury-card">
+    <text class="guard-icon">🏛️</text>
+    <text class="guard-title">平台总控台 · 超级管理员验证</text>
+    <text class="guard-sub">仅限平台方使用：为导师开通工作室、续费、冻结、代管后台。</text>
+    <input class="guard-input" password="true" placeholder="平台管理口令（演示：9999）" value="{{passInput}}" bindinput="onPassInput" />
+    <button class="gold-btn full-btn" bindtap="unlock">进入平台总控台</button>
+  </view>
+</view>
+
+<view class="pf-page" wx:else>
+  <!-- 平台经营看板 -->
+  <view class="pf-header">
+    <view class="pf-top">
+      <text class="pf-badge">PLATFORM CONSOLE · 平台方</text>
+      <text class="pf-logout" bindtap="logoutPlatform">退出</text>
+    </view>
+    <text class="pf-title">入驻工作室管理</text>
+    <view class="pf-kpis">
+      <view class="kpi"><text class="kpi-n">{{summary.tenantCount}}</text><text class="kpi-t">入驻工作室</text></view>
+      <view class="kpi"><text class="kpi-n">{{summary.activeCount}}</text><text class="kpi-t">服务中</text></view>
+      <view class="kpi"><text class="kpi-n">{{summary.projectCount}}</text><text class="kpi-t">客户项目</text></view>
+      <view class="kpi"><text class="kpi-n">¥{{summary.paidTotalText}}</text><text class="kpi-t">累计立项额</text></view>
+    </view>
+  </view>
+
+  <view class="pf-tabs">
+    <view class="pf-tab {{tab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">工作室列表</view>
+    <view class="pf-tab {{tab === 1 ? 'active' : ''}}" bindtap="switchTab" data-tab="1">+ 为客户开通工作室</view>
+  </view>
+
+  <!-- 工作室列表 -->
+  <view class="pf-body" wx:if="{{tab === 0}}">
+    <view class="tenant-card luxury-card" wx:for="{{tenants}}" wx:key="tenantId">
+      <view class="tc-top">
+        <text class="tc-name">{{item.studioName}}</text>
+        <text class="tc-status {{item.statusInfo.ok ? (item.statusInfo.warning ? 'warn' : 'ok') : 'bad'}}">
+          {{item.statusInfo.ok ? (item.statusInfo.warning ? '即将到期' : '服务中') : item.statusInfo.label}}
+        </text>
+      </view>
+      <text class="tc-line">导师：{{item.mentorName}} · 账号：{{item.ownerPhone}}</text>
+      <text class="tc-line">套餐：{{item.plan}} · 到期：{{item.expireTime}}</text>
+      <text class="tc-line">客户项目 {{item.projectCount}} 个 · 立项额 ¥{{item.paidTotal}}</text>
+      <text class="tc-id">工作室ID：{{item.tenantId}}</text>
+
+      <view class="tc-actions">
+        <view class="tc-btn" bindtap="previewPortal" data-id="{{item.tenantId}}">预览门户</view>
+        <view class="tc-btn" bindtap="enterTenant" data-id="{{item.tenantId}}">代管后台</view>
+        <view class="tc-btn gold" bindtap="renew" data-id="{{item.tenantId}}">续费1年</view>
+        <view class="tc-btn {{item.status === 'frozen' ? 'gold' : 'danger'}}" bindtap="toggleFreeze" data-id="{{item.tenantId}}">
+          {{item.status === 'frozen' ? '解冻' : '冻结'}}
+        </view>
+      </view>
+      <view class="tc-copy" bindtap="copyPath" data-id="{{item.tenantId}}">复制门户路径（用于生成该工作室小程序码）</view>
+    </view>
+  </view>
+
+  <!-- 平台代开工作室 -->
+  <view class="pf-body" wx:if="{{tab === 1}}">
+    <view class="panel-card luxury-card">
+      <text class="panel-title">为已付费客户开通工作室</text>
+      <text class="panel-sub">线下收款后在此开号，把「登录手机号 + 密码」发给导师即可。正式版有效期 1 年。</text>
+
+      <view class="f-group">
+        <text class="f-label">工作室 / 品牌名称 *</text>
+        <input class="f-input" value="{{form.studioName}}" bindinput="onField" data-field="studioName" placeholder="如：林总财税私董会" />
+      </view>
+      <view class="f-group">
+        <text class="f-label">首席导师姓名 *</text>
+        <input class="f-input" value="{{form.mentorName}}" bindinput="onField" data-field="mentorName" placeholder="如：林总" />
+      </view>
+      <view class="f-group">
+        <text class="f-label">导师登录手机号 *</text>
+        <input class="f-input" type="number" maxlength="11" value="{{form.phone}}" bindinput="onField" data-field="phone" placeholder="11 位手机号" />
+      </view>
+      <view class="f-group">
+        <text class="f-label">初始登录密码 *</text>
+        <input class="f-input" value="{{form.password}}" bindinput="onField" data-field="password" placeholder="至少 4 位" />
+      </view>
+      <view class="f-group">
+        <text class="f-label">行业模板</text>
+        <picker range="{{presetNames}}" value="{{presetIndex}}" bindchange="onPresetChange">
+          <view class="f-picker">{{presetNames[presetIndex]}} ▼</view>
+        </picker>
+      </view>
+      <view class="f-group">
+        <text class="f-label">开通套餐</text>
+        <picker range="{{planNames}}" value="{{planIndex}}" bindchange="onPlanChange">
+          <view class="f-picker">{{planNames[planIndex]}} ▼</view>
+        </picker>
+      </view>
+      <button class="gold-btn full-btn" bindtap="createTenant">确认开通工作室</button>
+    </view>
+  </view>
+</view>

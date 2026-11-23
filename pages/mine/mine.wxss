@@ -267,6 +267,70 @@
   width: 100%;
 }
 
+.register-link {
+  text-align: center;
+  font-size: 24rpx;
+  color: #8D6238;
+  margin-top: 22rpx;
+  font-weight: 500;
+}
+
+.da-empty {
+  font-size: 22rpx;
+  color: #9A8E82;
+}
+
+/* 当前访问的工作室条 */
+.studio-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F4EDE4;
+  border-radius: 14rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 30rpx;
+  font-size: 22rpx;
+}
+
+.ss-txt {
+  color: #5C4E42;
+  font-weight: 600;
+}
+
+.ss-open {
+  color: #8D6238;
+  font-weight: 600;
+}
+
+.studio-pick-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.sp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1rpx solid #E0D2BF;
+  border-radius: 12rpx;
+  padding: 18rpx 22rpx;
+}
+
+.sp-name {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.sp-go {
+  font-size: 22rpx;
+  color: #8D6238;
+  font-weight: 600;
+}
+
 /* 顶部名片 */
 .profile-card {
   padding: 40rpx 36rpx;
@@ -411,17 +475,29 @@
   font-size: 22rpx;
   color: #C7B9A8;
   line-height: 1.4;
+  margin-bottom: 20rpx;
+}
+
+.wb-action-row {
+  display: flex;
+  gap: 16rpx;
 }
 
 .wb-btn {
-  background: rgba(226, 182, 120, 0.2);
+  flex: 1;
+  text-align: center;
+  background: rgba(226, 182, 120, 0.16);
   border: 1rpx solid #E2B678;
   color: #F3DEC0;
   font-size: 24rpx;
   font-weight: 600;
-  padding: 14rpx 24rpx;
+  padding: 14rpx 20rpx;
   border-radius: 32rpx;
-  flex-shrink: 0;
+}
+
+.wb-btn.gold-solid {
+  background: #E2B678;
+  color: #241E1A;
 }
 
 .section-block {

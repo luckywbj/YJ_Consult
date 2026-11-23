@@ -1,0 +1,143 @@
+/* pages/register/register.wxss */
+.reg-page {
+  min-height: 100vh;
+  background: #F8F6F2;
+  padding-bottom: 80rpx;
+}
+
+.reg-hero {
+  background: linear-gradient(160deg, #1E1915 0%, #352920 100%);
+  padding: 48rpx 36rpx 56rpx 36rpx;
+}
+
+.reg-badge {
+  display: inline-block;
+  font-size: 20rpx;
+  color: #241E1A;
+  background: #E2B678;
+  font-weight: 600;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.reg-title {
+  display: block;
+  font-size: 42rpx;
+  font-weight: 600;
+  color: #FFF7EB;
+  margin-bottom: 14rpx;
+}
+
+.reg-sub {
+  display: block;
+  font-size: 24rpx;
+  color: #C7B9A8;
+  line-height: 1.6;
+}
+
+.benefit-card {
+  margin: -28rpx 32rpx 28rpx 32rpx;
+  padding: 28rpx 30rpx;
+  background: #FFFFFF;
+  position: relative;
+}
+
+.benefit-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 8rpx 0;
+}
+
+.b-dot {
+  color: #B88B4A;
+  font-size: 22rpx;
+  margin-right: 12rpx;
+  margin-top: 4rpx;
+}
+
+.b-txt {
+  flex: 1;
+  font-size: 24rpx;
+  color: #4A413A;
+  line-height: 1.5;
+}
+
+.form-card {
+  margin: 0 32rpx;
+  padding: 36rpx 32rpx;
+  background: #FFFFFF;
+}
+
+.fc-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 26rpx;
+}
+
+.f-group {
+  margin-bottom: 24rpx;
+}
+
+.f-label {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #3A312A;
+  margin-bottom: 10rpx;
+}
+
+.f-input {
+  background: #F9F7F3;
+  border: 1rpx solid #E4DACD;
+  border-radius: 12rpx;
+  padding: 20rpx 22rpx;
+  font-size: 28rpx;
+  color: #241E1A;
+}
+
+.preset-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.preset-opt {
+  border: 2rpx solid #E5DDD0;
+  background: #FAF8F4;
+  border-radius: 12rpx;
+  padding: 18rpx 22rpx;
+}
+
+.preset-opt.active {
+  border-color: #8D6238;
+  background: #FDF9F2;
+}
+
+.po-name {
+  display: block;
+  font-size: 27rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.po-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #7D736A;
+  margin-top: 4rpx;
+}
+
+.submit-btn {
+  width: 100%;
+  margin-top: 16rpx;
+}
+
+.login-link {
+  text-align: center;
+  font-size: 24rpx;
+  color: #8D6238;
+  margin-top: 24rpx;
+}

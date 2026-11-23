@@ -34,7 +34,7 @@
           <text class="auth-title">{{auth.staffName}}</text>
           <text class="role-pill admin">当前权限：顾问后台</text>
         </view>
-        <text class="auth-desc">可查阅并录入全部客户的咨询过程与交付结果</text>
+        <text class="auth-desc">仅可查阅并管理本工作室名下的客户档案（与其他导师完全隔离）</text>
       </view>
       <view class="logout-link" bindtap="handleLogout">退出</view>
     </view>
@@ -45,32 +45,55 @@
         👤 客户手机号登录
       </view>
       <view class="auth-action-btn admin-outline" bindtap="openLoginModal" data-mode="admin">
-        🛠️ 顾问后台登录
+        🛠️ 导师工作室登录
       </view>
     </view>
   </view>
 
+  <!-- 当前访问的工作室 + SaaS 开通入口 -->
+  <view class="studio-strip">
+    <text class="ss-txt">{{brand.isPlatformDefault ? '当前位置：平台通用入口（未进入导师系统）' : ('当前门户：' + brand.navTitle)}}</text>
+    <text class="ss-open" bindtap="exitStudioToPlatform" wx:if="{{!brand.isPlatformDefault && auth.role !== 'admin'}}">切换工作室 ›</text>
+    <text class="ss-open" bindtap="goToRegister" wx:elif="{{brand.isPlatformDefault}}">开通工作室 ›</text>
+  </view>
+
   <!-- 顾问端工作台入口卡片（仅在顾问后台登录 role === 'admin' 时显示，客户完全不可见！） -->
-  <view class="workspace-banner" wx:if="{{auth.role === 'admin'}}" bindtap="openAdminWorkspace">
-    <view class="wb-left">
+  <view class="workspace-banner" wx:if="{{auth.role === 'admin'}}">
+    <view class="wb-left" bindtap="openAdminWorkspace">
       <view class="wb-tag-row">
         <text class="wb-badge">内部专用</text>
-        <text class="wb-title">岩姐顾问录入工作台</text>
+        <text class="wb-title">{{brand.mentorName}}顾问工作台 & 标品装修</text>
       </view>
-      <text class="wb-desc">为客户建档立项、录入每次咨询过程、派发行动清单、上传交付方案与更新战果</text>
+      <text class="wb-desc">录入咨询过程、发布交付方案、一键切换行业标品母版、改品牌名与套餐定价</text>
+      <view class="wb-action-row">
+        <view class="wb-btn" catchtap="openAdminWorkspace">📋 录咨询与交付</view>
+        <view class="wb-btn gold-solid" catchtap="openBrandConfig">⚙️ 标品品牌装修</view>
+      </view>
     </view>
-    <view class="wb-btn">进入工作台 ›</view>
   </view>
 
   <!-- 我的咨询项目与交付空间（严格按登录身份隔离展示） -->
   <view class="section-block luxury-card">
     <view class="block-header">
-      <text class="block-title">{{auth.role === 'admin' ? '全部客户咨询项目档案' : '我的专属咨询交付空间'}}</text>
+      <text class="block-title">{{auth.role === 'admin' ? '本工作室客户咨询项目档案' : '我的专属咨询交付空间'}}</text>
       <text class="record-count" wx:if="{{auth.role !== 'guest'}}">共 {{appointments.length}} 个项目</text>
     </view>
 
+    <!-- 未进入具体导师工作室时（平台中性态），先引导选择工作室或导师登录 -->
+    <view class="privacy-lock-box" wx:if="{{brand.isPlatformDefault}}">
+      <text class="lock-icon">🏛️</text>
+      <text class="lock-title">每个导师就是一个独立系统</text>
+      <text class="lock-sub">请选择你要进入的导师工作室，或直接用导师/客户账号登录：</text>
+      <view class="studio-pick-col">
+        <view class="sp-row" wx:for="{{tenantsList}}" wx:key="tenantId" bindtap="enterStudio" data-id="{{item.tenantId}}">
+          <text class="sp-name">{{item.studioName}}（{{item.mentorName}}）</text>
+          <text class="sp-go">进入该系统 ›</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 未登录时的隐私保护锁屏提示 -->
-    <view class="privacy-lock-box" wx:if="{{auth.role === 'guest'}}">
+    <view class="privacy-lock-box" wx:elif="{{auth.role === 'guest'}}">
       <text class="lock-icon">🛡️</text>
       <text class="lock-title">客户商业咨询档案已加密隔离</text>
       <text class="lock-sub">每位客户的痛点诊断、咨询过程纪要及交付方案仅限本人登录后查阅。</text>
@@ -126,34 +149,34 @@
     </view>
   </view>
 
-  <!-- 首席顾问 IP 名片 -->
-  <view class="profile-card luxury-card">
+  <!-- 首席顾问 IP 名片（仅在进入具体某位导师的工作室后展示，平台中性态隐藏个人名片） -->
+  <view class="profile-card luxury-card" wx:if="{{!brand.isPlatformDefault}}">
     <view class="profile-top">
       <image class="avatar-img" src="/images/avatar.png" mode="aspectFill"></image>
       <view class="profile-main">
         <view class="name-row">
-          <text class="user-name">岩姐</text>
-          <text class="identity-tag">首席操盘顾问</text>
+          <text class="user-name">{{brand.mentorName}}</text>
+          <text class="identity-tag">{{brand.mentorBadge}}</text>
         </view>
-        <text class="user-title">高客单商业操盘手 · 奢侈品思维导师</text>
+        <text class="user-title">{{brand.mentorTitle}}</text>
       </view>
     </view>
-    <text class="slogan-line">“所有行业都值得用奢侈品思维重做一遍”</text>
+    <text class="slogan-line">“{{brand.philosophy}}”</text>
 
     <view class="kpi-grid">
       <view class="kpi-cell">
-        <text class="kpi-num">300+</text>
-        <text class="kpi-txt">高净值企业私董</text>
+        <text class="kpi-num">{{brand.stat1Num}}</text>
+        <text class="kpi-txt">{{brand.stat1Tag}}</text>
       </view>
       <view class="kpi-split"></view>
       <view class="kpi-cell">
-        <text class="kpi-num">10+年</text>
-        <text class="kpi-txt">商业操盘战历</text>
+        <text class="kpi-num">{{brand.stat2Num}}</text>
+        <text class="kpi-txt">{{brand.stat2Tag}}</text>
       </view>
       <view class="kpi-split"></view>
       <view class="kpi-cell">
-        <text class="kpi-num">8.6x</text>
-        <text class="kpi-txt">客户平均客单提升</text>
+        <text class="kpi-num">{{brand.stat3Num}}</text>
+        <text class="kpi-txt">{{brand.stat3Tag}}</text>
       </view>
     </view>
   </view>
@@ -166,7 +189,7 @@
         <text class="menu-label">官方微信咨询</text>
       </view>
       <view class="menu-right">
-        <text class="menu-val">yanjie_consulting</text>
+        <text class="menu-val">{{brand.wechat}}</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
@@ -179,20 +202,33 @@
         <text class="menu-label">VIP 咨询专线</text>
       </view>
       <view class="menu-right">
-        <text class="menu-val">400-880-9966</text>
+        <text class="menu-val">{{brand.phone}}</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
 
     <view class="menu-divider"></view>
 
-    <view class="menu-row" bindtap="openLoginModal" data-mode="admin" wx:if="{{auth.role !== 'admin'}}">
+    <view class="menu-row" bindtap="goToRegister">
       <view class="menu-left">
-        <text class="menu-icon">🔐</text>
-        <text class="menu-label">内部顾问工作人员入口</text>
+        <text class="menu-icon">✨</text>
+        <text class="menu-label">开通我的咨询工作室</text>
       </view>
       <view class="menu-right">
-        <text class="menu-val">口令验证</text>
+        <text class="menu-val">{{trialDays}}天免费试用</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-divider"></view>
+
+    <view class="menu-row" bindtap="goToPlatform">
+      <view class="menu-left">
+        <text class="menu-icon">🏛️</text>
+        <text class="menu-label">平台总控台（平台方专用）</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-val">开号 / 续费</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
@@ -227,8 +263,8 @@
 
   <!-- 版权信息 -->
   <view class="copyright-bar">
-    <text>岩姐商业咨询 · 版权所有</text>
-    <text class="copyright-en">YANJIE CONSULTING © 2026 ALL RIGHTS RESERVED</text>
+    <text>{{brand.navTitle}} · 商业咨询数字化交付空间</text>
+    <text class="copyright-en">{{brand.brandSubtitle}} © 2026</text>
   </view>
 
   <!-- ==================== 弹窗：客户登录 / 顾问后台登录 ==================== -->
@@ -246,7 +282,7 @@
           class="l-tab {{loginModal.mode === 'admin' ? 'active' : ''}}" 
           bindtap="switchLoginMode" 
           data-mode="admin">
-          顾问后台登录
+          导师工作室登录
         </view>
       </view>
 
@@ -268,33 +304,44 @@
 
         <!-- 快捷体验测试账号（方便演示不同客户之间的数据完全隔离） -->
         <view class="demo-accounts-box">
-          <text class="da-label">⚡ 点击下方演示客户账号可一键填入测试（体验数据隔离）：</text>
+          <text class="da-label">⚡ 本工作室演示客户账号，点击填入（正式上线时移除）：</text>
           <view class="da-pills">
-            <view class="da-pill" bindtap="quickFillClient" data-phone="13888888899">
-              客户1：李总 (13888888899)
+            <view class="da-pill" wx:for="{{demoClients}}" wx:key="phone" bindtap="quickFillClient" data-phone="{{item.phone}}">
+              {{item.name}}（{{item.phone}}）
             </view>
-            <view class="da-pill" bindtap="quickFillClient" data-phone="13988885520">
-              客户2：陈老师 (13988885520)
-            </view>
+            <text class="da-empty" wx:if="{{demoClients.length === 0}}">当前工作室暂无客户项目</text>
           </view>
         </view>
 
         <button class="gold-btn login-submit-btn" bindtap="submitClientLogin">验证并进入我的交付空间</button>
       </view>
 
-      <!-- 模式 B：顾问/后台工作人员登录 -->
+      <!-- 模式 B：导师工作室登录（每位导师一个独立账号） -->
       <view class="login-body" wx:if="{{loginModal.mode === 'admin'}}">
-        <text class="login-tip">仅限岩姐咨询顾问团队及后台助教人员登录。验证通过后可查看全部客户档案并录入咨询过程与交付结果：</text>
+        <text class="login-tip">导师使用自己的工作室账号登录。登录后自动进入自己的工作室，只能管理自己的门户与客户：</text>
+        <input
+          class="login-input"
+          type="number"
+          maxlength="11"
+          placeholder="工作室登录手机号"
+          value="{{loginModal.mentorPhone}}"
+          bindinput="onMentorPhoneInput" />
         <input 
           class="login-input" 
           password="true" 
-          placeholder="请输入顾问后台管理口令（演示口令：8888）" 
+          placeholder="登录密码" 
           value="{{loginModal.adminPass}}" 
           bindinput="onAdminPassInput" />
         <view class="demo-accounts-box">
-          <text class="da-label">💡 演示默认后台管理口令为：8888</text>
+          <text class="da-label">⚡ 演示工作室账号（密码均为 8888），点击填入：</text>
+          <view class="da-pills">
+            <view class="da-pill" bindtap="quickFillMentor" data-phone="13800000001">岩姐咨询（13800000001）</view>
+            <view class="da-pill" bindtap="quickFillMentor" data-phone="13800000002">卓远财税 · 周远山（13800000002）</view>
+            <view class="da-pill" bindtap="quickFillMentor" data-phone="13800000003">东方奢美 · 苏婉清（13800000003）</view>
+          </view>
         </view>
-        <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">解锁顾问录入工作台</button>
+        <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">登录我的工作室</button>
+        <view class="register-link" bindtap="goToRegister">还没有工作室？立即开通（免费试用） ›</view>
       </view>
     </view>
   </view>

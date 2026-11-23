@@ -1,0 +1,62 @@
+<!-- pages/register/register.wxml -->
+<view class="reg-page">
+  <view class="reg-hero">
+    <text class="reg-badge">无需注册小程序 · 无需服务器 · 10 秒开通</text>
+    <text class="reg-title">开通你的专属咨询工作室</text>
+    <text class="reg-sub">一个账号，即可拥有独立品牌门户、客户下单入口、一客一档咨询交付后台。开通即享 {{trialDays}} 天免费试用。</text>
+  </view>
+
+  <view class="benefit-card luxury-card">
+    <view class="benefit-row"><text class="b-dot">✦</text><text class="b-txt">独立品牌门户：首页、案例、服务套餐全部显示你自己的品牌</text></view>
+    <view class="benefit-row"><text class="b-dot">✦</text><text class="b-txt">专属分享链接：客户从你的链接进入，只看得到你的工作室</text></view>
+    <view class="benefit-row"><text class="b-dot">✦</text><text class="b-txt">交付后台：录入每次咨询过程、行动清单、交付方案与业绩战果</text></view>
+    <view class="benefit-row"><text class="b-dot">✦</text><text class="b-txt">数据隔离：你的客户数据与其他导师完全隔离，互不可见</text></view>
+  </view>
+
+  <view class="form-card luxury-card">
+    <text class="fc-title">填写工作室信息</text>
+
+    <view class="f-group">
+      <text class="f-label">工作室 / 品牌名称 *</text>
+      <input class="f-input" placeholder="如：张姐高定咨询" value="{{form.studioName}}" bindinput="onField" data-field="studioName" />
+    </view>
+
+    <view class="f-group">
+      <text class="f-label">首席导师姓名 *</text>
+      <input class="f-input" placeholder="如：张姐" value="{{form.mentorName}}" bindinput="onField" data-field="mentorName" />
+    </view>
+
+    <view class="f-group">
+      <text class="f-label">登录手机号 *（作为工作室账号）</text>
+      <input class="f-input" type="number" maxlength="11" placeholder="11 位手机号" value="{{form.phone}}" bindinput="onField" data-field="phone" />
+    </view>
+
+    <view class="f-group">
+      <text class="f-label">设置登录密码 *</text>
+      <input class="f-input" password="true" placeholder="至少 4 位" value="{{form.password}}" bindinput="onField" data-field="password" />
+    </view>
+
+    <view class="f-group">
+      <text class="f-label">咨询微信号（选填）</text>
+      <input class="f-input" placeholder="客户点击「加顾问微信」时复制的微信号" value="{{form.wechat}}" bindinput="onField" data-field="wechat" />
+    </view>
+
+    <view class="f-group">
+      <text class="f-label">选择行业起步模板（开通后可随时修改）</text>
+      <view class="preset-grid">
+        <view
+          class="preset-opt {{form.presetKey === item.key ? 'active' : ''}}"
+          wx:for="{{presetOptions}}"
+          wx:key="key"
+          bindtap="selectPreset"
+          data-key="{{item.key}}">
+          <text class="po-name">{{item.name}}</text>
+          <text class="po-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <button class="gold-btn submit-btn" bindtap="submitRegister">立即开通（{{trialDays}} 天免费试用）</button>
+    <view class="login-link" bindtap="goLogin">已有工作室？去登录 ›</view>
+  </view>
+</view>

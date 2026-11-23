@@ -1,21 +1,36 @@
 // app.js
 const consultStore = require('./utils/consultStore');
 
+// 从启动参数中解析工作室 ID：
+// 1. 分享卡片 / 普通链接：path?tenantId=xxx
+// 2. 小程序码（wxacode.getUnlimited）：scene=xxx（scene 最长 32 字符，直接放 tenantId）
+function resolveTenantId(options) {
+  const query = (options && options.query) || {};
+  if (query.tenantId) return query.tenantId;
+  if (query.scene) return decodeURIComponent(query.scene);
+  return '';
+}
+
 App({
-  onLaunch() {
-    console.log('岩姐商业咨询小程序初始化成功');
-    // 初始化咨询订单、每次咨询过程与交付结果数据中心
+  onLaunch(options) {
+    consultStore.getTenants();
     consultStore.getProjects();
+    this.applyTenantFromOptions(options);
   },
-  globalData: {
-    brandName: '岩姐咨询',
-    slogan: '所有行业都值得用奢侈品思维重做一遍',
-    consultant: {
-      name: '岩姐',
-      title: '高客单商业操盘手 · 奢侈品思维导师',
-      wechat: 'yanjie_consulting',
-      phone: '400-880-9966',
-      intro: '专注于高端品牌破局与10倍客单商业模式操盘，累计赋能300+高净值创始团队。'
+
+  // 热启动（从分享卡片再次进入）时也要切换到对应工作室
+  onShow(options) {
+    this.applyTenantFromOptions(options);
+  },
+
+  applyTenantFromOptions(options) {
+    const tenantId = resolveTenantId(options);
+    if (tenantId) {
+      consultStore.setCurrentTenant(tenantId);
     }
+  },
+
+  globalData: {
+    platformName: '高定咨询工作室'
   }
 });

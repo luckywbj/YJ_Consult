@@ -3,10 +3,11 @@ const consultStore = require('../../utils/consultStore');
 
 Page({
   data: {
+    brand: {},
     currentPlan: 0,
     typeIndex: 0,
-    payMode: 'deposit', // 'deposit' | 'full' | 'audit'
-    typeOptions: consultStore.SERVICES_CATALOG.map(s => s.name),
+    payMode: 'deposit',
+    typeOptions: [],
     formData: {
       name: '',
       phone: '',
@@ -15,8 +16,37 @@ Page({
       revenueBefore: '',
       problem: ''
     },
-    servicesList: consultStore.SERVICES_CATALOG,
+    servicesList: [],
     steps: consultStore.DELIVERY_STEPS
+  },
+
+  onLoad() {
+    this.syncBrandServices();
+  },
+
+  onShow() {
+    this.syncBrandServices();
+  },
+
+  syncBrandServices() {
+    const brand = consultStore.getBrandConfig();
+    const servicesList = brand.services || consultStore.SERVICES_CATALOG;
+    if (brand && brand.navTitle) {
+      wx.setNavigationBarTitle({ title: `${brand.navTitle} · 服务` });
+    }
+    this.setData({
+      brand,
+      servicesList,
+      typeOptions: servicesList.map(s => s.name)
+    });
+  },
+
+  onShareAppMessage() {
+    const brand = consultStore.getBrandConfig();
+    return {
+      title: `${brand.navTitle} · 核心服务矩阵`,
+      path: consultStore.getPortalPath()
+    };
   },
 
   selectPlan(e) {
@@ -55,6 +85,18 @@ Page({
   bindProblem(e) { this.setData({ 'formData.problem': e.detail.value }); },
 
   submitForm() {
+    if (!consultStore.getCurrentTenantId()) {
+      wx.showModal({
+        title: '请先选择咨询工作室',
+        content: '当前处于平台总入口，请先在「首页」或「我的」选择您要预约的导师工作室，或从导师分享链接进入后再下单。',
+        confirmText: '去选择',
+        confirmColor: '#8D6238',
+        success: (res) => {
+          if (res.confirm) wx.switchTab({ url: '/pages/index/index' });
+        }
+      });
+      return;
+    }
     const { name, phone, industry, ticketBefore, revenueBefore, problem } = this.data.formData;
     const { typeIndex, typeOptions, servicesList, payMode } = this.data;
 
@@ -144,8 +186,9 @@ Page({
   },
 
   makePhoneCall() {
+    const phone = (this.data.brand && this.data.brand.phone) ? this.data.brand.phone.replace(/-/g, '') : '4008809966';
     wx.makePhoneCall({
-      phoneNumber: '4008809966',
+      phoneNumber: phone,
       fail: () => {
         wx.showToast({ title: '暂未唤起拨号', icon: 'none' });
       }
@@ -153,8 +196,9 @@ Page({
   },
 
   copyWechat() {
+    const wechat = (this.data.brand && this.data.brand.wechat) || 'yanjie_consulting';
     wx.setClipboardData({
-      data: 'yanjie_consulting',
+      data: wechat,
       success: () => {
         wx.showToast({ title: '顾问微信号已复制', icon: 'success' });
       }

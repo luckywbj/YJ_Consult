@@ -3,6 +3,7 @@ const consultStore = require('../../utils/consultStore');
 
 Page({
   data: {
+    brand: {},
     auth: { role: 'guest' },
     allProjects: [],
     projectTitles: [],
@@ -33,12 +34,13 @@ Page({
   },
 
   loadData() {
+    const brand = consultStore.getBrandConfig();
     const auth = consultStore.getAuthSession();
     // 严格只读取当前登录身份有权查看的项目
     const visible = consultStore.getVisibleProjects();
 
     if (auth.role === 'guest' || visible.length === 0) {
-      this.setData({ auth, project: null, allProjects: [] });
+      this.setData({ brand, auth, project: null, allProjects: [] });
       wx.showModal({
         title: '请先登录验证身份',
         content: '为保护客户商业咨询机密，请先使用下单手机号登录，或前往服务页下单立项。',
@@ -59,6 +61,7 @@ Page({
     }
     const proj = visible[idx] || null;
     this.setData({
+      brand,
       auth,
       allProjects: visible,
       projectTitles: visible.map(p => `${p.name} · ${p.type} (${p.status})`),
@@ -184,8 +187,9 @@ Page({
   },
 
   contactConsultant() {
+    const wechat = (this.data.brand && this.data.brand.wechat) || 'yanjie_consulting';
     wx.setClipboardData({
-      data: 'yanjie_consulting',
+      data: wechat,
       success: () => {
         wx.showToast({ title: '顾问微信已复制', icon: 'success' });
       }
@@ -193,8 +197,9 @@ Page({
   },
 
   callHotline() {
+    const phone = (this.data.brand && this.data.brand.phone) ? this.data.brand.phone.replace(/-/g, '') : '4008809966';
     wx.makePhoneCall({
-      phoneNumber: '4008809966',
+      phoneNumber: phone,
       fail: () => {
         wx.showToast({ title: '暂未唤起拨号', icon: 'none' });
       }

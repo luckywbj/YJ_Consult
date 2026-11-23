@@ -4,7 +4,11 @@ const consultStore = require('../../utils/consultStore');
 Page({
   data: {
     auth: { role: 'guest' },
-    passInput: '8888',
+    passInput: '',
+    guardPhone: '',
+    tenant: {},
+    tenantStatus: {},
+    portalPath: '',
     allProjects: [],
     project: null,
     adminTab: 0,
@@ -45,11 +49,25 @@ Page({
       ticketBefore: '',
       revenueBefore: '',
       problem: ''
+    },
+    brandForm: {},
+    newCaseForm: {
+      category: '',
+      badge: '',
+      title: '',
+      summary: '',
+      beforeVal: '',
+      afterVal: '',
+      coreStrategy: '',
+      clientName: ''
     }
   },
 
   onLoad(options) {
     this.targetId = options && options.id ? options.id : '';
+    if (options && options.tab !== undefined) {
+      this.setData({ adminTab: Number(options.tab) });
+    }
     this.loadAdminData();
   },
 
@@ -59,22 +77,66 @@ Page({
 
   loadAdminData() {
     const auth = consultStore.getAuthSession();
-    const all = consultStore.getProjects();
+    const brand = consultStore.getBrandConfig();
+    const tenant = consultStore.getCurrentTenant();
+    // 只读取「当前工作室」的客户项目，其他导师的数据完全不可见
+    const all = auth.role === 'admin' ? consultStore.getVisibleProjects() : [];
     let proj = all[0] || null;
     if (this.targetId) {
       const found = all.find(p => p.id === this.targetId);
       if (found) proj = found;
     }
-    if (!proj) return;
+    this.targetId = proj ? proj.id : '';
 
-    this.targetId = proj.id;
-    this.setData({
+    const servicesList = brand.services || consultStore.SERVICES_CATALOG;
+    const update = {
       auth,
+      tenant,
+      tenantStatus: consultStore.getTenantStatus(tenant),
+      portalPath: consultStore.getPortalPath(tenant.tenantId),
+      brandForm: JSON.parse(JSON.stringify(brand)),
+      planOptions: servicesList.map(s => s.name),
       allProjects: all,
-      project: proj,
-      'sessionForm.participants': `岩姐、${proj.name}及核心高管团队`,
-      metricsForm: { ...proj.metrics }
+      project: proj
+    };
+    if (proj) {
+      update['sessionForm.participants'] = `${brand.mentorName}、${proj.name}及核心高管团队`;
+      update.metricsForm = { ...proj.metrics };
+    }
+    this.setData(update);
+    if (brand.navTitle) {
+      wx.setNavigationBarTitle({ title: `${brand.navTitle} · 工作室后台` });
+    }
+  },
+
+  onGuardPhoneInput(e) {
+    this.setData({ guardPhone: e.detail.value });
+  },
+
+  goRegister() {
+    wx.navigateTo({ url: '/pages/register/register' });
+  },
+
+  goToPortalHome() {
+    wx.switchTab({ url: '/pages/index/index' });
+  },
+
+  copyPortalPath() {
+    wx.setClipboardData({
+      data: this.data.portalPath,
+      success: () => {
+        wx.showToast({ title: '已复制，可在公众平台生成小程序码', icon: 'none' });
+      }
     });
+  },
+
+  // 导师点击「分享我的门户」：卡片带上 tenantId，客户打开即锁定为该工作室
+  onShareAppMessage() {
+    const brand = consultStore.getBrandConfig();
+    return {
+      title: `${brand.navTitle} · ${brand.philosophy}`,
+      path: consultStore.getPortalPath()
+    };
   },
 
   onGuardPassInput(e) {
@@ -82,7 +144,9 @@ Page({
   },
 
   unlockAdmin() {
-    const res = consultStore.loginAsAdmin(this.data.passInput);
+    const res = this.data.guardPhone
+      ? consultStore.loginAsMentor(this.data.guardPhone, this.data.passInput)
+      : consultStore.loginAsAdmin(this.data.passInput);
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none' });
       return;
@@ -120,7 +184,7 @@ Page({
       sessionForm: {
         title: `第 ${nextNo} 次：高客单私享会收单复盘与百万级转介绍裂变机制植入`,
         mode: '线下闭门复盘 + 销冠团队督导',
-        participants: `岩姐、${project.name}、销售主管及核心顾问`,
+        participants: `${(this.data.brandForm && this.data.brandForm.mentorName) || '首席导师'}、${project.name}、销售主管及核心顾问`,
         diagnosis: '首场高客单发售虽已跑通，但已成交的高净值老客缺乏“圈层身份特权感”，转介绍率尚未被充分激活。',
         solution: '设计「黑卡创始会员私享家宴」与“老带新双享尊荣礼遇”，将每一位成交客户转化为品牌野生代言人，构建零获客成本的高客单自循环系统。',
         actionsText: '为首批已成交高客单客户寄送定制烫金黑卡与主理人亲笔感谢信\n建立核心高客单客户 3V1 专属管家服务微信群\n在本周日前完成首场私享家宴的 10 位种子客户与闺蜜邀约',
@@ -302,6 +366,150 @@ Page({
       showCancel: false,
       confirmText: '开始录入咨询',
       confirmColor: '#8D6238'
+    });
+  },
+
+  // ==================== 5. 标品白牌化装修中心操作 ====================
+
+  // 一键切换三大行业标品母版
+  onApplyPreset(e) {
+    const presetKey = e.currentTarget.dataset.preset;
+    const newBrand = consultStore.applyIndustryPreset(presetKey);
+    this.loadAdminData();
+    wx.showModal({
+      title: '行业标品母版已切换',
+      content: `全站已切换为【${newBrand.navTitle}】行业母版（含首页品牌、导师名片、3大服务套餐与案例库）。是否立即前往首页预览效果？`,
+      confirmText: '预览新首页',
+      cancelText: '留在本页',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({ url: '/pages/index/index' });
+        }
+      }
+    });
+  },
+
+  onBrandField(e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({
+      [`brandForm.${field}`]: e.detail.value
+    });
+  },
+
+  saveBrandInfo() {
+    consultStore.saveBrandConfig(this.data.brandForm);
+    this.loadAdminData();
+    wx.showModal({
+      title: '品牌门户配置已生效',
+      content: '首页品牌标题、使命愿景、导师名片及联系方式已实时更新！是否前往首页查看？',
+      confirmText: '前往首页',
+      cancelText: '继续配置',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({ url: '/pages/index/index' });
+        }
+      }
+    });
+  },
+
+  onPkgField(e) {
+    const { idx, field } = e.currentTarget.dataset;
+    let val = e.detail.value;
+    const services = this.data.brandForm.services;
+    if (field === 'price') {
+      const num = Number(val) || 0;
+      services[idx].price = num;
+      services[idx].priceText = `¥${num.toLocaleString()} / 案`;
+    } else if (field === 'deposit') {
+      const num = Number(val) || 0;
+      services[idx].deposit = num;
+      services[idx].depositText = `¥${num.toLocaleString()}`;
+    } else {
+      services[idx][field] = val;
+    }
+    this.setData({ 'brandForm.services': services });
+  },
+
+  savePackagesConfig() {
+    consultStore.saveBrandConfig(this.data.brandForm);
+    this.loadAdminData();
+    wx.showModal({
+      title: '三大服务套餐已更新',
+      content: '套餐名称、全案价格与立项定金已同步至「服务」页，是否前往查看？',
+      confirmText: '查看服务页',
+      cancelText: '留在本页',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({ url: '/pages/services/services' });
+        }
+      }
+    });
+  },
+
+  onCaseField(e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({
+      [`newCaseForm.${field}`]: e.detail.value
+    });
+  },
+
+  fillDemoCase() {
+    const { brandForm } = this.data;
+    this.setData({
+      newCaseForm: {
+        category: '高客单私域',
+        badge: '单场发售收款 420W',
+        title: '某高端抗衰与私人健康管理中心：重构百万级会员阶梯，3天闭门会收现420万',
+        summary: '告别传统渠道高额返佣，由导师团队重塑自有高净值私域池与全周期健康管家交付体系。',
+        beforeVal: '渠道抽成50% · 留存低',
+        afterVal: '自有私域客单 6.8万 · 复购62%',
+        coreStrategy: '砍掉中间渠道商，建立主理人高势能专家IP与1V1尊享私人医生年度会员制。',
+        clientName: `孙总（知名健康管理机构创始人 · ${brandForm.mentorName}私董学员）`
+      }
+    });
+    wx.showToast({ title: '已填入示例新案例', icon: 'none' });
+  },
+
+  publishNewCase() {
+    const { category, badge, title, beforeVal, afterVal, coreStrategy, clientName } = this.data.newCaseForm;
+    if (!title.trim() || !beforeVal.trim() || !afterVal.trim()) {
+      wx.showToast({ title: '请填写案例标题与前后对比数据', icon: 'none' });
+      return;
+    }
+
+    consultStore.addBrandCase({
+      ...this.data.newCaseForm,
+      summary: this.data.newCaseForm.summary || coreStrategy
+    });
+
+    this.setData({
+      newCaseForm: {
+        category: '',
+        badge: '',
+        title: '',
+        summary: '',
+        beforeVal: '',
+        afterVal: '',
+        coreStrategy: '',
+        clientName: ''
+      }
+    });
+    this.loadAdminData();
+
+    wx.showModal({
+      title: '新案例已发布至案例页',
+      content: '该实战案例已实时上架至小程序「案例」页，是否立即前往查看？',
+      confirmText: '查看案例页',
+      cancelText: '继续装修',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({ url: '/pages/cases/cases' });
+        }
+      }
     });
   }
 });

@@ -1,64 +1,18 @@
 // utils/consultStore.js
-// 岩姐商业咨询 · 订单、咨询过程追踪、交付结果与多角色权限隔离中心
+// 高客单商业咨询 SaaS 平台 · 多租户（工作室）隔离 + 多角色权限 + 白牌化品牌装修数据中心
+//
+// 数据隔离层级：
+//   平台（1 个小程序 AppID） → 工作室 tenantId（每位导师一个账号） → 客户项目（按手机号隔离）
+// 迁移云开发时：每张集合加 tenantId 字段，云函数按 tenantId + openid 过滤即可。
 
-const STORAGE_KEY = 'yj_consult_projects_v3';
-const AUTH_KEY = 'yj_consult_auth_session_v1';
-const ADMIN_PASSCODE = '8888'; // 顾问后台工作人员默认管理口令
-
-// 三大核心服务产品目录
-const SERVICES_CATALOG = [
-  {
-    id: 's1',
-    tier: '旗舰单品 · 深度问诊',
-    name: '1对1 商业闭门深度私董会',
-    price: 29800,
-    priceText: '¥29,800 / 场',
-    deposit: 2980,
-    depositText: '¥2,980',
-    quota: '每月仅限 5 席',
-    target: '年营收500万以上、客单价遇瓶颈的企业主 / 知识商业IP',
-    deliverables: [
-      '3小时面对面闭门深度商业逻辑推演',
-      '重构企业“奢侈品思维”产品定价与溢价体系',
-      '独家定制《企业高客单破局行动路线图》',
-      '交付后 14 天顾问团队答疑答辩追踪'
-    ]
-  },
-  {
-    id: 's2',
-    tier: '全案赋能 · 体系操盘',
-    name: '高客单商业操盘全案',
-    price: 128000,
-    priceText: '¥128,000 / 季',
-    deposit: 10000,
-    depositText: '¥10,000',
-    quota: '每季度仅接 2 席',
-    target: '希望打造销冠级成交体系与高转化会销漏斗的成熟团队',
-    deliverables: [
-      '顾问团队进驻调研，拆解现有产品交付漏洞',
-      '全套奢侈品成交话术库、朋友圈发售剧本SOP输出',
-      '现场销冠级高客单谈单培训与模拟演练',
-      '全程协助落地一场高产出发售活动'
-    ]
-  },
-  {
-    id: 's3',
-    tier: '长期陪跑 · 顶层协同',
-    name: '年度战略商业顾问（限额）',
-    price: 360000,
-    priceText: '¥360,000 / 年',
-    deposit: 30000,
-    depositText: '¥30,000',
-    quota: '全年仅开放 3 个席位',
-    target: '志在成为细分赛道领头羊的高成长型企业',
-    deliverables: [
-      '全年战略股东级定期闭门复盘与经营研讨',
-      '重大商业并购、合伙人机制、融资顶层设计把关',
-      '岩姐高净值商业圈层与异业核心生态资源引荐',
-      '随时为创始人提供重大商业决策参谋支持'
-    ]
-  }
-];
+const STORAGE_KEY = 'yj_saas_projects_v4';
+const AUTH_KEY = 'yj_saas_auth_session_v1';
+const TENANTS_KEY = 'yj_saas_tenants_v1';
+const CURRENT_TENANT_KEY = 'yj_saas_current_tenant_v1';
+const BRAND_KEY_PREFIX = 'yj_saas_brand_';
+const PLATFORM_PASSCODE = '9999'; // 平台方（您本人）超级管理员口令
+const DEFAULT_TENANT_ID = 'tenant_yanjie';
+const TRIAL_DAYS = 14;
 
 // 5步全闭环交付标准流程
 const DELIVERY_STEPS = [
@@ -69,11 +23,493 @@ const DELIVERY_STEPS = [
   { step: 5, code: '05', title: '复盘迭代', desc: '复盘核心业绩指标增长率，完成结案验收与资产沉淀' }
 ];
 
-// 默认演示项目数据（分别绑定不同客户手机号，实现严格的一客一档隔离）
+// ==================== 三大行业标品预设母版（供销售演示一键切换） ====================
+
+const INDUSTRY_PRESETS = {
+  // 预设1：岩姐商业咨询（默认母版）
+  yanjie: {
+    presetKey: 'yanjie',
+    navTitle: '岩姐咨询',
+    brandName: '岩 姐 咨 询',
+    brandSubtitle: 'YANJIE BUSINESS CONSULTING',
+    mission: '让每个IP抓住属于自己的风口',
+    vision: '让每一个初创企业都能享受一流的商业咨询服务',
+    philosophy: '所有行业都值得用奢侈品思维重做一遍',
+    mentorName: '岩姐',
+    mentorBadge: '首席商业操盘顾问',
+    mentorTitle: '高客单商业操盘手 · 奢侈品思维导师',
+    mentorMotto: '“做商业，不要做平庸的追随者，要做稀缺的价值定义者。”',
+    stat1Num: '300+',
+    stat1Tag: '高端企业私董',
+    stat2Num: '10倍+',
+    stat2Tag: '客单溢价操盘',
+    stat3Num: '98.5%',
+    stat3Tag: '好评满意度',
+    wechat: 'yanjie_consulting',
+    phone: '400-880-9966',
+    adminPasscode: '8888',
+    services: [
+      {
+        id: 's1',
+        tier: '旗舰单品 · 深度问诊',
+        name: '1对1 商业闭门深度私董会',
+        price: 29800,
+        priceText: '¥29,800 / 场',
+        deposit: 2980,
+        depositText: '¥2,980',
+        quota: '每月仅限 5 席',
+        target: '年营收500万以上、客单价遇瓶颈的企业主 / 知识商业IP',
+        deliverables: [
+          '3小时面对面闭门深度商业逻辑推演',
+          '重构企业“奢侈品思维”产品定价与溢价体系',
+          '独家定制《企业高客单破局行动路线图》',
+          '交付后 14 天顾问团队答疑答辩追踪'
+        ]
+      },
+      {
+        id: 's2',
+        tier: '全案赋能 · 体系操盘',
+        name: '高客单商业操盘全案',
+        price: 128000,
+        priceText: '¥128,000 / 季',
+        deposit: 10000,
+        depositText: '¥10,000',
+        quota: '每季度仅接 2 席',
+        target: '希望打造销冠级成交体系与高转化会销漏斗的成熟团队',
+        deliverables: [
+          '顾问团队进驻调研，拆解现有产品交付漏洞',
+          '全套奢侈品成交话术库、朋友圈发售剧本SOP输出',
+          '现场销冠级高客单谈单培训与模拟演练',
+          '全程协助落地一场高产出发售活动'
+        ]
+      },
+      {
+        id: 's3',
+        tier: '长期陪跑 · 顶层协同',
+        name: '年度战略商业顾问（限额）',
+        price: 360000,
+        priceText: '¥360,000 / 年',
+        deposit: 30000,
+        depositText: '¥30,000',
+        quota: '全年仅开放 3 个席位',
+        target: '志在成为细分赛道领头羊的高成长型企业',
+        deliverables: [
+          '全年战略股东级定期闭门复盘与经营研讨',
+          '重大商业并购、合伙人机制、融资顶层设计把关',
+          '高净值商业圈层与异业核心生态资源引荐',
+          '随时为创始人提供重大商业决策参谋支持'
+        ]
+      }
+    ],
+    cases: [
+      {
+        id: 'c1',
+        category: '高客单操盘',
+        badge: '单月业绩突破 680W',
+        title: '某高端医美与大健康连锁：从价格战泥潭跃迁至高客单奢侈品服务体系',
+        summary: '原本依赖打折促销获客，人效低、利润薄。经重构顶层商业价值后，打造 10 倍溢价私域闭环。',
+        beforeVal: '客单 800元 · 利润率 12%',
+        afterVal: '高客单 2.98万 · 利润率 65%',
+        coreStrategy: '剔除走量耗品，植入奢侈品情绪价值交付链，打造销冠级价值陈述话术。',
+        clientName: '张总（上海知名医美机构创始人）',
+        detailBackground: '机构经营 4 年，长期被团购平台低价抽佣绑架，客户粘性极差，员工每天忙碌却濒临亏损。',
+        detailSolution: '咨询团队入场后，砍掉低毛利引流品，基于高端客户终身价值（LTV）设计三阶梯奢侈品产品矩阵，并赋能核心销售顾问高端成交心理学。',
+        results: [
+          '首期闭门会销发售突破 320 万元',
+          '单客终身价值从 2,400 元提升至 58,000 元',
+          '顺利搭建 8 人精细化高端私董运营团队'
+        ],
+        clientFeedback: '奢侈品思维真正帮我们敲醒了！原来不是客户没钱，是我们一直在用批发思维卖黄金。'
+      },
+      {
+        id: 'c2',
+        category: 'IP商业变现',
+        badge: '从0到1完成千万元私域交付',
+        title: '商业知识博主IP全案：重塑产品矩阵与年框私董会发售操盘',
+        summary: '粉丝量达 50 万但仅靠低价录播课变现，遇瓶颈。团队操盘重塑个人定位，推出高客单顾问年框。',
+        beforeVal: '单课 199元 · 粉丝变现难',
+        afterVal: '私董 4.98万/年 · 首期爆满',
+        coreStrategy: '从课程售卖者转型为高净值企业战略陪跑者，构建私域高信任度闭环转化漏斗。',
+        clientName: '陈老师（财经商业领域头部IP）',
+        detailBackground: '虽然拥有几十万短视频粉丝，但转化一直在 99~299 的低客单课程打转，交付成本高且变现天花板明显。',
+        detailSolution: '为其量身打造“奢侈品IP操盘模型”，将原有课程沉淀为底层资产，主力推出仅限 30 席的年度战略私董会，并全程督导发售流程。',
+        results: [
+          '私董会首发 48 小时即全部售罄，总营收超 360 万',
+          '客户复购率与深度转介绍率高达 45%',
+          '成功跑通年营收千万级的轻资产顾问模式'
+        ],
+        clientFeedback: '做完深度咨询才明白顶级 IP 卖的永远是认知势能与圈层价值，少走了至少三年弯路！'
+      },
+      {
+        id: 'c3',
+        category: '奢侈品全案',
+        badge: '毛利率提升 400%',
+        title: '传统定制珠宝品牌：颠覆批发代工，重构极致情感溢价商业模型',
+        summary: '替海外大牌代工毛利微薄。通过植入奢侈品叙事与高定私域会所模式，夺回定价权。',
+        beforeVal: '代工毛利 15% · 账期漫长',
+        afterVal: '品牌高定毛利 72% · 全款预定',
+        coreStrategy: '构建独特家族传承叙事资产，从单纯卖材质转向卖人生高光时刻纪念价值。',
+        clientName: '林女士（珠宝高定品牌主理人）',
+        detailBackground: '家族从事珠宝代工 12 年，随着原材料与人工成本上涨，利润被压缩至边缘，急需打造自主高端品牌。',
+        detailSolution: '进行全案品牌战略重构，制定奢侈品级服务标准 SOP，建立一对一私享品鉴会机制，完成从“代工厂”到“高定珠宝策展人”的身份跃迁。',
+        results: [
+          '自主品牌单季销售额超越过去全年纯利',
+          '客户平均转介绍系数达 1 : 2.4',
+          '成功入驻核心商圈顶级私享艺术空间'
+        ],
+        clientFeedback: '教我们的不仅是方法论，更是一种对商业尊严的坚守，让我们真正敢于开出高价。'
+      },
+      {
+        id: 'c4',
+        category: '实体转型',
+        badge: '团队人效提升 3.8倍',
+        title: '高端家居与软装企业：打破区域限制，打造线上+线下高转化销售铁军',
+        summary: '受线下自然客流萎缩影响严重，进店率断崖式下滑。经咨询辅导后打造高净值同城全域获客与成交系统。',
+        beforeVal: '月均成单 3~5 户 · 获客成本高',
+        afterVal: '月均成单 22 户 · 全款排单至半年后',
+        coreStrategy: '打造全案设计师个人 IP，以顾问式咨询替代推销，建立全生命周期服务口碑。',
+        clientName: '赵总（华南家居生活馆董事长）',
+        detailBackground: '大型卖场租金昂贵且流量枯竭，销售人员习惯等客上门，缺乏主动触达高净值业主的能力。',
+        detailSolution: '重塑前线团队为“空间美学商业顾问”，辅导团队运用顾问式探寻问答，精准切入千万级豪宅业主的深层生活方式诉求。',
+        results: [
+          '客单成交均价由 12 万元提升至 48 万元',
+          '销售转化周期缩短 50%',
+          '实现了完全不依赖卖场自然流的自循环造血'
+        ],
+        clientFeedback: '体系落地性极强，不是空中楼阁，团队第二天就能上手用，效果立竿见影。'
+      }
+    ]
+  },
+
+  // 预设2：卓远财税与股权战略私董会（向财税/法律/管理咨询机构演示标品时一键切换）
+  finance: {
+    presetKey: 'finance',
+    navTitle: '卓远财税战略',
+    brandName: '卓 远 财 税 私 董',
+    brandSubtitle: 'ZHUOYUAN TAX & EQUITY ADVISORY',
+    mission: '让每一家成长型民营企业账算得清、钱分得明、税交得安',
+    vision: '成为中国高净值家族与拟上市企业最信赖的顶层架构伙伴',
+    philosophy: '顶层股权与合规财税，是企业最大的隐形印钞机',
+    mentorName: '周远山',
+    mentorBadge: '首席股权与财税架构师',
+    mentorTitle: '前四大合伙人 · 百亿级民企财税顶层操盘手',
+    mentorMotto: '“不懂财税顶层设计的赚钱，只是在替风险打工。”',
+    stat1Num: '180+',
+    stat1Tag: '上市公司/独角兽顾问',
+    stat2Num: '24亿+',
+    stat2Tag: '累计合规节税降本',
+    stat3Num: '100%',
+    stat3Tag: '零合规风险交付',
+    wechat: 'zhuoyuan_advisory',
+    phone: '400-660-8899',
+    adminPasscode: '8888',
+    services: [
+      {
+        id: 's1',
+        tier: '顶层问诊 · 风险排雷',
+        name: '1对1 企业历史财税隐患与股权闭门诊断',
+        price: 38000,
+        priceText: '¥38,000 / 场',
+        deposit: 3800,
+        depositText: '¥3,800',
+        quota: '每月仅限 6 家企业',
+        target: '年营收3000万以上、存在两套账或股权代持隐患的创始人',
+        deliverables: [
+          '4小时核心账务与历史税务风险深度穿透体检',
+          '创始人家族财富隔离与防火墙顶层设计推演',
+          '输出《企业财税合规整改与节税降本路线图》',
+          '30天专属税务师与法务团队跟踪答疑'
+        ]
+      },
+      {
+        id: 's2',
+        tier: '架构重塑 · 利润倍增',
+        name: '高管合伙人股权激励与集团税务筹划全案',
+        price: 168000,
+        priceText: '¥168,000 / 案',
+        deposit: 16800,
+        depositText: '¥16,800',
+        quota: '每季度限接 3 家',
+        target: '准备引入核心高管合伙、多主体集团化运作的成长期企业',
+        deliverables: [
+          '三层股权架构（家族控股+有限合伙+业务主体）搭建',
+          '动态虚拟股与超额利润分红激励协议全套法律文件',
+          '供应链、研发与跨域交易合规税负优化方案落地',
+          '主持召开高管股权激励宣讲会与签约仪式'
+        ]
+      },
+      {
+        id: 's3',
+        tier: '资本陪跑 · 外部CFO',
+        name: '年度战略外部 CFO 陪跑顾问',
+        price: 480000,
+        priceText: '¥480,000 / 年',
+        deposit: 50000,
+        depositText: '¥50,000',
+        quota: '全年仅限 3 席',
+        target: '冲刺并购重组、Pre-IPO融资或亿元级利润规模的龙头企业',
+        deliverables: [
+          '月度经营财务分析董事会与全面预算管理体系落地',
+          '融资尽调辅导、估值模型搭建与投资人谈判陪跑',
+          '家族信托、跨境架构与二代接班顶层筹划',
+          '全年重大商业合同财税法三重合规联审'
+        ]
+      }
+    ],
+    cases: [
+      {
+        id: 'fc1',
+        category: '财税合规操盘',
+        badge: '年均合规节税 860W',
+        title: '某跨境电商亿级卖家：化解历史金税四期预警，重构香港+境内双层合规架构',
+        summary: '原采用个人卡收付款与买单出口，面临巨额补税风险。经3个月全案重构实现阳光化高毛利运作。',
+        beforeVal: '个人卡流水2亿 · 风险极高',
+        afterVal: '全链路阳光退税 · 综合税负降62%',
+        coreStrategy: '搭建海外控股+境内研发技术服务+跨境供应链多主体协同架构，打通出口退税闭环。',
+        clientName: '刘总（深圳头部出海品牌董事长）',
+        detailBackground: '企业年营收破2亿，但长期存在公私混同与发票缺口，融资尽调被一票否决。',
+        detailSolution: '卓远团队驻场梳理近3年资金流，完成历史违规剥离，新设主体承接核心知识产权并申请高新资质与合规退税。',
+        results: [
+          '每年新增合规出口退税与税收优惠超 860 万元',
+          '顺利通过一线美元基金财务尽调，获 5000 万 A 轮融资',
+          '创始人家族资产与企业经营负债实现 100% 法律隔离'
+        ],
+        clientFeedback: '周老师团队不仅帮我们睡上了安稳觉，光退税和节税省下的钱就是咨询费的几十倍！'
+      },
+      {
+        id: 'fc2',
+        category: '股权合伙机制',
+        badge: '核心高管人效翻倍',
+        title: '某连锁餐饮集团（80家门店）：导入门店裂变合伙人制度，半年净开店35家',
+        summary: '直营店长积极性差、损耗高。通过设计“在岗分红股+裂变母子店合伙机制”，彻底点燃团队创业狼性。',
+        beforeVal: '店长流失率35% · 净利仅7%',
+        afterVal: '店长零流失 · 门店净利达19%',
+        coreStrategy: '不动用创始人实股，采用“超额利润阶梯分红+新店跟投优先权”绑定核心店长。',
+        clientName: '吴董事长（知名连锁餐饮品牌创始人）',
+        detailBackground: '门店超过50家后管理半径失控，总部督导成本极高，优秀店长纷纷跳槽单干。',
+        detailSolution: '量身定制全套《门店裂变合伙人章程》与财务核算大屏，让店长从“打工者”变成“算清账的经营合伙人”。',
+        results: [
+          '首期合伙人大会现场募集内部骨干跟投金 1,450 万元',
+          '老店单店平均食材损耗下降 4.2 个百分点',
+          '半年内由老店长裂变孵化 35 家高盈利新店'
+        ],
+        clientFeedback: '以前总怕分股失去控制权，卓远设计的合伙机制既锁住了控制权，又让员工像老板一样拼命！'
+      }
+    ]
+  },
+
+  // 预设3：东方奢美·医美与大健康高定增长院（向美业/大健康/门店咨询机构演示时一键切换）
+  aesthetics: {
+    presetKey: 'aesthetics',
+    navTitle: '东方奢美增长院',
+    brandName: '东 方 奢 美 增 长 院',
+    brandSubtitle: 'ORIENTAL AESTHETICS GROWTH INSTITUTE',
+    mission: '赋能中国千万美业与大健康主理人告别低价内卷',
+    vision: '打造1000家年利润破千万的殿堂级高定美学空间',
+    philosophy: '美业卖的从来不是单个项目，而是高净值女性的终身状态管理',
+    mentorName: '苏婉清',
+    mentorBadge: '美业千万大单操盘导师',
+    mentorTitle: '高定双美私域增长第一人 · 殿堂级沙龙会销导师',
+    mentorMotto: '“把门店做成名媛的第三精神客厅，千万业绩只是顺带的结果。”',
+    stat1Num: '500+',
+    stat1Tag: '赋能高定双美机构',
+    stat2Num: '39.8万',
+    stat2Tag: '单客年度最高成交品项',
+    stat3Num: '96.8%',
+    stat3Tag: '沙龙现场收单率',
+    wechat: 'suwanqing_vip',
+    phone: '400-990-7788',
+    adminPasscode: '8888',
+    services: [
+      {
+        id: 's1',
+        tier: '爆品破局 · 门店诊断',
+        name: '1对1 门店品项架构与百万卡项重新定价',
+        price: 25800,
+        priceText: '¥25,800 / 店',
+        deposit: 2580,
+        depositText: '¥2,580',
+        quota: '每月限接 8 家门店',
+        target: '月业绩卡在20~50万、客单价低于3000元的生美/轻医美主理人',
+        deliverables: [
+          '全店现有品项毛利诊断，砍除低效耗卡项目',
+          '定制「1.98万年度冻龄卡」与「6.8万私密抗衰黑卡」品项表',
+          '输出美学顾问 1V1 升单面诊黄金话术剧本',
+          '五感六觉殿堂级门店接待动线改造清单'
+        ]
+      },
+      {
+        id: 's2',
+        tier: '驻店陪跑 · 沙龙爆破',
+        name: '名媛闭门私享品鉴会全案驻店操盘',
+        price: 98000,
+        priceText: '¥98,000 / 场',
+        deposit: 9800,
+        depositText: '¥9,800',
+        quota: '每月仅限 3 场驻店',
+        target: '拥有30位以上高净值老客、希望单场沙龙收款破百万的机构',
+        deliverables: [
+          '操盘导师带队驻店 5 天 4 夜，一对一盘客与锁客铺垫',
+          '定制高格调艺术/国学/名媛下午茶沙龙全流程策划',
+          '导师亲自登台主讲或现场坐镇1V1大单逼单谈单',
+          '保底构建高客单老带新裂变转介绍闭环'
+        ]
+      },
+      {
+        id: 's3',
+        tier: '连锁孵化 · 品牌联创',
+        name: '千万级区域美业龙头年度战略联创陪跑',
+        price: 298000,
+        priceText: '¥298,000 / 年',
+        deposit: 30000,
+        depositText: '¥30,000',
+        quota: '全年限额 5 家',
+        target: '多店连锁、希望打造自有高定品牌与销冠铁军的区域美业巨头',
+        deliverables: [
+          '全年 4 场季度百万级高定品鉴发售会全程督导',
+          '主理人高定短视频与私域人设 IP 全案打造',
+          '店长与美学设计师高激励合伙人薪酬体系落地',
+          '严选高毛利大健康/抗衰供应链直通对接'
+        ]
+      }
+    ],
+    cases: [
+      {
+        id: 'ac1',
+        category: '名媛沙龙收单',
+        badge: '单场26人收款 186W',
+        title: '杭州某800平生活美容会所：零广告投放，依靠26位老客闭门茶会两天收款186万',
+        summary: '原门店死磕99元洗脸团购，员工疲于奔命。导入高定品项与东方美学茶会模式后，单客均价突破7万元。',
+        beforeVal: '月流水18万 · 濒临闭店',
+        afterVal: '两天收现186万 · 净利75%',
+        coreStrategy: '将传统促销会销升级为“宋韵美学私享家宴”，以全周期抗衰定制方案替代零散卖卡。',
+        clientName: '周院长（杭州高端美学空间主理人）',
+        detailBackground: '房租与人工每月固定支出15万，客户到店只耗卡不升单，美容师集体缺乏自信。',
+        detailSolution: '苏老师团队驻店盘点出32位沉睡A类老客，重新设计6.8万年度名媛卡，并手把手辅导美容师用“闺蜜式深度关怀”完成会前铺垫。',
+        results: [
+          '到场26位老客，现场成交19单6.8万黑卡与12单3.98万私享卡',
+          '老客现场主动转介绍闺蜜14人，实现零成本拓新',
+          '美容师当月人均提成突破3万元，团队士气彻底引爆'
+        ],
+        clientFeedback: '从来没敢想我们的老客户能一次性刷6.8万不眨眼！苏老师的品项和沙龙体系太神了！'
+      }
+    ]
+  }
+};
+
+// ==================== 白牌化品牌配置读写接口 ====================
+
+// 平台通用中性门户配置（未进入具体工作室 / 导师退出登录后展示，不含任何特定导师品牌）
+const PLATFORM_DEFAULT_BRAND = {
+  isPlatformDefault: true,
+  presetKey: 'platform',
+  navTitle: '高定咨询空间',
+  brandName: '高 定 咨 询 空 间',
+  brandSubtitle: 'PRIVATE CONSULTING SAAS PLATFORM',
+  mission: '为每一位商业咨询导师打造独立的高客单数字化交付系统',
+  vision: '一个账号拥有独立门户 · 客户过程留档 · 交付结果可衡量',
+  philosophy: '每个导师都是独立系统 · 客户商业机密严格一对一隔离',
+  mentorName: '入驻咨询导师',
+  mentorBadge: '多租户 SaaS 平台',
+  mentorTitle: '支持商业操盘 / 财税股权 / 美业大健康等高客单咨询机构入驻',
+  mentorMotto: '“无需自建服务器与小程序，10秒开通属于你的高奢咨询工作室。”',
+  stat1Num: '1个账号',
+  stat1Tag: '拥有独立咨询系统',
+  stat2Num: '100%',
+  stat2Tag: '跨工作室数据隔离',
+  stat3Num: '5步闭环',
+  stat3Tag: '全程留档交付战果',
+  wechat: 'saas_platform_kf',
+  phone: '400-880-0000',
+  services: INDUSTRY_PRESETS.yanjie.services,
+  cases: INDUSTRY_PRESETS.yanjie.cases
+};
+
+function brandKey(tenantId) {
+  return BRAND_KEY_PREFIX + tenantId;
+}
+
+// 读取某个工作室的品牌配置；若当前未进入任何工作室（平台中性态），返回平台通用配置
+function getBrandConfig(tenantId) {
+  const id = tenantId || getCurrentTenantId();
+  if (!id) {
+    return JSON.parse(JSON.stringify(PLATFORM_DEFAULT_BRAND));
+  }
+  let cfg = wx.getStorageSync(brandKey(id));
+  if (!cfg || !cfg.brandName) {
+    const tenant = getTenantById(id);
+    const preset = INDUSTRY_PRESETS[(tenant && tenant.presetKey) || 'yanjie'] || INDUSTRY_PRESETS.yanjie;
+    cfg = JSON.parse(JSON.stringify(preset));
+    wx.setStorageSync(brandKey(id), cfg);
+  }
+  return cfg;
+}
+
+// 同步品牌名/导师名到工作室注册表（平台总控台展示用）
+function syncTenantFromBrand(tenantId, cfg) {
+  const tenants = getTenants();
+  const t = tenants.find(x => x.tenantId === tenantId);
+  if (!t) return;
+  if (cfg.navTitle) t.studioName = cfg.navTitle;
+  if (cfg.mentorName) t.mentorName = cfg.mentorName;
+  if (cfg.presetKey) t.presetKey = cfg.presetKey;
+  saveTenants(tenants);
+}
+
+function saveBrandConfig(newConfig) {
+  const id = getCurrentTenantId();
+  const merged = {
+    ...getBrandConfig(id),
+    ...newConfig
+  };
+  wx.setStorageSync(brandKey(id), merged);
+  syncTenantFromBrand(id, merged);
+  return merged;
+}
+
+// 为当前工作室一键套用行业模板（只影响自己的工作室，不影响其他导师）
+function applyIndustryPreset(presetKey) {
+  const id = getCurrentTenantId();
+  const preset = INDUSTRY_PRESETS[presetKey] || INDUSTRY_PRESETS.yanjie;
+  const copy = JSON.parse(JSON.stringify(preset));
+  wx.setStorageSync(brandKey(id), copy);
+  syncTenantFromBrand(id, copy);
+  return copy;
+}
+
+// 后台新增一个实战成功案例到当前标品配置
+function addBrandCase(caseItem) {
+  const cfg = getBrandConfig();
+  const newCase = {
+    id: 'c_' + Date.now().toString().slice(-6),
+    category: (caseItem.category || '高客单操盘').trim(),
+    badge: (caseItem.badge || '业绩倍增标杆').trim(),
+    title: (caseItem.title || '').trim(),
+    summary: (caseItem.summary || '').trim(),
+    beforeVal: (caseItem.beforeVal || '').trim(),
+    afterVal: (caseItem.afterVal || '').trim(),
+    coreStrategy: (caseItem.coreStrategy || '').trim(),
+    clientName: (caseItem.clientName || '').trim(),
+    detailBackground: (caseItem.detailBackground || caseItem.summary || '').trim(),
+    detailSolution: (caseItem.detailSolution || caseItem.coreStrategy || '').trim(),
+    results: (caseItem.resultsText || '首期高客单发售圆满收官\n客户客单价与复购率实现倍数级跃升')
+      .split(/[\n；;]/)
+      .map(s => s.trim())
+      .filter(Boolean),
+    clientFeedback: (caseItem.clientFeedback || '体系落地性极强，团队第二天就能上手拿到大单结果！').trim()
+  };
+  cfg.cases.unshift(newCase);
+  wx.setStorageSync(brandKey(getCurrentTenantId()), cfg);
+  return cfg;
+}
+
+// ==================== 默认演示咨询交付项目数据 ====================
+
 function getDefaultProjects() {
-  return [
+  const list = [
     {
       id: 'YY2026112001',
+      tenantId: 'tenant_yanjie',
       name: '李总',
       phone: '13888888899',
       industry: '高端私域美业（轻医美连锁）',
@@ -86,7 +522,7 @@ function getDefaultProjects() {
       status: '服务进行中',
       currentStep: 4,
       stepName: '04 陪跑落地',
-      consultant: '岩姐 · 首席操盘顾问团队',
+      consultant: '首席操盘顾问团队',
       createTime: '2026-11-10 14:30',
       updateTime: '2026-11-22 18:20',
       metrics: {
@@ -107,9 +543,9 @@ function getDefaultProjects() {
           title: '奢侈品成交话术植入与首场闭门私享会发售彩排',
           date: '2026-11-18 14:00 - 17:30',
           mode: '腾讯会议 + 核心顾问1V1通关演练',
-          participants: '岩姐、李总、门店店长及6名高级美学顾问',
+          participants: '首席导师、李总、门店店长及6名高级美学顾问',
           diagnosis: '销售顾问在报出 2.98 万以上价格时心理发虚，习惯性主动打折让利，缺乏“顾问式价值探寻”与情绪价值铺垫能力。',
-          solution: '导入岩姐独创「3阶奢侈品价值锚定话术」，将推销单次项目转化为“定制年度年轻态身份方案”，现场逐一通关考核 6 名核心顾问，并敲定周六闭门沙龙促单动线。',
+          solution: '导入独创「3阶奢侈品价值锚定话术」，将推销单次项目转化为“定制年度年轻态身份方案”，现场逐一通关考核 6 名核心顾问，并敲定周六闭门沙龙促单动线。',
           consultantNote: '团队执行力极强，店长在模拟演练后第二天即用新话术拿下了首单 2.98万 试水成交！',
           actionItems: [
             {
@@ -131,8 +567,8 @@ function getDefaultProjects() {
           sessionNo: 1,
           title: '顶层商业模式诊断与低毛利引流品砍除推演',
           date: '2026-11-12 14:00 - 17:30',
-          mode: '上海静安私董会所 · 线下闭门推演',
-          participants: '岩姐、李总（创始人）、运营总监',
+          mode: '私董会所 · 线下闭门推演',
+          participants: '首席导师、李总（创始人）、运营总监',
           diagnosis: '门店过度依赖 399/699 团购引流，顾问每天接待大量羊毛党沦为客服，真正有消费力的高净值客户缺乏专属升单阶梯，净利率不足 12%。',
           solution: '果断砍掉 70% 低效走量耗品，围绕“抗衰长效管理 + 名媛圈层身份认同”重构「2.98万年度美学私享卡」与「9.8万家族高定黑卡」双层高客单产品矩阵。',
           consultantNote: '创始人认知升级非常快，当场拍板停止低价团购投放，全力转向私域高客单深耕。',
@@ -185,6 +621,7 @@ function getDefaultProjects() {
     },
     {
       id: 'YY2026110502',
+      tenantId: 'tenant_yanjie',
       name: '陈老师',
       phone: '13988885520',
       industry: '商业财经知识IP（50万粉丝）',
@@ -197,7 +634,7 @@ function getDefaultProjects() {
       status: '已交付结案',
       currentStep: 5,
       stepName: '05 复盘迭代',
-      consultant: '岩姐 · 首席商业操盘手',
+      consultant: '首席商业操盘手',
       createTime: '2026-11-02 10:15',
       updateTime: '2026-11-15 20:00',
       metrics: {
@@ -218,7 +655,7 @@ function getDefaultProjects() {
           title: 'IP 商业定位升维与 4.98 万年度私董会发售全链路推演',
           date: '2026-11-05 14:00 - 17:30',
           mode: '1V1 闭门深度推演（3.5小时）',
-          participants: '岩姐、陈老师及内容合伙人',
+          participants: '首席导师、陈老师及内容合伙人',
           diagnosis: '将大量精力消耗在 199 元社群答疑上，吸引的都是价格敏感型散户，遮蔽了陈老师真正擅长的企业顶层战略咨询势能。',
           solution: '将原有 199 元课程转为高门槛筛选问卷赠品，主力推出仅限 30 席的「4.98万/年 创始人战略私董会」，重构朋友圈 10 天高势能发售叙事。',
           consultantNote: '首发当晚即成交 19 席，48 小时 30 席满员收官，轻资产高客单模型彻底跑通。',
@@ -231,7 +668,7 @@ function getDefaultProjects() {
             },
             {
               id: 'ACT-302',
-              text: '按岩姐定制的「1V1 语音诊断逼单SOP」完成前 30 名意向创始人的定向沟通',
+              text: '按定制的「1V1 语音诊断逼单SOP」完成前 30 名意向创始人的定向沟通',
               done: true,
               feedback: '48 小时内 30 个名额全部全款锁定，总营收 360 万！'
             }
@@ -249,35 +686,430 @@ function getDefaultProjects() {
           summary: '包含年度私董会交付权益设计、申请表筛选漏斗、朋友圈造势 10 篇文案模板及 1V1 高客单成交清单。'
         }
       ],
-      clientReview: '跟着岩姐做完 3 小时闭门推演，彻底打通了高客单任督二脉！以前卖 199 的课累死累活，现在 4.98 万的私董会客户反而更加尊重和感激我们。'
+      clientReview: '做完 3 小时闭门推演，彻底打通了高客单任督二脉！以前卖 199 的课累死累活，现在 4.98 万的私董会客户反而更加尊重和感激我们。'
+    }
+  ];
+  return list.concat(getOtherTenantDemoProjects());
+}
+
+// 其他演示工作室的客户项目（用于演示「导师与导师之间数据完全隔离」）
+function buildDemoProject(o) {
+  return {
+    id: o.id,
+    tenantId: o.tenantId,
+    name: o.name,
+    phone: o.phone,
+    industry: o.industry,
+    problem: o.problem,
+    type: o.type,
+    planId: o.planId,
+    totalPrice: o.price,
+    paidAmount: o.price,
+    payMode: `已付全款 ¥${o.price.toLocaleString()}`,
+    status: '服务进行中',
+    currentStep: o.step,
+    stepName: DELIVERY_STEPS[o.step - 1].code + ' ' + DELIVERY_STEPS[o.step - 1].title,
+    consultant: o.consultant,
+    createTime: o.createTime,
+    updateTime: o.createTime,
+    metrics: o.metrics,
+    sessions: [
+      {
+        sessionId: o.id + '-S1',
+        sessionNo: 1,
+        title: o.sessionTitle,
+        date: o.createTime,
+        mode: '1V1 线下闭门推演',
+        participants: o.participants,
+        diagnosis: o.diagnosis,
+        solution: o.solution,
+        consultantNote: o.note,
+        actionItems: o.actions.map((text, i) => ({
+          id: o.id + '-A' + i,
+          text,
+          done: i === 0,
+          feedback: i === 0 ? '已按要求完成并提交顾问审阅。' : ''
+        }))
+      }
+    ],
+    deliverables: [
+      {
+        delivId: o.id + '-D1',
+        stage: '03 全案输出',
+        title: o.delivTitle,
+        fileType: 'PDF / 操盘全案',
+        deliverTime: o.createTime,
+        status: '待客户验收',
+        summary: o.delivSummary
+      }
+    ],
+    clientReview: ''
+  };
+}
+
+function getOtherTenantDemoProjects() {
+  return [
+    buildDemoProject({
+      id: 'ZY2026111501',
+      tenantId: 'tenant_finance',
+      name: '刘总',
+      phone: '13700000001',
+      industry: '跨境电商（年营收2亿）',
+      problem: '长期个人卡收款，面临金税四期补税预警，融资尽调被否。',
+      type: '高管合伙人股权激励与集团税务筹划全案',
+      planId: 's2',
+      price: 168000,
+      step: 3,
+      consultant: '周远山 · 首席股权与财税架构师',
+      createTime: '2026-11-15 10:00',
+      metrics: {
+        ticketBefore: '综合税负 31%',
+        ticketAfter: '综合税负 11.8%',
+        marginBefore: '净利 6%',
+        marginAfter: '净利 17%',
+        revenueBefore: '个人卡流水2亿',
+        revenueAfter: '全链路阳光化',
+        conversionBefore: '尽调未通过',
+        conversionAfter: '已获A轮TS',
+        highlightSummary: '完成香港控股+境内研发主体双层架构搭建，预计年度合规节税 860 万元。'
+      },
+      sessionTitle: '历史资金流穿透体检与三层股权架构推演',
+      participants: '周远山、刘总、财务总监',
+      diagnosis: '公私账户混同、发票缺口巨大，创始人家族资产与企业负债未隔离。',
+      solution: '新设海外控股与境内研发技术服务主体，分步完成历史违规剥离与出口退税闭环。',
+      note: '本周内务必完成近三年银行流水归集，下次会议进入架构落地。',
+      actions: ['归集近三年全部对公/对私银行流水', '确认家族持股平台合伙人名单'],
+      delivTitle: '《跨境集团合规架构重组与节税路线图》',
+      delivSummary: '包含三层股权架构图、主体职能划分、关联交易定价原则及分步整改时间表。'
+    }),
+    buildDemoProject({
+      id: 'DF2026111802',
+      tenantId: 'tenant_aesthetics',
+      name: '周院长',
+      phone: '13700000002',
+      industry: '高端生活美容会所（800平）',
+      problem: '依赖99元团购，月流水18万濒临闭店，美容师不敢升单。',
+      type: '名媛闭门私享品鉴会全案驻店操盘',
+      planId: 's2',
+      price: 98000,
+      step: 4,
+      consultant: '苏婉清 · 美业千万大单操盘导师',
+      createTime: '2026-11-18 14:00',
+      metrics: {
+        ticketBefore: '¥99',
+        ticketAfter: '¥68,000',
+        marginBefore: '12%',
+        marginAfter: '75%',
+        revenueBefore: '18万/月',
+        revenueAfter: '186万/两天',
+        conversionBefore: '2%',
+        conversionAfter: '73%',
+        highlightSummary: '26位老客闭门茶会现场成交19单6.8万黑卡，两天收现186万元。'
+      },
+      sessionTitle: '沉睡老客盘点与宋韵美学私享家宴策划',
+      participants: '苏婉清、周院长、店长及5名美容师',
+      diagnosis: '老客只耗卡不升单，美容师缺乏面诊升单话术与自信。',
+      solution: '盘出32位A类沉睡老客，重设6.8万年度名媛卡，导入闺蜜式会前铺垫SOP。',
+      note: '会前7天铺垫是成败关键，每位美容师每天至少深度触达3位老客。',
+      actions: ['完成32位A类老客资产分级表', '每位美容师完成10次升单话术通关录音'],
+      delivTitle: '《宋韵美学私享家宴全流程执行手册》',
+      delivSummary: '含邀约话术、五感动线、主讲节奏、现场逼单分工与会后48小时追单SOP。'
+    })
+  ];
+}
+
+// ==================== 多租户：工作室（导师账号）注册表 ====================
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function addDays(base, days) {
+  const d = new Date(base.getTime());
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function getDefaultTenants() {
+  return [
+    {
+      tenantId: 'tenant_yanjie',
+      studioName: '岩姐咨询',
+      mentorName: '岩姐',
+      ownerPhone: '13800000001',
+      password: '8888',
+      presetKey: 'yanjie',
+      plan: '旗舰私董交付版',
+      status: 'active',
+      createTime: '2026-11-01',
+      expireTime: '2027-11-01'
+    },
+    {
+      tenantId: 'tenant_finance',
+      studioName: '卓远财税战略',
+      mentorName: '周远山',
+      ownerPhone: '13800000002',
+      password: '8888',
+      presetKey: 'finance',
+      plan: '标准独立品牌版',
+      status: 'active',
+      createTime: '2026-11-05',
+      expireTime: '2027-11-05'
+    },
+    {
+      tenantId: 'tenant_aesthetics',
+      studioName: '东方奢美增长院',
+      mentorName: '苏婉清',
+      ownerPhone: '13800000003',
+      password: '8888',
+      presetKey: 'aesthetics',
+      plan: '免费试用版',
+      status: 'active',
+      createTime: '2026-11-20',
+      expireTime: formatDate(addDays(new Date(), 7))
     }
   ];
 }
 
-// ==================== 登录与权限会话管理 ====================
+function getTenants() {
+  let list = wx.getStorageSync(TENANTS_KEY);
+  if (!list || !Array.isArray(list) || list.length === 0) {
+    list = getDefaultTenants();
+    wx.setStorageSync(TENANTS_KEY, list);
+  }
+  return list;
+}
 
-// 获取当前登录会话：默认未登录访客 ('guest')
-function getAuthSession() {
-  const session = wx.getStorageSync(AUTH_KEY);
-  if (!session || !session.role) {
-    return {
-      role: 'guest', // 'guest' | 'client' | 'admin'
+function saveTenants(list) {
+  wx.setStorageSync(TENANTS_KEY, list);
+}
+
+function getTenantById(id) {
+  return getTenants().find(t => t.tenantId === id) || null;
+}
+
+// 当前正在访问的工作室（空字符串表示处于平台通用中性门户，未进入具体导师系统）
+function getCurrentTenantId() {
+  const id = wx.getStorageSync(CURRENT_TENANT_KEY);
+  if (id && getTenantById(id)) return id;
+  return '';
+}
+
+function getCurrentTenant() {
+  const id = getCurrentTenantId();
+  return id ? getTenantById(id) : null;
+}
+
+function setCurrentTenant(tenantId) {
+  if (!tenantId || !getTenantById(tenantId)) return false;
+  wx.setStorageSync(CURRENT_TENANT_KEY, tenantId);
+  return true;
+}
+
+function clearCurrentTenant() {
+  wx.removeStorageSync(CURRENT_TENANT_KEY);
+}
+
+// 工作室服务状态（到期 / 冻结 / 试用剩余天数）
+function getTenantStatus(tenant) {
+  if (!tenant) return { ok: false, label: '工作室不存在', daysLeft: 0 };
+  if (tenant.status === 'frozen') return { ok: false, label: '已冻结', daysLeft: 0 };
+  const today = new Date(formatDate(new Date()).replace(/-/g, '/'));
+  const expire = new Date(String(tenant.expireTime).replace(/-/g, '/'));
+  const daysLeft = Math.ceil((expire - today) / 86400000);
+  if (daysLeft < 0) return { ok: false, label: '已到期', daysLeft: 0 };
+  return {
+    ok: true,
+    label: `${tenant.plan} · 剩余 ${daysLeft} 天`,
+    daysLeft,
+    warning: daysLeft <= 7
+  };
+}
+
+function getPortalPath(tenantId) {
+  const id = tenantId || getCurrentTenantId();
+  return id ? `/pages/index/index?tenantId=${id}` : '/pages/index/index';
+}
+
+function spacedTitle(name) {
+  const s = (name || '').trim();
+  return s.length > 0 && s.length <= 8 ? s.split('').join(' ') : s;
+}
+
+// 开通新工作室：导师自助注册（14 天试用）或平台代开（正式版）
+function registerTenant(payload, options = {}) {
+  const studioName = (payload.studioName || '').trim();
+  const mentorName = (payload.mentorName || '').trim();
+  const phone = (payload.phone || '').trim();
+  const password = (payload.password || '').trim();
+
+  if (!studioName) return { ok: false, msg: '请填写工作室 / 品牌名称' };
+  if (!mentorName) return { ok: false, msg: '请填写首席导师姓名' };
+  if (!/^1\d{10}$/.test(phone)) return { ok: false, msg: '请填写 11 位手机号作为登录账号' };
+  if (password.length < 4) return { ok: false, msg: '登录密码至少 4 位' };
+
+  const tenants = getTenants();
+  if (tenants.some(t => t.ownerPhone === phone)) {
+    return { ok: false, msg: '该手机号已开通过工作室，请直接登录' };
+  }
+
+  const byPlatform = !!options.byPlatform;
+  const now = new Date();
+  const presetKey = INDUSTRY_PRESETS[payload.presetKey] ? payload.presetKey : 'yanjie';
+  const tenant = {
+    tenantId: 't_' + Date.now().toString(36),
+    studioName,
+    mentorName,
+    ownerPhone: phone,
+    password,
+    presetKey,
+    plan: byPlatform ? (payload.plan || '标准独立品牌版') : '免费试用版',
+    status: 'active',
+    createTime: formatDate(now),
+    expireTime: formatDate(addDays(now, byPlatform ? 365 : TRIAL_DAYS))
+  };
+  tenants.push(tenant);
+  saveTenants(tenants);
+
+  // 以行业模板为底稿，生成该工作室独立的品牌配置（导师随后可在「标品装修」中改成自己的内容）
+  const brand = JSON.parse(JSON.stringify(INDUSTRY_PRESETS[presetKey]));
+  brand.navTitle = studioName;
+  brand.brandName = spacedTitle(studioName);
+  brand.brandSubtitle = 'PRIVATE CONSULTING STUDIO';
+  brand.mentorName = mentorName;
+  brand.mentorBadge = '首席咨询顾问';
+  brand.wechat = (payload.wechat || '').trim() || brand.wechat;
+  brand.phone = phone;
+  wx.setStorageSync(brandKey(tenant.tenantId), brand);
+
+  // 导师自助开通后自动登录进入自己的工作室后台
+  if (!byPlatform) {
+    setCurrentTenant(tenant.tenantId);
+    wx.setStorageSync(AUTH_KEY, {
+      role: 'admin',
+      tenantId: tenant.tenantId,
       clientPhone: '',
       clientName: '',
-      staffName: ''
+      staffName: `${mentorName} · ${studioName}`
+    });
+  }
+  return { ok: true, tenant };
+}
+
+// ==================== 平台方（您本人）总控操作 ====================
+
+function renewTenant(tenantId, days = 365, plan = '标准独立品牌版') {
+  const tenants = getTenants();
+  const t = tenants.find(x => x.tenantId === tenantId);
+  if (!t) return null;
+  const today = new Date();
+  const currentExpire = new Date(String(t.expireTime).replace(/-/g, '/'));
+  const base = currentExpire > today ? currentExpire : today;
+  t.expireTime = formatDate(addDays(base, days));
+  t.plan = plan;
+  t.status = 'active';
+  saveTenants(tenants);
+  return t;
+}
+
+function toggleFreezeTenant(tenantId) {
+  const tenants = getTenants();
+  const t = tenants.find(x => x.tenantId === tenantId);
+  if (!t) return null;
+  t.status = t.status === 'frozen' ? 'active' : 'frozen';
+  saveTenants(tenants);
+  return t;
+}
+
+// 平台汇总看板：每个工作室的客户数与立项金额
+function getTenantStats() {
+  const projects = getProjects();
+  return getTenants().map(t => {
+    const own = projects.filter(p => p.tenantId === t.tenantId);
+    return {
+      ...t,
+      statusInfo: getTenantStatus(t),
+      projectCount: own.length,
+      paidTotal: own.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0)
     };
+  });
+}
+
+// 平台代管：直接进入某个工作室后台（用于帮客户装修、排查问题）
+function platformEnterTenant(tenantId) {
+  const t = getTenantById(tenantId);
+  if (!t) return null;
+  setCurrentTenant(tenantId);
+  wx.setStorageSync(AUTH_KEY, {
+    role: 'admin',
+    tenantId,
+    clientPhone: '',
+    clientName: '',
+    staffName: `平台代管 · ${t.studioName}`,
+    byPlatform: true
+  });
+  return t;
+}
+
+// 演示用：当前工作室下的客户手机号提示（正式上线请删除）
+function getDemoClientHints() {
+  const tenantId = getCurrentTenantId();
+  const seen = {};
+  return getProjects()
+    .filter(p => p.tenantId === tenantId && !seen[p.phone] && (seen[p.phone] = true))
+    .slice(0, 3)
+    .map(p => ({ name: p.name, phone: p.phone }));
+}
+
+// ==================== 登录与权限会话管理 ====================
+
+const GUEST_SESSION = {
+  role: 'guest',
+  tenantId: '',
+  clientPhone: '',
+  clientName: '',
+  staffName: ''
+};
+
+function getRawSession() {
+  const session = wx.getStorageSync(AUTH_KEY);
+  return session && session.role ? session : { ...GUEST_SESSION };
+}
+
+// 返回「在当前工作室下」的有效身份：
+// 客户 / 导师的会话绑定了 tenantId，访问其他工作室时自动降级为访客，确保导师与导师之间完全隔离
+function getAuthSession() {
+  const session = getRawSession();
+  if (session.role === 'platform') return session;
+  if (session.tenantId && session.tenantId !== getCurrentTenantId()) {
+    return { ...GUEST_SESSION };
   }
   return session;
 }
 
-// 客户手机号登录（仅能查看该手机号名下的订单与交付空间）
+function isPlatformSession() {
+  const s = getRawSession();
+  return s.role === 'platform' || !!s.byPlatform;
+}
+
 function loginAsClient(phone, verifyCode) {
   const cleanPhone = (phone || '').trim();
   if (!cleanPhone) {
     return { ok: false, msg: '请输入您下单时预留的手机号' };
   }
+  const tenantId = getCurrentTenantId();
+  if (!tenantId) {
+    return {
+      ok: false,
+      msg: '请先选择您签约的导师工作室（或从导师分享链接进入）后再登录'
+    };
+  }
   const all = getProjects();
-  const matched = all.filter(p => p.phone === cleanPhone);
+  // 只在当前工作室内查找该手机号的项目
+  const matched = all.filter(p => p.phone === cleanPhone && p.tenantId === tenantId);
   if (matched.length === 0) {
     return {
       ok: false,
@@ -286,6 +1118,7 @@ function loginAsClient(phone, verifyCode) {
   }
   const session = {
     role: 'client',
+    tenantId,
     clientPhone: cleanPhone,
     clientName: matched[0].name,
     staffName: ''
@@ -294,54 +1127,95 @@ function loginAsClient(phone, verifyCode) {
   return { ok: true, session, count: matched.length };
 }
 
-// 顾问/后台工作人员口令登录（解锁顾问工作台，可管理全部客户）
-function loginAsAdmin(passcode) {
-  const code = (passcode || '').trim();
-  if (code !== ADMIN_PASSCODE) {
-    return { ok: false, msg: '顾问后台管理口令不正确（演示口令：8888）' };
+// 导师（工作室主理人）登录：手机号 + 密码，登录后自动切换到自己的工作室
+function loginAsMentor(phone, password) {
+  const cleanPhone = (phone || '').trim();
+  const cleanPass = (password || '').trim();
+  if (!cleanPhone) return { ok: false, msg: '请输入工作室登录手机号' };
+
+  const tenant = getTenants().find(t => t.ownerPhone === cleanPhone);
+  if (!tenant) {
+    return { ok: false, msg: '该手机号尚未开通工作室，请先「开通我的咨询工作室」' };
   }
+  if (tenant.password !== cleanPass) {
+    return { ok: false, msg: '工作室登录密码不正确' };
+  }
+  const status = getTenantStatus(tenant);
+  if (!status.ok) {
+    return { ok: false, msg: `该工作室${status.label}，请联系平台续费后再登录` };
+  }
+
+  setCurrentTenant(tenant.tenantId);
   const session = {
     role: 'admin',
+    tenantId: tenant.tenantId,
     clientPhone: '',
     clientName: '',
-    staffName: '岩姐 · 首席顾问后台'
+    staffName: `${tenant.mentorName} · ${tenant.studioName}`
+  };
+  wx.setStorageSync(AUTH_KEY, session);
+  return { ok: true, session, tenant };
+}
+
+// 兼容旧入口：只输密码时，按当前访问的工作室校验
+function loginAsAdmin(passcode) {
+  const tenant = getCurrentTenant();
+  return loginAsMentor(tenant ? tenant.ownerPhone : '', passcode);
+}
+
+// 平台方超级管理员登录（管理所有工作室：开号 / 续费 / 冻结 / 代管）
+function loginAsPlatform(passcode) {
+  if ((passcode || '').trim() !== PLATFORM_PASSCODE) {
+    return { ok: false, msg: '平台管理口令不正确（演示口令：9999）' };
+  }
+  const session = {
+    role: 'platform',
+    tenantId: '',
+    clientPhone: '',
+    clientName: '',
+    staffName: '平台超级管理员'
   };
   wx.setStorageSync(AUTH_KEY, session);
   return { ok: true, session };
 }
 
-// 退出登录（回到未登录访客视角）
-function logout() {
+// 退出登录：
+// 导师/平台管理员退出时，同时退出当前工作室，回到平台中性通用门户（不再残留上一位导师的品牌）
+function logout(options = {}) {
+  const prev = getRawSession();
   const guestSession = {
     role: 'guest',
+    tenantId: '',
     clientPhone: '',
     clientName: '',
     staffName: ''
   };
   wx.setStorageSync(AUTH_KEY, guestSession);
+  if (prev.role === 'admin' || prev.role === 'platform' || options.exitStudio) {
+    clearCurrentTenant();
+  }
   return guestSession;
 }
 
-// 根据当前登录身份，返回可见的咨询项目列表（严格隔离！）
+// 双重隔离：先按工作室 tenantId 隔离，再按客户手机号隔离
 function getVisibleProjects() {
   const session = getAuthSession();
-  const all = getProjects();
+  const tenantId = getCurrentTenantId();
+  if (!tenantId) return [];
+  const tenantProjects = getProjects().filter(p => p.tenantId === tenantId);
   if (session.role === 'admin') {
-    // 后台顾问可查看并管理全部客户项目
-    return all;
+    return tenantProjects;
   }
   if (session.role === 'client' && session.clientPhone) {
-    // 客户仅能看到自己手机号名下的咨询项目，绝对看不到其他客户
-    return all.filter(p => p.phone === session.clientPhone);
+    return tenantProjects.filter(p => p.phone === session.clientPhone);
   }
-  // 未登录访客：返回空列表，看不到任何人的隐私项目
   return [];
 }
 
-// 校验当前登录用户是否有权访问指定项目
 function canAccessProject(project) {
   if (!project) return false;
   const session = getAuthSession();
+  if (project.tenantId !== getCurrentTenantId()) return false;
   if (session.role === 'admin') return true;
   if (session.role === 'client' && session.clientPhone === project.phone) return true;
   return false;
@@ -372,10 +1246,11 @@ function getProjectById(id) {
   return visible[0];
 }
 
-// 客户下单 / 或顾问在后台为客户新建档案
 function createOrder(payload) {
   const list = getProjects();
-  const plan = SERVICES_CATALOG.find(s => s.name === payload.type) || SERVICES_CATALOG[0];
+  const cfg = getBrandConfig();
+  const catalog = cfg.services || INDUSTRY_PRESETS.yanjie.services;
+  const plan = catalog.find(s => s.name === payload.type) || catalog[0];
   const isPaid = payload.isPaid;
   const payType = payload.payType || 'deposit';
 
@@ -386,8 +1261,8 @@ function createOrder(payload) {
   let stepName = '01 资质初筛';
 
   if (isPaid) {
-    paidAmount = payType === 'full' ? plan.price : plan.deposit;
-    payMode = payType === 'full' ? `已付全款 ¥${plan.price.toLocaleString()}` : `已付定金 ¥${plan.deposit.toLocaleString()}`;
+    paidAmount = payType === 'full' ? Number(plan.price) : Number(plan.deposit);
+    payMode = payType === 'full' ? `已付全款 ¥${Number(plan.price).toLocaleString()}` : `已付定金 ¥${Number(plan.deposit).toLocaleString()}`;
     status = '服务进行中';
     currentStep = 2;
     stepName = '02 深度问诊';
@@ -399,19 +1274,20 @@ function createOrder(payload) {
 
   const newOrder = {
     id: 'YY' + Date.now().toString().slice(-8),
+    tenantId: getCurrentTenantId(),
     name: cleanName,
     phone: cleanPhone,
     industry: (payload.industry || '未注明行业').trim(),
-    problem: (payload.problem || '希望突破客单价瓶颈，重塑奢侈品级高溢价商业模型').trim(),
+    problem: (payload.problem || '希望突破客单价瓶颈，重塑高溢价商业模型').trim(),
     type: plan.name,
     planId: plan.id,
-    totalPrice: plan.price,
+    totalPrice: Number(plan.price),
     paidAmount: paidAmount,
     payMode: payMode,
     status: status,
     currentStep: currentStep,
     stepName: stepName,
-    consultant: '岩姐 · 首席操盘顾问团队',
+    consultant: `${cfg.mentorName} · 首席操盘顾问团队`,
     createTime: nowStr,
     updateTime: nowStr,
     metrics: {
@@ -424,7 +1300,7 @@ function createOrder(payload) {
       conversionBefore: '待调研',
       conversionAfter: '操盘推进中',
       highlightSummary: isPaid
-        ? '项目已正式立项！岩姐顾问团队已为您开通专属咨询空间，正在为您准备首次 1V1 深度问诊推演清单。'
+        ? `项目已正式立项！${cfg.mentorName}顾问团队已为您开通专属咨询空间，正在为您准备首次 1V1 深度问诊推演清单。`
         : '您的商业咨询申请已提交，顾问团队将在 24 小时内完成资质初筛并与您对接。'
     },
     sessions: [
@@ -434,7 +1310,7 @@ function createOrder(payload) {
         title: '首次 1V1 商业诊断与底层问题盘点（排期筹备中）',
         date: nowStr + '（预约排期）',
         mode: '线上预沟通 + 1V1 闭门深度问诊',
-        participants: `岩姐首席顾问、${cleanName}`,
+        participants: `${cfg.mentorName}首席顾问、${cleanName}`,
         diagnosis: `客户核心诉求：${(payload.problem || '期待突破低客单内卷，打造高溢价商业闭环').trim()}`,
         solution: '首次问诊将重点拆解现有产品线利润结构、目标高净值客群画像，并制定第一阶段高客单破局切入点。',
         consultantNote: isPaid ? '客户已支付立项，优先安排本周核心排期。' : '待顾问与客户确认具体问诊时间。',
@@ -458,7 +1334,7 @@ function createOrder(payload) {
       {
         delivId: 'DEL-' + Date.now().toString().slice(-5),
         stage: '01 资质初筛',
-        title: `《${(payload.industry || '企业').trim()} · 岩姐商业咨询诊前调研与立项说明书》`,
+        title: `《${(payload.industry || '企业').trim()} · ${cfg.navTitle}诊前调研与立项说明书》`,
         fileType: 'PDF / 立项清单',
         deliverTime: nowStr,
         status: isPaid ? '待客户验收' : '已生成预案',
@@ -471,11 +1347,11 @@ function createOrder(payload) {
   list.unshift(newOrder);
   saveProjects(list);
 
-  // 如果是客户端下单（非顾问后台代建档），自动将该客户登录绑定到当前会话！
   const currentSession = getAuthSession();
   if (!payload.fromAdmin && currentSession.role !== 'admin') {
     wx.setStorageSync(AUTH_KEY, {
       role: 'client',
+      tenantId: getCurrentTenantId(),
       clientPhone: cleanPhone,
       clientName: cleanName,
       staffName: ''
@@ -485,16 +1361,17 @@ function createOrder(payload) {
   return newOrder;
 }
 
-// 客户补交定金/全款激活订单
 function payForProject(projectId, payType = 'deposit') {
   const list = getProjects();
   const idx = list.findIndex(p => p.id === projectId);
   if (idx === -1) return null;
 
   const proj = list[idx];
-  const plan = SERVICES_CATALOG.find(s => s.name === proj.type) || SERVICES_CATALOG[0];
-  proj.paidAmount = payType === 'full' ? plan.price : plan.deposit;
-  proj.payMode = payType === 'full' ? `已付全款 ¥${plan.price.toLocaleString()}` : `已付定金 ¥${plan.deposit.toLocaleString()}`;
+  const cfg = getBrandConfig();
+  const catalog = cfg.services || INDUSTRY_PRESETS.yanjie.services;
+  const plan = catalog.find(s => s.name === proj.type) || catalog[0];
+  proj.paidAmount = payType === 'full' ? Number(plan.price) : Number(plan.deposit);
+  proj.payMode = payType === 'full' ? `已付全款 ¥${Number(plan.price).toLocaleString()}` : `已付定金 ¥${Number(plan.deposit).toLocaleString()}`;
   proj.status = '服务进行中';
   if (proj.currentStep < 2) {
     proj.currentStep = 2;
@@ -506,7 +1383,6 @@ function payForProject(projectId, payType = 'deposit') {
   return proj;
 }
 
-// 客户勾选/取消勾选课后落地行动项，或更新执行反馈
 function toggleActionItem(projectId, sessionId, actionId, feedbackText) {
   const list = getProjects();
   const proj = list.find(p => p.id === projectId);
@@ -529,7 +1405,6 @@ function toggleActionItem(projectId, sessionId, actionId, feedbackText) {
   return proj;
 }
 
-// 客户确认验收某项交付成果
 function acceptDeliverable(projectId, delivId) {
   const list = getProjects();
   const proj = list.find(p => p.id === projectId);
@@ -544,7 +1419,6 @@ function acceptDeliverable(projectId, delivId) {
   return proj;
 }
 
-// 客户提交阶段/结案评价
 function saveClientReview(projectId, reviewText) {
   const list = getProjects();
   const proj = list.find(p => p.id === projectId);
@@ -555,8 +1429,6 @@ function saveClientReview(projectId, reviewText) {
   saveProjects(list);
   return proj;
 }
-
-// ==================== 顾问端（工作台）操作接口 ====================
 
 function updateProjectStep(projectId, stepNum) {
   const list = getProjects();
@@ -581,6 +1453,7 @@ function addConsultSession(projectId, sessionData) {
   const proj = list.find(p => p.id === projectId);
   if (!proj) return null;
 
+  const cfg = getBrandConfig();
   const nextNo = (proj.sessions ? proj.sessions.length : 0) + 1;
   const nowStr = formatTime(new Date());
 
@@ -602,7 +1475,7 @@ function addConsultSession(projectId, sessionData) {
     title: sessionData.title || `第 ${nextNo} 次商业闭门深度咨询推演`,
     date: sessionData.date || nowStr,
     mode: sessionData.mode || '1V1 闭门私董会推演',
-    participants: sessionData.participants || `岩姐、${proj.name}及核心高管`,
+    participants: sessionData.participants || `${cfg.mentorName}、${proj.name}及核心高管`,
     diagnosis: sessionData.diagnosis || '',
     solution: sessionData.solution || '',
     consultantNote: sessionData.consultantNote || '请按课后行动清单推进执行，随时在群内及小程序反馈卡点。',
@@ -631,7 +1504,7 @@ function addDeliverable(projectId, delivData) {
     fileType: delivData.fileType || 'PDF / 核心交付方案',
     deliverTime: nowStr,
     status: '待客户验收',
-    summary: delivData.summary || '岩姐咨询团队独家定制输出的高客单商业操盘交付文档。'
+    summary: delivData.summary || '独家定制输出的高客单商业操盘交付文档。'
   };
 
   proj.deliverables.unshift(newDeliv);
@@ -654,10 +1527,17 @@ function updateProjectMetrics(projectId, metricsData) {
   return proj;
 }
 
+// 只重置「当前工作室」的数据，不影响其他导师
 function resetDemoData() {
-  const defaults = getDefaultProjects();
-  saveProjects(defaults);
-  return defaults;
+  const tenantId = getCurrentTenantId();
+  const others = getProjects().filter(p => p.tenantId !== tenantId);
+  const own = getDefaultProjects().filter(p => p.tenantId === tenantId);
+  saveProjects(own.concat(others));
+  const seeded = getDefaultTenants().find(t => t.tenantId === tenantId);
+  if (seeded) {
+    applyIndustryPreset(seeded.presetKey);
+  }
+  return own;
 }
 
 function formatTime(date) {
@@ -670,12 +1550,35 @@ function formatTime(date) {
 }
 
 module.exports = {
-  ADMIN_PASSCODE,
-  SERVICES_CATALOG,
+  INDUSTRY_PRESETS,
+  SERVICES_CATALOG: INDUSTRY_PRESETS.yanjie.services,
   DELIVERY_STEPS,
+  PLATFORM_PASSCODE,
+  TRIAL_DAYS,
+  getBrandConfig,
+  saveBrandConfig,
+  applyIndustryPreset,
+  addBrandCase,
+  getTenants,
+  getTenantById,
+  getCurrentTenantId,
+  getCurrentTenant,
+  setCurrentTenant,
+  clearCurrentTenant,
+  getTenantStatus,
+  getPortalPath,
+  registerTenant,
+  renewTenant,
+  toggleFreezeTenant,
+  getTenantStats,
+  platformEnterTenant,
+  getDemoClientHints,
   getAuthSession,
+  isPlatformSession,
   loginAsClient,
+  loginAsMentor,
   loginAsAdmin,
+  loginAsPlatform,
   logout,
   getVisibleProjects,
   canAccessProject,

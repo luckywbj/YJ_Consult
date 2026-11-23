@@ -1,34 +1,59 @@
 <!-- pages/admin/admin.wxml -->
-<!-- 若非顾问管理员身份，显示后台权限口令锁屏，彻底阻断非授权访问 -->
+<!-- 未以导师身份登录当前工作室时，显示工作室登录锁屏，彻底阻断非授权访问 -->
 <view class="admin-auth-guard" wx:if="{{auth.role !== 'admin'}}">
   <view class="guard-card luxury-card">
     <text class="guard-icon">🔐</text>
-    <text class="guard-title">岩姐顾问后台 · 权限验证</text>
-    <text class="guard-sub">此工作台仅限岩姐咨询顾问与内部工作人员进入，请输入后台管理口令解锁：</text>
+    <text class="guard-title">导师工作室登录</text>
+    <text class="guard-sub">每位导师用自己的工作室账号登录，只能管理自己的门户与客户，互相不可见。</text>
+    <input
+      class="guard-input"
+      type="number"
+      maxlength="11"
+      placeholder="工作室登录手机号（演示：13800000001）"
+      value="{{guardPhone}}"
+      bindinput="onGuardPhoneInput" />
     <input 
       class="guard-input" 
       password="true" 
-      placeholder="请输入顾问后台口令（演示口令：8888）" 
+      placeholder="登录密码（演示：8888）" 
       value="{{passInput}}" 
       bindinput="onGuardPassInput" />
-    <button class="gold-btn full-btn" bindtap="unlockAdmin">验证并进入工作台</button>
-    <view class="guard-back" bindtap="goBackClient">返回客户端首页</view>
+    <button class="gold-btn full-btn" bindtap="unlockAdmin">登录我的工作室</button>
+    <view class="guard-back" bindtap="goRegister">还没有工作室？立即开通（免费试用） ›</view>
+    <view class="guard-back muted" bindtap="goBackClient">返回首页</view>
   </view>
 </view>
 
-<view class="admin-page" wx:elif="{{project}}">
+<view class="admin-page" wx:else>
   <!-- 顶部工作台横幅与项目选择 -->
   <view class="admin-header">
     <view class="ah-top">
-      <text class="ah-badge">CONSULTANT WORKSPACE · 顾问管理端</text>
-      <view class="preview-client-btn" bindtap="goToClientPortal">预览客户视角 ›</view>
+      <text class="ah-badge">{{auth.byPlatform ? '平台代管模式' : 'MY STUDIO · 我的工作室'}}</text>
+      <view class="ah-top-btns">
+        <view class="brand-cfg-quick-btn" bindtap="switchAdminTab" data-tab="4">⚙️ 标品装修</view>
+        <view class="preview-client-btn" bindtap="goToPortalHome">预览门户 ›</view>
+      </view>
     </view>
-    <text class="ah-title">咨询过程与交付成果录入台</text>
+    <text class="ah-title">{{brandForm.navTitle}} · 工作室后台</text>
+
+    <!-- 工作室账号与专属分享链接 -->
+    <view class="studio-info-bar">
+      <view class="sib-left">
+        <text class="sib-plan {{tenantStatus.warning ? 'warn' : ''}}">{{tenantStatus.label}}</text>
+        <text class="sib-id">工作室ID：{{tenant.tenantId}} · 到期 {{tenant.expireTime}}</text>
+      </view>
+      <button class="share-portal-btn" open-type="share">📤 分享我的门户</button>
+    </view>
+    <view class="portal-path-row" bindtap="copyPortalPath">
+      <text class="pp-label">专属门户路径：</text>
+      <text class="pp-val">{{portalPath}}</text>
+      <text class="pp-copy">复制</text>
+    </view>
 
     <!-- 选择当前操作的客户订单 -->
     <view class="client-selector-box">
-      <text class="cs-label">当前管理客户订单（点击切换）：</text>
-      <scroll-view class="client-pills-scroll" scroll-x="true" enable-flex="true">
+      <text class="cs-label">我的客户项目（{{allProjects.length}} 个，点击切换）：</text>
+      <scroll-view class="client-pills-scroll" scroll-x="true" enable-flex="true" wx:if="{{allProjects.length > 0}}">
         <view 
           class="client-pill {{item.id === project.id ? 'active' : ''}}" 
           wx:for="{{allProjects}}" 
@@ -39,27 +64,41 @@
           <text class="cp-plan">{{item.type}} ({{item.stepName}})</text>
         </view>
       </scroll-view>
+      <text class="cs-empty" wx:else>暂无客户。可在「4.新建档」为线下签约客户建档，或分享门户让客户在线下单。</text>
     </view>
   </view>
 
-  <!-- 操作模块切换导航 -->
+  <!-- 操作模块切换导航（5个模块一屏完整并排展示，无需左右滑动） -->
   <view class="admin-tabs">
     <view class="a-tab {{adminTab === 0 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="0">
-      1. 录咨询过程
+      1.录过程
     </view>
     <view class="a-tab {{adminTab === 1 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="1">
-      2. 发交付方案
+      2.发方案
     </view>
     <view class="a-tab {{adminTab === 2 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="2">
-      3. 战果与进度
+      3.改战果
     </view>
     <view class="a-tab {{adminTab === 3 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="3">
-      4. 新客户建档
+      4.新建档
+    </view>
+    <view class="a-tab highlight-tab {{adminTab === 4 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="4">
+      5.⚙️标品装修
+    </view>
+  </view>
+
+  <!-- 新工作室还没有客户时，前三个模块给出引导 -->
+  <view class="admin-panel" wx:if="{{!project && adminTab < 3}}">
+    <view class="panel-card luxury-card empty-guide">
+      <text class="eg-icon">🗂️</text>
+      <text class="panel-title">还没有客户项目</text>
+      <text class="panel-sub">先为客户建档，或把你的门户分享给客户在线下单，之后就能在这里录入咨询过程与交付方案。</text>
+      <button class="gold-btn full-btn" bindtap="switchAdminTab" data-tab="3">为第一位客户建档</button>
     </view>
   </view>
 
   <!-- ==================== 模块 0：录入每次咨询过程记录 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 0}}">
+  <view class="admin-panel" wx:if="{{adminTab === 0 && project}}">
     <view class="panel-card luxury-card">
       <view class="panel-title-row">
         <text class="panel-title">新增第 {{project.sessions.length + 1}} 次咨询过程纪要</text>
@@ -79,7 +118,7 @@
         </view>
         <view class="f-group half">
           <text class="f-label">参会人员</text>
-          <input class="f-input" placeholder="如：岩姐、创始人及高管" value="{{sessionForm.participants}}" bindinput="onSesParticipants" />
+          <input class="f-input" placeholder="如：首席导师、创始人及高管" value="{{sessionForm.participants}}" bindinput="onSesParticipants" />
         </view>
       </view>
 
@@ -89,7 +128,7 @@
       </view>
 
       <view class="f-group">
-        <text class="f-label">02 · 岩姐咨询破局重构解法 *</text>
+        <text class="f-label">02 · 破局重构解法 *</text>
         <textarea class="f-textarea" placeholder="记录本次给出的高客单定价策略、成交漏斗设计或组织操盘解法..." value="{{sessionForm.solution}}" bindinput="onSesSolution"></textarea>
       </view>
 
@@ -121,7 +160,7 @@
   </view>
 
   <!-- ==================== 模块 1：上传/发布阶段交付成果方案 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 1}}">
+  <view class="admin-panel" wx:if="{{adminTab === 1 && project}}">
     <view class="panel-card luxury-card">
       <view class="panel-title-row">
         <text class="panel-title">发布阶段交付方案 / SOP 文档</text>
@@ -169,7 +208,7 @@
   </view>
 
   <!-- ==================== 模块 2：推进五步阶段与更新商业战果看板 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 2}}">
+  <view class="admin-panel" wx:if="{{adminTab === 2 && project}}">
     <!-- 推进 5 步里程碑 -->
     <view class="panel-card luxury-card">
       <text class="panel-title">推进项目 5 步闭环交付阶段</text>
@@ -291,6 +330,221 @@
       </view>
 
       <button class="gold-btn full-btn" bindtap="createOfflineClientOrder">确认建档并开通该客户专属交付空间</button>
+    </view>
+  </view>
+
+  <!-- ==================== 模块 4：⚙️ 标品白牌化装修中心（White-Label SaaS 配置） ==================== -->
+  <view class="admin-panel" wx:if="{{adminTab === 4}}">
+    <!-- 卡片1：销售谈单神器——一键切换三大行业标品母版 -->
+    <view class="panel-card luxury-card">
+      <text class="panel-title">⚡ 一键切换行业标品演示母版</text>
+      <text class="panel-sub">向不同行业的咨询导师/机构主理人销售演示时，点击下方行业模板即可在 1 秒内完成全站品牌、套餐与案例库切换：</text>
+
+      <view class="preset-list">
+        <view 
+          class="preset-item {{brandForm.presetKey === 'yanjie' ? 'active' : ''}}" 
+          bindtap="onApplyPreset" 
+          data-preset="yanjie">
+          <view class="pi-top">
+            <text class="pi-name">母版 A：岩姐商业咨询（商业操盘 / 知识 IP）</text>
+            <text class="pi-tag" wx:if="{{brandForm.presetKey === 'yanjie'}}">当前使用中</text>
+          </view>
+          <text class="pi-desc">适合：商业咨询师、私董会主理人、个人品牌IP、营销操盘手</text>
+        </view>
+
+        <view 
+          class="preset-item {{brandForm.presetKey === 'finance' ? 'active' : ''}}" 
+          bindtap="onApplyPreset" 
+          data-preset="finance">
+          <view class="pi-top">
+            <text class="pi-name">母版 B：卓远财税私董会（财税 / 股权 / 律所）</text>
+            <text class="pi-tag" wx:if="{{brandForm.presetKey === 'finance'}}">当前使用中</text>
+          </view>
+          <text class="pi-desc">适合：财税咨询机构、股权架构师、律师事务所、战略管理咨询公司</text>
+        </view>
+
+        <view 
+          class="preset-item {{brandForm.presetKey === 'aesthetics' ? 'active' : ''}}" 
+          bindtap="onApplyPreset" 
+          data-preset="aesthetics">
+          <view class="pi-top">
+            <text class="pi-name">母版 C：东方奢美增长院（美业 / 大健康 / 连锁）</text>
+            <text class="pi-tag" wx:if="{{brandForm.presetKey === 'aesthetics'}}">当前使用中</text>
+          </view>
+          <text class="pi-desc">适合：医美双美操盘机构、大健康抗衰会所、高端连锁陪跑团队</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 卡片2：自定义品牌门户与导师 IP 名片 -->
+    <view class="panel-card luxury-card">
+      <text class="panel-title">1 · 品牌门户与首席导师 IP 自定义</text>
+      <text class="panel-sub">购买标品的客户无需懂代码，在此修改后首页、「我的」页面与导航栏立即生效：</text>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">首页品牌大标题 *</text>
+          <input class="f-input highlight" value="{{brandForm.brandName}}" bindinput="onBrandField" data-field="brandName" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">顶部导航栏简称 *</text>
+          <input class="f-input" value="{{brandForm.navTitle}}" bindinput="onBrandField" data-field="navTitle" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">英文品牌副标题</text>
+        <input class="f-input" value="{{brandForm.brandSubtitle}}" bindinput="onBrandField" data-field="brandSubtitle" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">品牌使命 (Mission)</text>
+        <input class="f-input" value="{{brandForm.mission}}" bindinput="onBrandField" data-field="mission" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">品牌愿景 (Vision)</text>
+        <input class="f-input" value="{{brandForm.vision}}" bindinput="onBrandField" data-field="vision" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">核心商业理念 (Philosophy)</text>
+        <input class="f-input" value="{{brandForm.philosophy}}" bindinput="onBrandField" data-field="philosophy" />
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">首席导师姓名 *</text>
+          <input class="f-input highlight" value="{{brandForm.mentorName}}" bindinput="onBrandField" data-field="mentorName" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">导师身份徽章</text>
+          <input class="f-input" value="{{brandForm.mentorBadge}}" bindinput="onBrandField" data-field="mentorBadge" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">导师个人页专业头衔</text>
+        <input class="f-input" value="{{brandForm.mentorTitle}}" bindinput="onBrandField" data-field="mentorTitle" />
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">导师商业金句</text>
+        <input class="f-input" value="{{brandForm.mentorMotto}}" bindinput="onBrandField" data-field="mentorMotto" />
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">战绩1数值（如300+）</text>
+          <input class="f-input" value="{{brandForm.stat1Num}}" bindinput="onBrandField" data-field="stat1Num" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">战绩1标签</text>
+          <input class="f-input" value="{{brandForm.stat1Tag}}" bindinput="onBrandField" data-field="stat1Tag" />
+        </view>
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">战绩2数值（如10倍+）</text>
+          <input class="f-input" value="{{brandForm.stat2Num}}" bindinput="onBrandField" data-field="stat2Num" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">战绩2标签</text>
+          <input class="f-input" value="{{brandForm.stat2Tag}}" bindinput="onBrandField" data-field="stat2Tag" />
+        </view>
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">官方咨询微信号</text>
+          <input class="f-input" value="{{brandForm.wechat}}" bindinput="onBrandField" data-field="wechat" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">VIP 咨询热线</text>
+          <input class="f-input" value="{{brandForm.phone}}" bindinput="onBrandField" data-field="phone" />
+        </view>
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="saveBrandInfo">保存品牌门户与导师配置</button>
+    </view>
+
+    <!-- 卡片3：三大核心服务套餐与价格配置 -->
+    <view class="panel-card luxury-card">
+      <text class="panel-title">2 · 核心服务套餐与立项定价配置</text>
+      <text class="panel-sub">自定义「服务」页展示的三大咨询套餐名称、全案价格与立项定金：</text>
+
+      <view class="pkg-edit-box" wx:for="{{brandForm.services}}" wx:key="id">
+        <text class="pkg-index-title">套餐 {{index + 1}}（{{item.tier}}）</text>
+        <view class="f-group">
+          <text class="f-label">套餐名称</text>
+          <input class="f-input" value="{{item.name}}" bindinput="onPkgField" data-idx="{{index}}" data-field="name" />
+        </view>
+        <view class="f-row">
+          <view class="f-group half">
+            <text class="f-label">全案价格 (元)</text>
+            <input class="f-input highlight" type="number" value="{{item.price}}" bindinput="onPkgField" data-idx="{{index}}" data-field="price" />
+          </view>
+          <view class="f-group half">
+            <text class="f-label">立项定金 (元)</text>
+            <input class="f-input" type="number" value="{{item.deposit}}" bindinput="onPkgField" data-idx="{{index}}" data-field="deposit" />
+          </view>
+        </view>
+        <view class="f-group">
+          <text class="f-label">稀缺席位说明</text>
+          <input class="f-input" value="{{item.quota}}" bindinput="onPkgField" data-idx="{{index}}" data-field="quota" />
+        </view>
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="savePackagesConfig">保存三大服务套餐定价</button>
+    </view>
+
+    <!-- 卡片4：后台新增实战操盘案例到「案例」页 -->
+    <view class="panel-card luxury-card">
+      <view class="panel-title-row">
+        <text class="panel-title">3 · 新增实战成功案例</text>
+        <text class="quick-fill-btn" bindtap="fillDemoCase">⚡ 一键填入示例案例</text>
+      </view>
+      <text class="panel-sub">发布后立即展示在小程序「案例」页，并自动生成分类筛选标签：</text>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">案例分类标签 *</text>
+          <input class="f-input" placeholder="如：高客单操盘" value="{{newCaseForm.category}}" bindinput="onCaseField" data-field="category" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">业绩亮点角标 *</text>
+          <input class="f-input highlight" placeholder="如：单月业绩破500W" value="{{newCaseForm.badge}}" bindinput="onCaseField" data-field="badge" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">案例主标题 *</text>
+        <input class="f-input" placeholder="如：某高端品牌从价格战跃迁至高客单闭环" value="{{newCaseForm.title}}" bindinput="onCaseField" data-field="title" />
+      </view>
+
+      <view class="f-row">
+        <view class="f-group half">
+          <text class="f-label">服务前数据 *</text>
+          <input class="f-input" placeholder="如：客单600元·微利" value="{{newCaseForm.beforeVal}}" bindinput="onCaseField" data-field="beforeVal" />
+        </view>
+        <view class="f-group half">
+          <text class="f-label">服务后数据 *</text>
+          <input class="f-input highlight" placeholder="如：客单3.8万·毛利70%" value="{{newCaseForm.afterVal}}" bindinput="onCaseField" data-field="afterVal" />
+        </view>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">核心操盘抓手 *</text>
+        <textarea class="f-textarea" placeholder="简述该案例的核心破局策略与落地抓手..." value="{{newCaseForm.coreStrategy}}" bindinput="onCaseField" data-field="coreStrategy"></textarea>
+      </view>
+
+      <view class="f-group">
+        <text class="f-label">客户称呼与背书身份 *</text>
+        <input class="f-input" placeholder="如：周总（某连锁品牌创始人）" value="{{newCaseForm.clientName}}" bindinput="onCaseField" data-field="clientName" />
+      </view>
+
+      <button class="gold-btn full-btn" bindtap="publishNewCase">发布新案例至前端案例库</button>
     </view>
   </view>
 </view>

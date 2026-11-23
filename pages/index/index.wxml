@@ -3,37 +3,40 @@
   <!-- 顶部奢华暖金渐变背景装饰 -->
   <view class="header-glow"></view>
 
-  <!-- 品牌主标题 -->
+  <!-- 品牌主标题（动态读取白牌标品配置） -->
   <view class="brand-section">
-    <text class="brand-title">岩 姐 咨 询</text>
-    <text class="brand-subtitle">YANJIE BUSINESS CONSULTING</text>
+    <text class="brand-title">{{brand.brandName}}</text>
+    <text class="brand-subtitle">{{brand.brandSubtitle}}</text>
   </view>
 
   <!-- 顶部常驻：当前登录权限状态与快捷登录栏 -->
   <view class="top-auth-bar luxury-card">
     <view class="tab-status-row">
-      <text class="tab-role-label" wx:if="{{auth.role === 'guest'}}">🔒 当前权限：未登录访客</text>
+      <text class="tab-role-label" wx:if="{{auth.role === 'guest'}}">
+        {{brand.isPlatformDefault ? '🏛️ 当前位置：平台总入口（尚未进入导师工作室）' : ('🔒 当前权限：未登录访客（' + brand.navTitle + '）')}}
+      </text>
       <text class="tab-role-label client" wx:elif="{{auth.role === 'client'}}">👤 当前权限：客户（{{auth.clientName}} {{auth.clientPhone}}）</text>
-      <text class="tab-role-label admin" wx:elif="{{auth.role === 'admin'}}">🛠️ 当前权限：顾问后台管理员</text>
+      <text class="tab-role-label admin" wx:elif="{{auth.role === 'admin'}}">🛠️ 当前权限：{{brand.navTitle}} · 工作室主理人</text>
+      <text class="exit-studio-link" wx:if="{{!brand.isPlatformDefault && auth.role !== 'admin'}}" bindtap="exitCurrentStudio">切换工作室 ›</text>
     </view>
     <view class="tab-btn-row">
       <view class="mini-login-btn client-btn" bindtap="goToLoginWithMode" data-mode="client">
         👤 客户手机号登录
       </view>
       <view class="mini-login-btn admin-btn" bindtap="goToLoginWithMode" data-mode="admin">
-        🛠️ 顾问后台登录
+        🛠️ 导师工作室登录
       </view>
     </view>
   </view>
 
-  <!-- 使命 / 愿景 / 理念 卡片 -->
+  <!-- 使命 / 愿景 / 理念 卡片（动态配置） -->
   <view class="value-card luxury-card">
     <view class="value-item">
       <view class="value-label-box">
         <view class="gold-bar"></view>
         <text class="value-label">使命</text>
       </view>
-      <text class="value-desc">让每个IP抓住属于自己的风口</text>
+      <text class="value-desc">{{brand.mission}}</text>
     </view>
     <view class="divider"></view>
 
@@ -42,7 +45,7 @@
         <view class="gold-bar"></view>
         <text class="value-label">愿景</text>
       </view>
-      <text class="value-desc">让每一个初创企业都能享受一流的商业咨询服务</text>
+      <text class="value-desc">{{brand.vision}}</text>
     </view>
     <view class="divider"></view>
 
@@ -51,21 +54,51 @@
         <view class="gold-bar"></view>
         <text class="value-label">理念</text>
       </view>
-      <text class="value-desc">所有行业都值得用奢侈品思维重做一遍</text>
+      <text class="value-desc">{{brand.philosophy}}</text>
     </view>
   </view>
 
-  <!-- 实时进行中的咨询交付空间快捷入口（严格按登录身份隔离） -->
-  <view class="active-portal-card" wx:if="{{auth.role === 'guest'}}" bindtap="goToLogin">
+  <!-- 实时进行中的咨询交付空间快捷入口（严格按登录身份 & 工作室隔离） -->
+  <!-- 情况1：当前处于平台总入口（未进入具体工作室 / 导师退出登录后） -->
+  <view class="active-portal-card" wx:if="{{brand.isPlatformDefault}}">
+    <view class="portal-top">
+      <view class="portal-badge-group">
+        <text class="portal-live-dot">✦</text>
+        <text class="portal-badge-txt">多租户咨询交付平台 · 一导师一独立系统</text>
+      </view>
+      <text class="portal-enter" bindtap="goToRegister">免费开通 ›</text>
+    </view>
+    <view class="portal-body">
+      <text class="portal-plan">请选择要访问的导师工作室，或登录/开通你自己的工作室</text>
+      <view class="studio-pick-list">
+        <view 
+          class="studio-pick-chip" 
+          wx:for="{{tenantsList}}" 
+          wx:key="tenantId" 
+          bindtap="enterStudioPortal" 
+          data-id="{{item.tenantId}}">
+          <text class="spc-name">{{item.studioName}}</text>
+          <text class="spc-mentor">{{item.mentorName}} · 点击进入 ›</text>
+        </view>
+      </view>
+    </view>
+    <view class="portal-actions">
+      <view class="portal-btn primary" bindtap="goToLoginWithMode" data-mode="admin">导师登录我的工作室</view>
+      <view class="portal-btn secondary" bindtap="goToRegister">开通新工作室</view>
+    </view>
+  </view>
+
+  <!-- 情况2：已进入具体某位导师的门户，但客户尚未登录 -->
+  <view class="active-portal-card" wx:elif="{{auth.role === 'guest'}}" bindtap="goToLogin">
     <view class="portal-top">
       <view class="portal-badge-group">
         <text class="portal-live-dot">🔒</text>
-        <text class="portal-badge-txt">专属咨询交付空间 · 一客一档加密保护</text>
+        <text class="portal-badge-txt">{{brand.navTitle}} · 一客一档加密保护</text>
       </view>
       <text class="portal-enter">客户登录 ›</text>
     </view>
     <view class="portal-body">
-      <text class="portal-plan">已下单或线下签约客户，请登录查阅咨询过程与交付方案</text>
+      <text class="portal-plan">已签约客户，请登录查阅咨询过程与交付方案</text>
     </view>
     <view class="portal-actions">
       <view class="portal-btn primary">手机号登录查阅我的项目</view>
@@ -156,32 +189,32 @@
     </view>
   </view>
 
-  <!-- 导师背书与认知专栏 -->
-  <view class="mentor-section luxury-card">
+  <!-- 导师背书与认知专栏（仅在进入具体导师工作室后展示，平台中性态不展示个人头像） -->
+  <view class="mentor-section luxury-card" wx:if="{{!brand.isPlatformDefault}}">
     <view class="mentor-header">
       <image class="mentor-avatar" src="/images/avatar.png" mode="aspectFill"></image>
       <view class="mentor-meta">
         <view class="mentor-name-tag">
-          <text class="mentor-name">岩姐</text>
-          <text class="mentor-badge">首席商业操盘顾问</text>
+          <text class="mentor-name">{{brand.mentorName}}</text>
+          <text class="mentor-badge">{{brand.mentorBadge}}</text>
         </view>
-        <text class="mentor-motto">“做商业，不要做平庸的追随者，要做稀缺的价值定义者。”</text>
+        <text class="mentor-motto">{{brand.mentorMotto}}</text>
       </view>
     </view>
     <view class="mentor-stats">
       <view class="stat-col">
-        <text class="stat-num">300+</text>
-        <text class="stat-tag">高端企业私董</text>
+        <text class="stat-num">{{brand.stat1Num}}</text>
+        <text class="stat-tag">{{brand.stat1Tag}}</text>
       </view>
       <view class="stat-line"></view>
       <view class="stat-col">
-        <text class="stat-num">10倍+</text>
-        <text class="stat-tag">客单溢价操盘</text>
+        <text class="stat-num">{{brand.stat2Num}}</text>
+        <text class="stat-tag">{{brand.stat2Tag}}</text>
       </view>
       <view class="stat-line"></view>
       <view class="stat-col">
-        <text class="stat-num">98.5%</text>
-        <text class="stat-tag">好评满意度</text>
+        <text class="stat-num">{{brand.stat3Num}}</text>
+        <text class="stat-tag">{{brand.stat3Tag}}</text>
       </view>
     </view>
   </view>
@@ -203,7 +236,7 @@
         <view class="modal-close" bindtap="closeConsultModal">×</view>
       </view>
       <view class="modal-body">
-        <text class="modal-tip">请留下您的联系方式与企业现状，岩姐团队将在 24 小时内与您初步沟通并安排深度问诊。</text>
+        <text class="modal-tip">请留下您的联系方式与企业现状，{{brand.mentorName}}团队将在 24 小时内与您初步沟通并安排深度问诊。</text>
         <input class="modal-input" placeholder="您的姓名 / 称呼" value="{{form.name}}" bindinput="onInputName" />
         <input class="modal-input" type="number" placeholder="联系电话 / 微信" value="{{form.phone}}" bindinput="onInputPhone" />
         <input class="modal-input" placeholder="当前所在行业 / 经营项目" value="{{form.industry}}" bindinput="onInputIndustry" />

@@ -50,6 +50,103 @@
   color: #8D6238;
 }
 
+.guard-back.muted {
+  margin-top: 18rpx;
+  color: #A39688;
+}
+
+/* 工作室账号信息与分享 */
+.studio-info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 14rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.sib-left {
+  flex: 1;
+  margin-right: 16rpx;
+}
+
+.sib-plan {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #E2B678;
+}
+
+.sib-plan.warn {
+  color: #FFB36B;
+}
+
+.sib-id {
+  display: block;
+  font-size: 20rpx;
+  color: #B6A797;
+  margin-top: 4rpx;
+}
+
+.share-portal-btn {
+  margin: 0;
+  padding: 0 22rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #241E1A;
+  background: #E2B678;
+  border-radius: 28rpx;
+  flex-shrink: 0;
+}
+
+.share-portal-btn::after {
+  border: none;
+}
+
+.portal-path-row {
+  display: flex;
+  align-items: center;
+  font-size: 20rpx;
+  margin-bottom: 22rpx;
+}
+
+.pp-label {
+  color: #B6A797;
+}
+
+.pp-val {
+  flex: 1;
+  color: #EBDCCB;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pp-copy {
+  color: #E2B678;
+  margin-left: 12rpx;
+}
+
+.cs-empty {
+  display: block;
+  font-size: 22rpx;
+  color: #C7B9A8;
+  line-height: 1.5;
+}
+
+.empty-guide {
+  text-align: center;
+}
+
+.eg-icon {
+  display: block;
+  font-size: 64rpx;
+  margin-bottom: 12rpx;
+}
+
 .admin-page {
   min-height: 100vh;
   background-color: #F8F6F2;
@@ -72,7 +169,23 @@
 .ah-badge {
   font-size: 20rpx;
   color: #E2B678;
-  letter-spacing: 2rpx;
+  letter-spacing: 1rpx;
+}
+
+.ah-top-btns {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.brand-cfg-quick-btn {
+  font-size: 22rpx;
+  color: #FFF7EB;
+  background: #8D6238;
+  border: 1rpx solid #E2B678;
+  font-weight: 600;
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
 }
 
 .preview-client-btn {
@@ -80,7 +193,7 @@
   color: #241E1A;
   background: #E2B678;
   font-weight: 600;
-  padding: 8rpx 22rpx;
+  padding: 8rpx 20rpx;
   border-radius: 24rpx;
 }
 
@@ -132,26 +245,34 @@
   color: #D8C7B4;
 }
 
-/* 工作台模块导航 */
+/* 工作台模块导航（一屏5列完整显示） */
 .admin-tabs {
   display: flex;
   background: #FFFFFF;
   border-bottom: 1rpx solid #EAE1D5;
+  width: 100%;
 }
 
 .a-tab {
   flex: 1;
   text-align: center;
-  padding: 26rpx 0;
-  font-size: 26rpx;
+  padding: 24rpx 4rpx;
+  font-size: 23rpx;
   color: #7D736A;
   font-weight: 500;
   border-bottom: 6rpx solid transparent;
+  white-space: nowrap;
+}
+
+.a-tab.highlight-tab {
+  color: #8D6238;
+  font-weight: 600;
+  background: #FDF9F2;
 }
 
 .a-tab.active {
   color: #8D6238;
-  font-weight: 600;
+  font-weight: 700;
   border-bottom-color: #8D6238;
 }
 
@@ -366,4 +487,68 @@
 .step-select-btn.current .ss-name {
   color: #FFFFFF;
   font-weight: 600;
+}
+
+/* 标品装修中心：行业预设母版选择器 */
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.preset-item {
+  background: #FAF8F4;
+  border: 2rpx solid #E5DDD0;
+  border-radius: 14rpx;
+  padding: 22rpx 24rpx;
+}
+
+.preset-item.active {
+  background: #FDF9F2;
+  border-color: #8D6238;
+  box-shadow: 0 6rpx 18rpx rgba(141, 98, 56, 0.12);
+}
+
+.pi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.pi-name {
+  font-size: 27rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.pi-tag {
+  font-size: 20rpx;
+  background: #8D6238;
+  color: #FFFFFF;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+}
+
+.pi-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #7D736A;
+}
+
+/* 套餐配置卡片 */
+.pkg-edit-box {
+  background: #FAF8F4;
+  border: 1rpx solid #E8DFD2;
+  border-radius: 14rpx;
+  padding: 22rpx;
+  margin-bottom: 22rpx;
+}
+
+.pkg-index-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #8D6238;
+  margin-bottom: 16rpx;
 }
