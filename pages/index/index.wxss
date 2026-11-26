@@ -46,60 +46,6 @@
   font-weight: 400;
 }
 
-/* 首页顶部常驻身份与登录栏 */
-.top-auth-bar {
-  position: relative;
-  z-index: 2;
-  background: #FFFFFF;
-  border-radius: 20rpx;
-  padding: 24rpx 28rpx;
-  margin-bottom: 32rpx;
-  border: 1rpx solid #E5D7C4;
-}
-
-.tab-status-row {
-  margin-bottom: 16rpx;
-}
-
-.tab-role-label {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #5C5248;
-}
-
-.tab-role-label.client {
-  color: #8D6238;
-}
-
-.tab-role-label.admin {
-  color: #241E1A;
-}
-
-.tab-btn-row {
-  display: flex;
-  gap: 16rpx;
-}
-
-.mini-login-btn {
-  flex: 1;
-  text-align: center;
-  padding: 16rpx 0;
-  border-radius: 32rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-}
-
-.mini-login-btn.client-btn {
-  background: linear-gradient(135deg, #A88152 0%, #8D6238 100%);
-  color: #FFFFFF;
-}
-
-.mini-login-btn.admin-btn {
-  background: #F6F1EA;
-  color: #3A3028;
-  border: 1rpx solid #D8C7B2;
-}
-
 /* 使命/愿景/理念卡片 */
 .value-card {
   position: relative;

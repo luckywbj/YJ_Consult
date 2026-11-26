@@ -39,14 +39,17 @@
       <view class="logout-link" bindtap="handleLogout">退出</view>
     </view>
 
-    <!-- 始终可见的登录/切换身份按钮组 -->
-    <view class="auth-btn-group">
+    <!-- 未登录时显示统一的账号登录入口 -->
+    <view class="auth-btn-group" wx:if="{{auth.role === 'guest'}}">
       <view class="auth-action-btn primary" bindtap="openLoginModal" data-mode="client">
-        👤 客户手机号登录
+        👤 客户账号登录
       </view>
       <view class="auth-action-btn admin-outline" bindtap="openLoginModal" data-mode="admin">
         🛠️ 顾问后台登录
       </view>
+    </view>
+    <view class="top-order-link" wx:if="{{auth.role === 'guest'}}" bindtap="goToServices">
+      尚未立项？前往「服务」页在线下单 ›
     </view>
   </view>
 
@@ -62,26 +65,15 @@
     <view class="wb-btn">进入工作台 ›</view>
   </view>
 
-  <!-- 我的咨询项目与交付空间（严格按登录身份隔离展示） -->
-  <view class="section-block luxury-card">
+  <!-- 我的咨询项目与交付空间（仅登录后展示，避免与顶部登录入口重复） -->
+  <view class="section-block luxury-card" wx:if="{{auth.role !== 'guest'}}">
     <view class="block-header">
       <text class="block-title">{{auth.role === 'admin' ? '全部客户咨询项目档案' : '我的专属咨询交付空间'}}</text>
-      <text class="record-count" wx:if="{{auth.role !== 'guest'}}">共 {{appointments.length}} 个项目</text>
-    </view>
-
-    <!-- 未登录时的隐私保护锁屏提示 -->
-    <view class="privacy-lock-box" wx:if="{{auth.role === 'guest'}}">
-      <text class="lock-icon">🛡️</text>
-      <text class="lock-title">客户商业咨询档案已加密隔离</text>
-      <text class="lock-sub">每位客户的痛点诊断、咨询过程纪要及交付方案仅限本人登录后查阅。</text>
-      <view class="lock-actions">
-        <button class="gold-btn lock-btn" bindtap="openLoginModal" data-mode="client">客户手机号登录查阅</button>
-        <view class="go-order-link" bindtap="goToServices">尚未立项？前往「服务」页在线下单 ›</view>
-      </view>
+      <text class="record-count">共 {{appointments.length}} 个项目</text>
     </view>
 
     <!-- 已登录且有可见项目 -->
-    <view class="appointment-list" wx:elif="{{appointments.length > 0}}">
+    <view class="appointment-list" wx:if="{{appointments.length > 0}}">
       <view 
         class="appointment-item" 
         wx:for="{{appointments}}" 
@@ -111,7 +103,7 @@
         <!-- 快捷操作按钮 -->
         <view class="item-actions">
           <view class="act-btn outline" catchtap="openProjectSpace" data-id="{{item.id}}" data-tab="0">
-            查看咨询过程
+            咨询记录与反馈
           </view>
           <view class="act-btn primary" catchtap="openProjectSpace" data-id="{{item.id}}" data-tab="1">
             查看交付结果看板
@@ -184,15 +176,28 @@
       </view>
     </view>
 
-    <view class="menu-divider"></view>
+    <view class="menu-divider" wx:if="{{auth.role === 'client'}}"></view>
 
-    <view class="menu-row" bindtap="openLoginModal" data-mode="admin" wx:if="{{auth.role !== 'admin'}}">
+    <view class="menu-row" bindtap="openLoginModal" data-mode="admin" wx:if="{{auth.role === 'client'}}">
       <view class="menu-left">
         <text class="menu-icon">🔐</text>
         <text class="menu-label">内部顾问工作人员入口</text>
       </view>
       <view class="menu-right">
         <text class="menu-val">口令验证</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-divider" wx:if="{{auth.role === 'client'}}"></view>
+
+    <view class="menu-row" bindtap="openChangePassModal" wx:if="{{auth.role === 'client'}}">
+      <view class="menu-left">
+        <text class="menu-icon">🔑</text>
+        <text class="menu-label">修改我的登录密码</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-val">保护隐私安全</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
@@ -252,7 +257,7 @@
 
       <!-- 模式 A：客户手机号登录 -->
       <view class="login-body" wx:if="{{loginModal.mode === 'client'}}">
-        <text class="login-tip">请输入您在线下单或线下签约建档时预留的手机号，系统将为您加载专属咨询空间（仅显示您本人的项目）：</text>
+        <text class="login-tip">请输入顾问为您开通的手机号与专属登录密码（忘记密码请联系顾问在后台重置）：</text>
         <input 
           class="login-input" 
           type="number" 
@@ -261,20 +266,20 @@
           bindinput="onLoginPhoneInput" />
         <input 
           class="login-input" 
-          type="number" 
-          placeholder="短信验证码 / 项目口令（演示任意填如 6666）" 
+          password="true"
+          placeholder="请输入专属登录密码" 
           value="{{loginModal.code}}" 
           bindinput="onLoginCodeInput" />
 
         <!-- 快捷体验测试账号（方便演示不同客户之间的数据完全隔离） -->
         <view class="demo-accounts-box">
-          <text class="da-label">⚡ 点击下方演示客户账号可一键填入测试（体验数据隔离）：</text>
+          <text class="da-label">⚡ 点击下方演示客户账号可一键填入测试（默认密码为手机号后6位）：</text>
           <view class="da-pills">
             <view class="da-pill" bindtap="quickFillClient" data-phone="13888888899">
-              客户1：李总 (13888888899)
+              客户1：李总 (13888888899 · 密码 888899)
             </view>
             <view class="da-pill" bindtap="quickFillClient" data-phone="13988885520">
-              客户2：陈老师 (13988885520)
+              客户2：陈老师 (13988885520 · 密码 885520)
             </view>
           </view>
         </view>
@@ -295,6 +300,36 @@
           <text class="da-label">💡 演示默认后台管理口令为：8888</text>
         </view>
         <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">解锁顾问录入工作台</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 弹窗：客户自助修改登录密码 ==================== -->
+  <view class="login-mask" wx:if="{{changePassModal.visible}}" bindtap="closeChangePassModal">
+    <view class="login-box cp-box" catchtap="preventBubble">
+      <text class="cp-title">修改登录密码</text>
+      <text class="cp-sub">当前账号：{{auth.clientPhone}}（修改后请妥善保管新密码）</text>
+      <input
+        class="login-input"
+        password="true"
+        placeholder="请输入原登录密码"
+        value="{{changePassModal.oldPass}}"
+        bindinput="onOldPassInput" />
+      <input
+        class="login-input"
+        password="true"
+        placeholder="请输入新密码（至少4位）"
+        value="{{changePassModal.newPass}}"
+        bindinput="onNewPassInput" />
+      <input
+        class="login-input"
+        password="true"
+        placeholder="请再次确认新密码"
+        value="{{changePassModal.confirmPass}}"
+        bindinput="onConfirmPassInput" />
+      <view class="cp-btns">
+        <view class="cp-btn cancel" bindtap="closeChangePassModal">取消</view>
+        <view class="cp-btn confirm" bindtap="submitChangePassword">确认修改</view>
       </view>
     </view>
   </view>

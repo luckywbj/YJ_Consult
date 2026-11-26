@@ -1,6 +1,14 @@
 // pages/admin/admin.js
 const consultStore = require('../../utils/consultStore');
 
+function getTodayDateStr() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 Page({
   data: {
     auth: { role: 'guest' },
@@ -8,17 +16,29 @@ Page({
     allProjects: [],
     project: null,
     adminTab: 0,
+    editingSessionId: '',
+    editingSessionNo: 0,
+    feedbackCount: 0,
     steps: consultStore.DELIVERY_STEPS,
     stageOptions: consultStore.DELIVERY_STEPS.map(s => `${s.code} ${s.title}`),
     planOptions: consultStore.SERVICES_CATALOG.map(s => s.name),
     sessionForm: {
       title: '',
+      date: getTodayDateStr(),
+      timeRange: '14:00 - 17:00',
       mode: '1V1 闭门私董推演',
       participants: '',
       diagnosis: '',
       solution: '',
       actionsText: '',
       consultantNote: ''
+    },
+    replyModal: {
+      visible: false,
+      sessionId: '',
+      sessionNo: 1,
+      clientFeedback: '',
+      text: ''
     },
     delivForm: {
       title: '',
@@ -40,6 +60,7 @@ Page({
     newClientForm: {
       name: '',
       phone: '',
+      password: consultStore.generateRandomPassword(),
       industry: '',
       planIndex: 0,
       ticketBefore: '',
@@ -68,13 +89,21 @@ Page({
     if (!proj) return;
 
     this.targetId = proj.id;
-    this.setData({
+    const feedbackCount = (proj.sessions || []).filter(s => !!(s.clientFeedback && s.clientFeedback.trim())).length;
+    const nextData = {
       auth,
       allProjects: all,
       project: proj,
-      'sessionForm.participants': `岩姐、${proj.name}及核心高管团队`,
+      feedbackCount,
       metricsForm: { ...proj.metrics }
-    });
+    };
+    if (!this.data.editingSessionId) {
+      nextData['sessionForm.participants'] = `岩姐、${proj.name}及核心高管团队`;
+      if (!this.data.sessionForm.date) {
+        nextData['sessionForm.date'] = getTodayDateStr();
+      }
+    }
+    this.setData(nextData);
   },
 
   onGuardPassInput(e) {
@@ -98,6 +127,9 @@ Page({
   selectProject(e) {
     const id = e.currentTarget.dataset.id;
     this.targetId = id;
+    if (this.data.editingSessionId) {
+      this.cancelEditSession();
+    }
     this.loadAdminData();
   },
 
@@ -117,8 +149,12 @@ Page({
     const { project } = this.data;
     const nextNo = project.sessions.length + 1;
     this.setData({
+      editingSessionId: '',
+      editingSessionNo: 0,
       sessionForm: {
         title: `第 ${nextNo} 次：高客单私享会收单复盘与百万级转介绍裂变机制植入`,
+        date: getTodayDateStr(),
+        timeRange: '14:00 - 17:30',
         mode: '线下闭门复盘 + 销冠团队督导',
         participants: `岩姐、${project.name}、销售主管及核心顾问`,
         diagnosis: '首场高客单发售虽已跑通，但已成交的高净值老客缺乏“圈层身份特权感”，转介绍率尚未被充分激活。',
@@ -131,6 +167,8 @@ Page({
   },
 
   onSesTitle(e) { this.setData({ 'sessionForm.title': e.detail.value }); },
+  onSesDateChange(e) { this.setData({ 'sessionForm.date': e.detail.value }); },
+  onSesTimeRange(e) { this.setData({ 'sessionForm.timeRange': e.detail.value }); },
   onSesMode(e) { this.setData({ 'sessionForm.mode': e.detail.value }); },
   onSesParticipants(e) { this.setData({ 'sessionForm.participants': e.detail.value }); },
   onSesDiagnosis(e) { this.setData({ 'sessionForm.diagnosis': e.detail.value }); },
@@ -138,21 +176,85 @@ Page({
   onSesActions(e) { this.setData({ 'sessionForm.actionsText': e.detail.value }); },
   onSesNote(e) { this.setData({ 'sessionForm.consultantNote': e.detail.value }); },
 
+  startEditSession(e) {
+    const sessionId = e.currentTarget.dataset.id;
+    const ses = (this.data.project.sessions || []).find(s => s.sessionId === sessionId);
+    if (!ses) return;
+
+    const rawDate = (ses.date || '').trim();
+    const spaceIdx = rawDate.indexOf(' ');
+    let datePart = getTodayDateStr();
+    let timePart = '';
+    if (/^\d{4}-\d{2}-\d{2}/.test(rawDate)) {
+      datePart = rawDate.slice(0, 10);
+      timePart = spaceIdx !== -1 ? rawDate.slice(spaceIdx + 1).trim() : '';
+    } else if (rawDate) {
+      timePart = rawDate;
+    }
+
+    const actionsText = (ses.actionItems || []).map(a => a.text).join('\n');
+    this.setData({
+      editingSessionId: ses.sessionId,
+      editingSessionNo: ses.sessionNo,
+      sessionForm: {
+        title: ses.title || '',
+        date: datePart,
+        timeRange: timePart,
+        mode: ses.mode || '',
+        participants: ses.participants || '',
+        diagnosis: ses.diagnosis || '',
+        solution: ses.solution || '',
+        actionsText,
+        consultantNote: ses.consultantNote || ''
+      }
+    });
+    wx.pageScrollTo({ scrollTop: 0, duration: 250 });
+  },
+
+  cancelEditSession() {
+    const projName = this.data.project ? this.data.project.name : '客户';
+    this.setData({
+      editingSessionId: '',
+      editingSessionNo: 0,
+      sessionForm: {
+        title: '',
+        date: getTodayDateStr(),
+        timeRange: '14:00 - 17:00',
+        mode: '1V1 闭门私董推演',
+        participants: `岩姐、${projName}及核心高管团队`,
+        diagnosis: '',
+        solution: '',
+        actionsText: '',
+        consultantNote: ''
+      }
+    });
+  },
+
   submitNewSession() {
-    const { title, diagnosis, solution } = this.data.sessionForm;
+    const { title, date, timeRange, diagnosis, solution } = this.data.sessionForm;
     if (!title.trim() || !diagnosis.trim() || !solution.trim()) {
       wx.showToast({ title: '请填写主题、诊断与破局解法', icon: 'none' });
       return;
     }
 
-    consultStore.addConsultSession(this.data.project.id, this.data.sessionForm);
-    this.setData({
-      'sessionForm.title': '',
-      'sessionForm.diagnosis': '',
-      'sessionForm.solution': '',
-      'sessionForm.actionsText': '',
-      'sessionForm.consultantNote': ''
-    });
+    const cleanDate = (date || getTodayDateStr()).trim();
+    const cleanTime = (timeRange || '').trim();
+    const fullDate = cleanTime ? `${cleanDate} ${cleanTime}` : cleanDate;
+    const payload = {
+      ...this.data.sessionForm,
+      date: fullDate
+    };
+
+    if (this.data.editingSessionId) {
+      consultStore.updateConsultSession(this.data.project.id, this.data.editingSessionId, payload);
+      this.cancelEditSession();
+      this.loadAdminData();
+      wx.showToast({ title: '咨询记录已更新同步', icon: 'success' });
+      return;
+    }
+
+    consultStore.addConsultSession(this.data.project.id, payload);
+    this.cancelEditSession();
     this.loadAdminData();
 
     wx.showModal({
@@ -169,6 +271,44 @@ Page({
         }
       }
     });
+  },
+
+  openReplyModal(e) {
+    const sessionId = e.currentTarget.dataset.id;
+    const ses = (this.data.project.sessions || []).find(s => s.sessionId === sessionId);
+    if (!ses) return;
+
+    this.setData({
+      replyModal: {
+        visible: true,
+        sessionId: ses.sessionId,
+        sessionNo: ses.sessionNo,
+        clientFeedback: ses.clientFeedback || '',
+        text: ses.consultantReply || ''
+      }
+    });
+  },
+
+  closeReplyModal() {
+    this.setData({ 'replyModal.visible': false });
+  },
+
+  preventBubble() {},
+
+  onReplyInput(e) {
+    this.setData({ 'replyModal.text': e.detail.value });
+  },
+
+  submitSessionReply() {
+    const { sessionId, text } = this.data.replyModal;
+    if (!text || !text.trim()) {
+      wx.showToast({ title: '请输入回复内容', icon: 'none' });
+      return;
+    }
+    consultStore.replySessionFeedback(this.data.project.id, sessionId, text.trim());
+    this.setData({ 'replyModal.visible': false });
+    this.loadAdminData();
+    wx.showToast({ title: '已回复客户反馈', icon: 'success' });
   },
 
   // 一键填入示例交付方案
@@ -255,22 +395,47 @@ Page({
   // 4. 顾问为线下签约新客户建档立项
   onNewClientName(e) { this.setData({ 'newClientForm.name': e.detail.value }); },
   onNewClientPhone(e) { this.setData({ 'newClientForm.phone': e.detail.value }); },
+  onNewClientPassword(e) { this.setData({ 'newClientForm.password': e.detail.value }); },
   onNewClientIndustry(e) { this.setData({ 'newClientForm.industry': e.detail.value }); },
   onNewClientPlanChange(e) { this.setData({ 'newClientForm.planIndex': Number(e.detail.value) }); },
   onNewClientTicket(e) { this.setData({ 'newClientForm.ticketBefore': e.detail.value }); },
   onNewClientRev(e) { this.setData({ 'newClientForm.revenueBefore': e.detail.value }); },
   onNewClientProblem(e) { this.setData({ 'newClientForm.problem': e.detail.value }); },
 
+  regenerateClientPassword() {
+    this.setData({ 'newClientForm.password': consultStore.generateRandomPassword() });
+    wx.showToast({ title: '已生成新密码', icon: 'none' });
+  },
+
+  copyClientCredentials() {
+    const { project } = this.data;
+    if (!project) return;
+    const pass = consultStore.getClientPassword(project.phone);
+    const text = `【岩姐商业咨询】专属交付空间账号\n登录手机号：${project.phone}\n登录密码：${pass}\n（登录后可在「我的-修改登录密码」自行修改）`;
+    wx.setClipboardData({
+      data: text,
+      success: () => {
+        wx.showToast({ title: '账号密码已复制，可发给客户', icon: 'success' });
+      }
+    });
+  },
+
   createOfflineClientOrder() {
-    const { name, phone, industry, planIndex, ticketBefore, revenueBefore, problem } = this.data.newClientForm;
+    const { name, phone, password, industry, planIndex, ticketBefore, revenueBefore, problem } = this.data.newClientForm;
     if (!name.trim() || !phone.trim() || !industry.trim()) {
       wx.showToast({ title: '请填写客户姓名、手机号与行业', icon: 'none' });
+      return;
+    }
+    const cleanPassword = (password || '').trim();
+    if (cleanPassword && cleanPassword.length < 4) {
+      wx.showToast({ title: '登录密码不能少于 4 位', icon: 'none' });
       return;
     }
 
     const newProj = consultStore.createOrder({
       name: name.trim(),
       phone: phone.trim(),
+      clientPassword: cleanPassword || consultStore.generateRandomPassword(),
       industry: industry.trim(),
       ticketBefore: ticketBefore.trim(),
       revenueBefore: revenueBefore.trim(),
@@ -287,6 +452,7 @@ Page({
       newClientForm: {
         name: '',
         phone: '',
+        password: consultStore.generateRandomPassword(),
         industry: '',
         planIndex: 0,
         ticketBefore: '',
@@ -298,10 +464,15 @@ Page({
 
     wx.showModal({
       title: '新客户建档成功',
-      content: `已为【${newProj.name}】开通专属交付空间！\n客户只需在小程序「我的」页面输入手机号 ${newProj.phone} 登录，即可查看专属过程与交付结果。`,
-      showCancel: false,
-      confirmText: '开始录入咨询',
-      confirmColor: '#8D6238'
+      content: `已为【${newProj.name}】开通专属交付空间！\n登录手机号：${newProj.phone}\n专属初始密码：${newProj.assignedPassword}`,
+      confirmText: '复制账号密码',
+      cancelText: '直接录入咨询',
+      confirmColor: '#8D6238',
+      success: (res) => {
+        if (res.confirm) {
+          this.copyClientCredentials();
+        }
+      }
     });
   }
 });

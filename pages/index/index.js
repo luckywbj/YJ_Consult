@@ -31,21 +31,6 @@ Page({
     });
   },
 
-  goToLogin() {
-    wx.setStorageSync('pending_login_modal', 'client');
-    wx.switchTab({
-      url: '/pages/mine/mine'
-    });
-  },
-
-  goToLoginWithMode(e) {
-    const mode = e.currentTarget.dataset.mode || 'client';
-    wx.setStorageSync('pending_login_modal', mode);
-    wx.switchTab({
-      url: '/pages/mine/mine'
-    });
-  },
-
   goToLatestProject() {
     if (!this.data.latestProject) return;
     wx.navigateTo({
@@ -115,7 +100,7 @@ Page({
 
     wx.showModal({
       title: '预约立项成功',
-      content: `已为您自动绑定手机号（${newOrder.phone}）并开通专属咨询交付空间，仅您本人可查阅。`,
+      content: `已为您自动绑定账号（${newOrder.phone}）并开通专属咨询交付空间。\n初始登录密码：${newOrder.assignedPassword}（可在「我的-修改登录密码」修改）`,
       confirmText: '进入我的空间',
       cancelText: '稍后查看',
       confirmColor: '#8D6238',

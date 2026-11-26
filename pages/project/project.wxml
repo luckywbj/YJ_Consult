@@ -65,7 +65,7 @@
   <!-- ==================== TAB 0：每次咨询过程记录 ==================== -->
   <view class="tab-content" wx:if="{{activeTab === 0}}">
     <view class="section-intro-bar">
-      <text class="intro-txt">全程留档每一次 1V1 闭门诊断推演结论，点击课后行动项可打钩确认落地进度。</text>
+      <text class="intro-txt">全程留档每一次咨询记录，您可为每次咨询打分并填写收获反馈，课后行动项支持打卡。</text>
     </view>
 
     <view class="timeline-list">
@@ -139,6 +139,58 @@
         <view class="consultant-remark" wx:if="{{ses.consultantNote}}">
           <text class="remark-label">顾问复盘批注：</text>
           <text class="remark-txt">{{ses.consultantNote}}</text>
+        </view>
+
+        <!-- 本次咨询客户反馈与顾问回复 -->
+        <view class="session-feedback-box">
+          <view wx:if="{{ses.clientFeedback}}">
+            <view class="sf-header">
+              <view class="sf-title-wrap">
+                <text class="sf-label">我的本次咨询反馈</text>
+                <view class="sf-stars">
+                  <text
+                    class="sf-star {{star <= ses.clientRating ? 'on' : ''}}"
+                    wx:for="{{[1,2,3,4,5]}}"
+                    wx:for-item="star"
+                    wx:key="*this">★</text>
+                  <text class="sf-score">{{ses.clientRating}}分 · {{ratingLabels[ses.clientRating]}}</text>
+                </view>
+              </view>
+              <text
+                class="sf-edit-btn"
+                bindtap="openSessionFeedbackModal"
+                data-ses-id="{{ses.sessionId}}"
+                data-ses-no="{{ses.sessionNo}}"
+                data-ses-title="{{ses.title}}"
+                data-rating="{{ses.clientRating}}"
+                data-feedback="{{ses.clientFeedback}}">修改反馈</text>
+            </view>
+            <text class="sf-content">{{ses.clientFeedback}}</text>
+            <text class="sf-time" wx:if="{{ses.clientFeedbackTime}}">提交于 {{ses.clientFeedbackTime}}</text>
+
+            <view class="sf-reply-box" wx:if="{{ses.consultantReply}}">
+              <view class="sf-reply-head">
+                <text class="sf-reply-tag">顾问跟进回复</text>
+                <text class="sf-reply-time" wx:if="{{ses.consultantReplyTime}}">{{ses.consultantReplyTime}}</text>
+              </view>
+              <text class="sf-reply-txt">{{ses.consultantReply}}</text>
+            </view>
+          </view>
+
+          <view class="sf-empty-bar" wx:else>
+            <view class="sf-empty-info">
+              <text class="sf-empty-title">本次咨询结束了吗？</text>
+              <text class="sf-empty-sub">写下您的收获、困惑或对顾问的建议，帮助我们更好陪跑</text>
+            </view>
+            <view
+              class="sf-write-btn"
+              bindtap="openSessionFeedbackModal"
+              data-ses-id="{{ses.sessionId}}"
+              data-ses-no="{{ses.sessionNo}}"
+              data-ses-title="{{ses.title}}"
+              data-rating="5"
+              data-feedback="">✍️ 写本次咨询反馈</view>
+          </view>
         </view>
       </view>
     </view>
@@ -304,6 +356,47 @@
       <view class="modal-btns">
         <view class="m-btn cancel" bindtap="closeFeedbackModal">取消</view>
         <view class="m-btn confirm" bindtap="saveActionFeedback">保存并打卡完成</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 弹窗：客户填写单次咨询体验与收获反馈 -->
+  <view class="modal-mask" wx:if="{{sessionFeedbackModal.visible}}" bindtap="closeSessionFeedbackModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <text class="modal-title">第 {{sessionFeedbackModal.sessionNo}} 次咨询 · 客户反馈</text>
+      <text class="modal-sub">{{sessionFeedbackModal.sessionTitle}}</text>
+
+      <view class="star-picker-row">
+        <text class="star-picker-label">本次满意度评分：</text>
+        <view class="star-picker-stars">
+          <text
+            class="star-btn {{star <= sessionFeedbackModal.rating ? 'active' : ''}}"
+            wx:for="{{[1,2,3,4,5]}}"
+            wx:for-item="star"
+            wx:key="*this"
+            bindtap="onSelectSessionRating"
+            data-rating="{{star}}">★</text>
+        </view>
+        <text class="star-picker-text">{{ratingLabels[sessionFeedbackModal.rating]}}</text>
+      </view>
+
+      <view class="quick-tag-list">
+        <text
+          class="quick-tag"
+          wx:for="{{quickFeedbackTags}}"
+          wx:key="*this"
+          bindtap="onAppendFeedbackTag"
+          data-tag="{{item}}">+ {{item}}</text>
+      </view>
+
+      <textarea
+        class="modal-textarea"
+        placeholder="请记录您对本次咨询的收获、疑问或下一步需要顾问重点支持的事项..."
+        value="{{sessionFeedbackModal.text}}"
+        bindinput="onSessionFeedbackInput"></textarea>
+      <view class="modal-btns">
+        <view class="m-btn cancel" bindtap="closeSessionFeedbackModal">取消</view>
+        <view class="m-btn confirm" bindtap="submitSessionFeedback">提交反馈</view>
       </view>
     </view>
   </view>

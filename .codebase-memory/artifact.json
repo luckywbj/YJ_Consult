@@ -1,0 +1,12 @@
+{
+    "schema_version": 2,
+    "commit": "13c3efb4ea993889de5070a83fc0f978550f0843",
+    "indexed_at": "2026-11-25T02:43:00Z",
+    "project": "YJ_Consult",
+    "nodes": 398,
+    "edges": 717,
+    "original_size": 3211264,
+    "compressed_size": 305864,
+    "compression_level": 9,
+    "reconcile_basis": "git-clean-head"
+}

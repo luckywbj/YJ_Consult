@@ -9,8 +9,14 @@ Page({
       visible: false,
       mode: 'client', // 'client' | 'admin'
       phone: '',
-      code: '6666',
+      code: '',
       adminPass: ''
+    },
+    changePassModal: {
+      visible: false,
+      oldPass: '',
+      newPass: '',
+      confirmPass: ''
     },
     faqList: [
       {
@@ -56,7 +62,7 @@ Page({
         visible: true,
         mode,
         phone: '',
-        code: '6666',
+        code: '',
         adminPass: mode === 'admin' ? '8888' : ''
       }
     });
@@ -90,10 +96,54 @@ Page({
 
   quickFillClient(e) {
     const phone = e.currentTarget.dataset.phone;
+    const currentPass = consultStore.getClientPassword(phone);
     this.setData({
       'loginModal.phone': phone,
-      'loginModal.code': '6666'
+      'loginModal.code': currentPass
     });
+  },
+
+  openChangePassModal() {
+    if (this.data.auth.role !== 'client') return;
+    this.setData({
+      changePassModal: {
+        visible: true,
+        oldPass: '',
+        newPass: '',
+        confirmPass: ''
+      }
+    });
+  },
+
+  closeChangePassModal() {
+    this.setData({ 'changePassModal.visible': false });
+  },
+
+  onOldPassInput(e) { this.setData({ 'changePassModal.oldPass': e.detail.value }); },
+  onNewPassInput(e) { this.setData({ 'changePassModal.newPass': e.detail.value }); },
+  onConfirmPassInput(e) { this.setData({ 'changePassModal.confirmPass': e.detail.value }); },
+
+  submitChangePassword() {
+    const { oldPass, newPass, confirmPass } = this.data.changePassModal;
+    if (!oldPass.trim() || !newPass.trim()) {
+      wx.showToast({ title: '请填写原密码与新密码', icon: 'none' });
+      return;
+    }
+    if (newPass.trim() !== confirmPass.trim()) {
+      wx.showToast({ title: '两次输入的新密码不一致', icon: 'none' });
+      return;
+    }
+    const res = consultStore.changeClientPassword(
+      this.data.auth.clientPhone,
+      oldPass.trim(),
+      newPass.trim()
+    );
+    if (!res.ok) {
+      wx.showToast({ title: res.msg, icon: 'none' });
+      return;
+    }
+    this.setData({ 'changePassModal.visible': false });
+    wx.showToast({ title: '登录密码修改成功', icon: 'success' });
   },
 
   submitClientLogin() {

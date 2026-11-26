@@ -126,44 +126,10 @@
   border: 1rpx solid #D6C7B5;
 }
 
-/* 未登录隐私保护提示框 */
-.privacy-lock-box {
-  background: #FAF8F4;
-  border: 1rpx dashed #D8C7B2;
-  border-radius: 16rpx;
-  padding: 40rpx 28rpx;
+.top-order-link {
+  margin-top: 20rpx;
   text-align: center;
-}
-
-.lock-icon {
-  font-size: 56rpx;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.lock-title {
-  display: block;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #241E1A;
-  margin-bottom: 10rpx;
-}
-
-.lock-sub {
-  display: block;
   font-size: 23rpx;
-  color: #7D736A;
-  line-height: 1.5;
-  margin-bottom: 28rpx;
-}
-
-.lock-btn {
-  width: 85%;
-  margin: 0 auto 20rpx auto;
-}
-
-.go-order-link {
-  font-size: 24rpx;
   color: #8D6238;
   font-weight: 500;
 }
@@ -683,4 +649,49 @@
 .copyright-en {
   letter-spacing: 2rpx;
   margin-top: 4rpx;
+}
+
+/* 修改密码弹窗补充样式 */
+.cp-box {
+  padding: 36rpx 32rpx;
+}
+
+.cp-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 10rpx;
+}
+
+.cp-sub {
+  display: block;
+  font-size: 23rpx;
+  color: #7D736A;
+  margin-bottom: 24rpx;
+}
+
+.cp-btns {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 10rpx;
+}
+
+.cp-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.cp-btn.cancel {
+  background: #F2EDE6;
+  color: #6B6158;
+}
+
+.cp-btn.confirm {
+  background: #8D6238;
+  color: #FFFFFF;
 }

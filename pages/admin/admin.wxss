@@ -132,37 +132,130 @@
   color: #D8C7B4;
 }
 
-/* 工作台模块导航 */
-.admin-tabs {
+/* 独立功能模块卡片（4x1 抽屉页签一体相连效果） */
+.module-grid-wrap {
+  padding: 22rpx 24rpx 0 24rpx;
+  position: relative;
+  z-index: 3;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10rpx;
+  align-items: end;
+}
+
+.module-card {
+  position: relative;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  background: #EFE8DE;
+  border: 1rpx solid #E3D9CB;
+  border-radius: 16rpx;
+  padding: 16rpx 8rpx 14rpx 8rpx;
+  margin-bottom: 12rpx;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+
+.module-card.active {
   background: #FFFFFF;
-  border-bottom: 1rpx solid #EAE1D5;
+  border: 1rpx solid #E2D4C0;
+  border-top: 6rpx solid #8D6238;
+  border-bottom: none;
+  border-radius: 18rpx 18rpx 0 0;
+  padding: 16rpx 8rpx 26rpx 8rpx;
+  margin-bottom: -2rpx;
+  z-index: 4;
+  box-shadow: 0 -4rpx 14rpx rgba(36, 30, 26, 0.04);
 }
 
-.a-tab {
-  flex: 1;
-  text-align: center;
-  padding: 26rpx 0;
-  font-size: 26rpx;
-  color: #7D736A;
-  font-weight: 500;
-  border-bottom: 6rpx solid transparent;
+.mc-bridge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4rpx;
+  height: 8rpx;
+  background: #FFFFFF;
+  z-index: 5;
 }
 
-.a-tab.active {
+.mc-badge {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  font-size: 18rpx;
+  line-height: 1;
+  padding: 4rpx 9rpx;
+  border-radius: 16rpx;
+  background: rgba(141, 98, 56, 0.12);
   color: #8D6238;
   font-weight: 600;
-  border-bottom-color: #8D6238;
+}
+
+.module-card.active .mc-badge {
+  background: #8D6238;
+  color: #FFFFFF;
+}
+
+.mc-icon {
+  width: 54rpx;
+  height: 54rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27rpx;
+  flex-shrink: 0;
+}
+
+.module-card.active .mc-icon {
+  background: linear-gradient(135deg, #2A221C 0%, #1E1915 100%);
+  box-shadow: 0 4rpx 10rpx rgba(36, 30, 26, 0.16);
+}
+
+.mc-title {
+  font-size: 23rpx;
+  font-weight: 500;
+  color: #6B6158;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.module-card.active .mc-title {
+  color: #8D6238;
+  font-weight: 700;
 }
 
 .admin-panel {
-  padding: 28rpx 32rpx;
+  padding: 0 24rpx 28rpx 24rpx;
 }
 
 .panel-card {
   background: #FFFFFF;
   padding: 36rpx 32rpx;
   margin-bottom: 28rpx;
+}
+
+.panel-card.connected-panel {
+  position: relative;
+  z-index: 2;
+  border: 1rpx solid #E2D4C0;
+  border-radius: 18rpx;
+  box-shadow: 0 10rpx 26rpx rgba(36, 30, 26, 0.06);
+}
+
+.admin-panel.tab-0 .panel-card.connected-panel {
+  border-top-left-radius: 0;
+}
+
+.admin-panel.tab-3 .panel-card.connected-panel {
+  border-top-right-radius: 0;
 }
 
 .panel-title-row {
@@ -366,4 +459,208 @@
 .step-select-btn.current .ss-name {
   color: #FFFFFF;
   font-weight: 600;
+}
+
+/* ==================== 咨询编辑与客户反馈回复样式 ==================== */
+.cancel-edit-btn {
+  font-size: 22rpx;
+  color: #8C8074;
+  background: #F2EDE6;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.his-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.his-feedback-badge {
+  font-size: 20rpx;
+  color: #9A8E82;
+  background: #EFEBE5;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.his-feedback-badge.done {
+  color: #2E6F3A;
+  background: #E9F5EB;
+  font-weight: 600;
+}
+
+.his-client-feedback {
+  margin-top: 14rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 10rpx;
+  padding: 14rpx 16rpx;
+}
+
+.hcf-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.hcf-label {
+  font-size: 21rpx;
+  font-weight: 600;
+  color: #8D6238;
+}
+
+.hcf-time {
+  font-size: 20rpx;
+  color: #9A8E82;
+}
+
+.hcf-txt {
+  display: block;
+  font-size: 23rpx;
+  color: #3A312A;
+  line-height: 1.5;
+}
+
+.his-consultant-reply {
+  margin-top: 10rpx;
+  background: #241E1A;
+  border-radius: 10rpx;
+  padding: 12rpx 16rpx;
+}
+
+.hcr-label {
+  font-size: 21rpx;
+  color: #E2B678;
+  font-weight: 600;
+}
+
+.hcr-txt {
+  font-size: 22rpx;
+  color: #F4EAE0;
+  line-height: 1.45;
+}
+
+.his-actions {
+  margin-top: 16rpx;
+  display: flex;
+  gap: 14rpx;
+}
+
+.his-act-btn {
+  flex: 1;
+  text-align: center;
+  font-size: 22rpx;
+  padding: 12rpx 0;
+  border-radius: 26rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #D8C7B4;
+  color: #5C534A;
+  font-weight: 500;
+}
+
+.his-act-btn.reply {
+  background: #8D6238;
+  border-color: #8D6238;
+  color: #FFFFFF;
+}
+
+/* 顾问回复弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+}
+
+.modal-box {
+  background: #FFFFFF;
+  width: 100%;
+  border-radius: 24rpx;
+  padding: 36rpx;
+}
+
+.modal-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #241E1A;
+  margin-bottom: 14rpx;
+}
+
+.modal-sub-box {
+  display: block;
+  font-size: 23rpx;
+  color: #594D43;
+  background: #FAF7F2;
+  border-left: 6rpx solid #8D6238;
+  padding: 14rpx 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 18rpx;
+  line-height: 1.5;
+}
+
+.modal-textarea {
+  width: 100%;
+  height: 180rpx;
+  background: #F9F7F3;
+  border: 1rpx solid #E5DDD2;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+  margin-bottom: 24rpx;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 20rpx;
+}
+
+.m-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+}
+
+.m-btn.cancel {
+  background: #F2EDE6;
+  color: #6B6158;
+}
+
+.m-btn.confirm {
+  background: #8D6238;
+  color: #FFFFFF;
+}
+
+/* ==================== 建档密码输入栏 ==================== */
+.pwd-input-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.pwd-input {
+  flex: 1;
+}
+
+.pwd-gen-btn {
+  flex-shrink: 0;
+  background: #F6EFE6;
+  border: 1rpx solid #D8C3A8;
+  color: #8D6238;
+  font-size: 23rpx;
+  font-weight: 600;
+  padding: 18rpx 22rpx;
+  border-radius: 12rpx;
 }

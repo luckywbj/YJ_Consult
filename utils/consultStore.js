@@ -3,6 +3,7 @@
 
 const STORAGE_KEY = 'yj_consult_projects_v3';
 const AUTH_KEY = 'yj_consult_auth_session_v1';
+const CLIENT_PASSWORDS_KEY = 'yj_consult_client_passwords_v1';
 const ADMIN_PASSCODE = '8888'; // 顾问后台工作人员默认管理口令
 
 // 三大核心服务产品目录
@@ -111,6 +112,11 @@ function getDefaultProjects() {
           diagnosis: '销售顾问在报出 2.98 万以上价格时心理发虚，习惯性主动打折让利，缺乏“顾问式价值探寻”与情绪价值铺垫能力。',
           solution: '导入岩姐独创「3阶奢侈品价值锚定话术」，将推销单次项目转化为“定制年度年轻态身份方案”，现场逐一通关考核 6 名核心顾问，并敲定周六闭门沙龙促单动线。',
           consultantNote: '团队执行力极强，店长在模拟演练后第二天即用新话术拿下了首单 2.98万 试水成交！',
+          clientRating: 0,
+          clientFeedback: '',
+          clientFeedbackTime: '',
+          consultantReply: '',
+          consultantReplyTime: '',
           actionItems: [
             {
               id: 'ACT-201',
@@ -136,6 +142,11 @@ function getDefaultProjects() {
           diagnosis: '门店过度依赖 399/699 团购引流，顾问每天接待大量羊毛党沦为客服，真正有消费力的高净值客户缺乏专属升单阶梯，净利率不足 12%。',
           solution: '果断砍掉 70% 低效走量耗品，围绕“抗衰长效管理 + 名媛圈层身份认同”重构「2.98万年度美学私享卡」与「9.8万家族高定黑卡」双层高客单产品矩阵。',
           consultantNote: '创始人认知升级非常快，当场拍板停止低价团购投放，全力转向私域高客单深耕。',
+          clientRating: 5,
+          clientFeedback: '第一次跟岩姐做完底层商业模式拆解，一下看清了之前忙着低价团购却不赚钱的死结！高定黑卡分层设计非常落地，当晚我们就开会拍板执行了。',
+          clientFeedbackTime: '2026-11-12 20:15',
+          consultantReply: '收到李总反馈！执行果断就是核心竞争力，接下来重点盯好 TOP 50 老客分级与 VIP 问诊室落地细节。',
+          consultantReplyTime: '2026-11-12 20:42',
           actionItems: [
             {
               id: 'ACT-101',
@@ -222,6 +233,11 @@ function getDefaultProjects() {
           diagnosis: '将大量精力消耗在 199 元社群答疑上，吸引的都是价格敏感型散户，遮蔽了陈老师真正擅长的企业顶层战略咨询势能。',
           solution: '将原有 199 元课程转为高门槛筛选问卷赠品，主力推出仅限 30 席的「4.98万/年 创始人战略私董会」，重构朋友圈 10 天高势能发售叙事。',
           consultantNote: '首发当晚即成交 19 席，48 小时 30 席满员收官，轻资产高客单模型彻底跑通。',
+          clientRating: 5,
+          clientFeedback: '3.5 小时推演全程高能，帮我彻底跳出了低价录播课陷阱，直接跑通 4.98 万年度私董会模型，非常震撼！',
+          clientFeedbackTime: '2026-11-05 21:10',
+          consultantReply: '恭喜陈老师 48 小时满员收官，后续重点沉淀首期 30 位创始人的标杆案例！',
+          consultantReplyTime: '2026-11-06 09:30',
           actionItems: [
             {
               id: 'ACT-301',
@@ -254,6 +270,75 @@ function getDefaultProjects() {
   ];
 }
 
+// ==================== 客户专属密码管理（方案 A） ====================
+
+function defaultPasswordFromPhone(phone) {
+  const clean = (phone || '').replace(/\s+/g, '');
+  return clean.length >= 6 ? clean.slice(-6) : '123456';
+}
+
+function generateRandomPassword() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function getClientPasswordMap() {
+  const map = wx.getStorageSync(CLIENT_PASSWORDS_KEY);
+  return map && typeof map === 'object' ? map : {};
+}
+
+function saveClientPasswordMap(map) {
+  wx.setStorageSync(CLIENT_PASSWORDS_KEY, map);
+}
+
+function getClientPassword(phone) {
+  const cleanPhone = (phone || '').trim();
+  if (!cleanPhone) return '';
+  const map = getClientPasswordMap();
+  if (typeof map[cleanPhone] === 'string' && map[cleanPhone]) {
+    return map[cleanPhone];
+  }
+  return defaultPasswordFromPhone(cleanPhone);
+}
+
+function setClientPassword(phone, password) {
+  const cleanPhone = (phone || '').trim();
+  const cleanPass = (password || '').trim();
+  if (!cleanPhone) {
+    return { ok: false, msg: '手机号不能为空' };
+  }
+  if (cleanPass.length < 4) {
+    return { ok: false, msg: '登录密码不能少于 4 位' };
+  }
+  const map = getClientPasswordMap();
+  map[cleanPhone] = cleanPass;
+  saveClientPasswordMap(map);
+  return { ok: true, password: cleanPass };
+}
+
+function changeClientPassword(phone, oldPass, newPass) {
+  const cleanPhone = (phone || '').trim();
+  const cleanOld = (oldPass || '').trim();
+  const cleanNew = (newPass || '').trim();
+  if (!cleanPhone) {
+    return { ok: false, msg: '未检测到登录手机号' };
+  }
+  if (!cleanOld) {
+    return { ok: false, msg: '请输入原登录密码' };
+  }
+  if (cleanOld !== getClientPassword(cleanPhone)) {
+    return { ok: false, msg: '原登录密码不正确' };
+  }
+  if (cleanNew.length < 4) {
+    return { ok: false, msg: '新密码不能少于 4 位' };
+  }
+  return setClientPassword(cleanPhone, cleanNew);
+}
+
+function resetClientPassword(phone, customPassword) {
+  const targetPass = (customPassword || '').trim() || generateRandomPassword();
+  return setClientPassword(phone, targetPass);
+}
+
 // ==================== 登录与权限会话管理 ====================
 
 // 获取当前登录会话：默认未登录访客 ('guest')
@@ -270,11 +355,15 @@ function getAuthSession() {
   return session;
 }
 
-// 客户手机号登录（仅能查看该手机号名下的订单与交付空间）
-function loginAsClient(phone, verifyCode) {
+// 客户手机号 + 专属密码登录（仅能查看该手机号名下的订单与交付空间）
+function loginAsClient(phone, password) {
   const cleanPhone = (phone || '').trim();
+  const cleanPass = (password || '').trim();
   if (!cleanPhone) {
     return { ok: false, msg: '请输入您下单时预留的手机号' };
+  }
+  if (!cleanPass) {
+    return { ok: false, msg: '请输入专属登录密码' };
   }
   const all = getProjects();
   const matched = all.filter(p => p.phone === cleanPhone);
@@ -282,6 +371,13 @@ function loginAsClient(phone, verifyCode) {
     return {
       ok: false,
       msg: '未查询到该手机号名下的咨询项目，请先在线下单或联系顾问建档'
+    };
+  }
+  const expectedPass = getClientPassword(cleanPhone);
+  if (cleanPass !== expectedPass) {
+    return {
+      ok: false,
+      msg: '登录密码不正确，请核对后重试或联系顾问重置'
     };
   }
   const session = {
@@ -438,6 +534,11 @@ function createOrder(payload) {
         diagnosis: `客户核心诉求：${(payload.problem || '期待突破低客单内卷，打造高溢价商业闭环').trim()}`,
         solution: '首次问诊将重点拆解现有产品线利润结构、目标高净值客群画像，并制定第一阶段高客单破局切入点。',
         consultantNote: isPaid ? '客户已支付立项，优先安排本周核心排期。' : '待顾问与客户确认具体问诊时间。',
+        clientRating: 0,
+        clientFeedback: '',
+        clientFeedbackTime: '',
+        consultantReply: '',
+        consultantReplyTime: '',
         actionItems: [
           {
             id: 'ACT-' + Date.now().toString().slice(-4) + '1',
@@ -470,6 +571,18 @@ function createOrder(payload) {
 
   list.unshift(newOrder);
   saveProjects(list);
+
+  // 为该客户手机号初始化或更新专属登录密码
+  const passMap = getClientPasswordMap();
+  const customPass = (payload.clientPassword || '').trim();
+  if (customPass.length >= 4) {
+    passMap[cleanPhone] = customPass;
+    saveClientPasswordMap(passMap);
+  } else if (!passMap[cleanPhone]) {
+    passMap[cleanPhone] = defaultPasswordFromPhone(cleanPhone);
+    saveClientPasswordMap(passMap);
+  }
+  newOrder.assignedPassword = getClientPassword(cleanPhone);
 
   // 如果是客户端下单（非顾问后台代建档），自动将该客户登录绑定到当前会话！
   const currentSession = getAuthSession();
@@ -600,12 +713,17 @@ function addConsultSession(projectId, sessionData) {
     sessionId: 'SES-' + Date.now().toString().slice(-6),
     sessionNo: nextNo,
     title: sessionData.title || `第 ${nextNo} 次商业闭门深度咨询推演`,
-    date: sessionData.date || nowStr,
+    date: (sessionData.date || '').trim() || nowStr,
     mode: sessionData.mode || '1V1 闭门私董会推演',
     participants: sessionData.participants || `岩姐、${proj.name}及核心高管`,
     diagnosis: sessionData.diagnosis || '',
     solution: sessionData.solution || '',
     consultantNote: sessionData.consultantNote || '请按课后行动清单推进执行，随时在群内及小程序反馈卡点。',
+    clientRating: 0,
+    clientFeedback: '',
+    clientFeedbackTime: '',
+    consultantReply: '',
+    consultantReplyTime: '',
     actionItems: actionItems
   };
 
@@ -614,6 +732,107 @@ function addConsultSession(projectId, sessionData) {
   if (proj.status === '待初审') {
     proj.status = '服务进行中';
   }
+  saveProjects(list);
+  return proj;
+}
+
+// 顾问编辑已录入的咨询过程记录（保留客户评分、反馈与行动项已有打卡进度）
+function updateConsultSession(projectId, sessionId, sessionData) {
+  const list = getProjects();
+  const proj = list.find(p => p.id === projectId);
+  if (!proj || !Array.isArray(proj.sessions)) return null;
+
+  const session = proj.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return proj;
+
+  const nowStr = formatTime(new Date());
+  if (typeof sessionData.title === 'string' && sessionData.title.trim()) {
+    session.title = sessionData.title.trim();
+  }
+  if (typeof sessionData.date === 'string' && sessionData.date.trim()) {
+    session.date = sessionData.date.trim();
+  }
+  if (typeof sessionData.mode === 'string') {
+    session.mode = sessionData.mode.trim() || session.mode;
+  }
+  if (typeof sessionData.participants === 'string') {
+    session.participants = sessionData.participants.trim() || session.participants;
+  }
+  if (typeof sessionData.diagnosis === 'string') {
+    session.diagnosis = sessionData.diagnosis.trim();
+  }
+  if (typeof sessionData.solution === 'string') {
+    session.solution = sessionData.solution.trim();
+  }
+  if (typeof sessionData.consultantNote === 'string') {
+    session.consultantNote = sessionData.consultantNote.trim();
+  }
+
+  if (typeof sessionData.actionsText === 'string') {
+    const rawActions = sessionData.actionsText
+      .split(/[\n；;]/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (rawActions.length > 0) {
+      const existing = Array.isArray(session.actionItems) ? session.actionItems : [];
+      session.actionItems = rawActions.map((txt, i) => {
+        const matched = existing.find(item => item.text === txt);
+        if (matched) {
+          return matched;
+        }
+        return {
+          id: 'ACT-' + Date.now().toString().slice(-5) + i,
+          text: txt,
+          done: false,
+          feedback: ''
+        };
+      });
+    }
+  }
+
+  proj.updateTime = nowStr;
+  saveProjects(list);
+  return proj;
+}
+
+// 客户针对某次咨询录入评分与收获反馈
+function saveSessionClientFeedback(projectId, sessionId, payload) {
+  const list = getProjects();
+  const proj = list.find(p => p.id === projectId);
+  if (!proj || !Array.isArray(proj.sessions)) return null;
+
+  const session = proj.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return proj;
+
+  const rawRating = Number(payload && payload.rating);
+  const clampedRating = Number.isFinite(rawRating)
+    ? Math.min(5, Math.max(1, Math.round(rawRating)))
+    : 5;
+  const nowStr = formatTime(new Date());
+
+  session.clientRating = clampedRating;
+  session.clientFeedback = ((payload && payload.feedback) || '').trim();
+  session.clientFeedbackTime = nowStr;
+
+  proj.updateTime = nowStr;
+  saveProjects(list);
+  return proj;
+}
+
+// 顾问针对客户单次咨询反馈进行回复
+function replySessionFeedback(projectId, sessionId, replyText) {
+  const list = getProjects();
+  const proj = list.find(p => p.id === projectId);
+  if (!proj || !Array.isArray(proj.sessions)) return null;
+
+  const session = proj.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return proj;
+
+  const nowStr = formatTime(new Date());
+  session.consultantReply = (replyText || '').trim();
+  session.consultantReplyTime = nowStr;
+
+  proj.updateTime = nowStr;
   saveProjects(list);
   return proj;
 }
@@ -657,6 +876,10 @@ function updateProjectMetrics(projectId, metricsData) {
 function resetDemoData() {
   const defaults = getDefaultProjects();
   saveProjects(defaults);
+  saveClientPasswordMap({
+    '13888888899': '888899',
+    '13988885520': '885520'
+  });
   return defaults;
 }
 
@@ -673,6 +896,11 @@ module.exports = {
   ADMIN_PASSCODE,
   SERVICES_CATALOG,
   DELIVERY_STEPS,
+  generateRandomPassword,
+  getClientPassword,
+  setClientPassword,
+  changeClientPassword,
+  resetClientPassword,
   getAuthSession,
   loginAsClient,
   loginAsAdmin,
@@ -688,6 +916,9 @@ module.exports = {
   saveClientReview,
   updateProjectStep,
   addConsultSession,
+  updateConsultSession,
+  saveSessionClientFeedback,
+  replySessionFeedback,
   addDeliverable,
   updateProjectMetrics,
   resetDemoData

@@ -11,11 +11,21 @@ Page({
     activeTab: 0,
     steps: consultStore.DELIVERY_STEPS,
     reviewDraft: '',
+    ratingLabels: ['', '待改进', '一般', '满意', '很满意', '超预期'],
+    quickFeedbackTags: ['思路非常清晰', '方案可直接落地', '痛点一针见血', '收获超预期', '希望补充细节'],
     feedbackModal: {
       visible: false,
       sessionId: '',
       actionId: '',
       taskTitle: '',
+      text: ''
+    },
+    sessionFeedbackModal: {
+      visible: false,
+      sessionId: '',
+      sessionNo: 1,
+      sessionTitle: '',
+      rating: 5,
       text: ''
     }
   },
@@ -136,6 +146,60 @@ Page({
     this.setData({ 'feedbackModal.visible': false });
     this.loadData();
     wx.showToast({ title: '落地反馈已保存', icon: 'success' });
+  },
+
+  openSessionFeedbackModal(e) {
+    const { sesId, sesNo, sesTitle, rating, feedback } = e.currentTarget.dataset;
+    const numericRating = Number(rating);
+    this.setData({
+      sessionFeedbackModal: {
+        visible: true,
+        sessionId: sesId,
+        sessionNo: Number(sesNo) || 1,
+        sessionTitle: sesTitle || '',
+        rating: numericRating >= 1 && numericRating <= 5 ? numericRating : 5,
+        text: feedback || ''
+      }
+    });
+  },
+
+  closeSessionFeedbackModal() {
+    this.setData({ 'sessionFeedbackModal.visible': false });
+  },
+
+  onSelectSessionRating(e) {
+    const rating = Number(e.currentTarget.dataset.rating);
+    if (rating >= 1 && rating <= 5) {
+      this.setData({ 'sessionFeedbackModal.rating': rating });
+    }
+  },
+
+  onAppendFeedbackTag(e) {
+    const tag = e.currentTarget.dataset.tag;
+    if (!tag) return;
+    const current = (this.data.sessionFeedbackModal.text || '').trim();
+    if (current.includes(tag)) return;
+    const nextText = current ? `${current}；${tag}` : tag;
+    this.setData({ 'sessionFeedbackModal.text': nextText });
+  },
+
+  onSessionFeedbackInput(e) {
+    this.setData({ 'sessionFeedbackModal.text': e.detail.value });
+  },
+
+  submitSessionFeedback() {
+    const { sessionId, rating, text } = this.data.sessionFeedbackModal;
+    if (!text || !text.trim()) {
+      wx.showToast({ title: '请填写您对本次咨询的反馈或建议', icon: 'none' });
+      return;
+    }
+    consultStore.saveSessionClientFeedback(this.data.project.id, sessionId, {
+      rating,
+      feedback: text.trim()
+    });
+    this.setData({ 'sessionFeedbackModal.visible': false });
+    this.loadData();
+    wx.showToast({ title: '反馈已提交，顾问已可查看', icon: 'success' });
   },
 
   previewDeliverable(e) {

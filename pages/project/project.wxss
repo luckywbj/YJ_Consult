@@ -903,3 +903,204 @@
   background: #8D6238;
   color: #FFFFFF;
 }
+
+/* ==================== 单次咨询客户反馈与回复 ==================== */
+.session-feedback-box {
+  margin-top: 22rpx;
+  padding-top: 22rpx;
+  border-top: 1rpx dashed #E6DACA;
+}
+
+.sf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12rpx;
+}
+
+.sf-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.sf-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.sf-stars {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.sf-star {
+  font-size: 24rpx;
+  color: #DDD4C8;
+}
+
+.sf-star.on {
+  color: #D49B4B;
+}
+
+.sf-score {
+  font-size: 22rpx;
+  color: #8D6238;
+  margin-left: 10rpx;
+  font-weight: 600;
+}
+
+.sf-edit-btn {
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.sf-content {
+  display: block;
+  font-size: 25rpx;
+  color: #3E352E;
+  line-height: 1.55;
+  background: #FAF7F2;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 12rpx;
+  padding: 18rpx 20rpx;
+}
+
+.sf-time {
+  display: block;
+  font-size: 20rpx;
+  color: #9A8E82;
+  margin-top: 8rpx;
+}
+
+.sf-reply-box {
+  margin-top: 14rpx;
+  background: #241E1A;
+  border-radius: 12rpx;
+  padding: 18rpx 20rpx;
+}
+
+.sf-reply-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.sf-reply-tag {
+  font-size: 21rpx;
+  color: #E2B678;
+  font-weight: 600;
+}
+
+.sf-reply-time {
+  font-size: 20rpx;
+  color: #A99B8C;
+}
+
+.sf-reply-txt {
+  display: block;
+  font-size: 24rpx;
+  color: #F4EAE0;
+  line-height: 1.5;
+}
+
+.sf-empty-bar {
+  background: #FAF7F2;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 14rpx;
+  padding: 20rpx 22rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.sf-empty-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.sf-empty-title {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.sf-empty-sub {
+  font-size: 21rpx;
+  color: #8C8074;
+  line-height: 1.4;
+}
+
+.sf-write-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #322A24 0%, #1E1915 100%);
+  color: #E8CBA1;
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 14rpx 22rpx;
+  border-radius: 30rpx;
+}
+
+/* 弹窗内评分条与快捷标签 */
+.star-picker-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18rpx;
+  background: #FAF7F2;
+  padding: 14rpx 18rpx;
+  border-radius: 12rpx;
+}
+
+.star-picker-label {
+  font-size: 24rpx;
+  color: #594D43;
+  font-weight: 500;
+}
+
+.star-picker-stars {
+  display: flex;
+  gap: 8rpx;
+  margin: 0 12rpx;
+}
+
+.star-btn {
+  font-size: 36rpx;
+  color: #DDD4C8;
+  line-height: 1;
+}
+
+.star-btn.active {
+  color: #D49B4B;
+}
+
+.star-picker-text {
+  font-size: 22rpx;
+  color: #8D6238;
+  font-weight: 600;
+}
+
+.quick-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 18rpx;
+}
+
+.quick-tag {
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  border: 1rpx solid #E5D4BD;
+  padding: 8rpx 16rpx;
+  border-radius: 24rpx;
+}
