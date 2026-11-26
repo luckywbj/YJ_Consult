@@ -1,0 +1,163 @@
+<!-- pages/brochure/brochure.wxml -->
+<view class="brochure-page" wx:if="{{brochure && activeCard}}">
+  <!-- 顾问专属管理条（支持千人千名片切换 + 一键改文案） -->
+  <view class="staff-toolbar" wx:if="{{auth.role === 'admin'}}">
+    <view class="st-left">
+      <text class="st-badge">顾问获客工具</text>
+      <text class="st-desc">当前名片：{{activeCard.name}}</text>
+    </view>
+    <view class="st-btns">
+      <text class="st-btn" bindtap="switchStaffCard">🔄 换名片</text>
+      <text class="st-btn gold" bindtap="openEditModal">✏️ 改内容</text>
+    </view>
+  </view>
+
+  <!-- 1. 文章主标题与阅读/转发热度 -->
+  <view class="article-header">
+    <text class="article-title">{{brochure.title}}</text>
+    <view class="article-meta">
+      <text class="meta-date">{{brochure.publishDate}}</text>
+      <text class="meta-author">{{brochure.author}}</text>
+    </view>
+    <view class="article-stats">
+      有 <text class="stat-num">{{brochure.views}}</text> 人看过
+      <text class="stat-sep">·</text>
+      有 <text class="stat-num hot">{{brochure.shares}}</text> 人转发分享
+    </view>
+  </view>
+
+  <!-- 2. 嵌入式获客名片条（打电话 / 加微信） -->
+  <view class="biz-card">
+    <view class="bc-left">
+      <image class="bc-avatar" src="{{activeCard.avatar}}" mode="aspectFill"></image>
+      <view class="bc-info">
+        <text class="bc-name">{{activeCard.brandName}}</text>
+        <text class="bc-tag">{{activeCard.tagline}}</text>
+      </view>
+    </view>
+    <view class="bc-actions">
+      <view class="bc-btn phone" bindtap="callCardPhone">打电话</view>
+      <view class="bc-btn wechat" bindtap="openWechatModal">加微信</view>
+    </view>
+  </view>
+
+  <!-- 3. 欢迎导语引用块 -->
+  <view class="greeting-quote">
+    <view class="quote-line"></view>
+    <text class="quote-text">{{brochure.greeting}}</text>
+  </view>
+
+  <!-- 4. 黑金品牌主视觉背书卡 -->
+  <view class="brand-poster-card">
+    <image class="bp-avatar" src="{{activeCard.avatar}}" mode="aspectFill"></image>
+    <text class="bp-title">{{activeCard.brandName}}</text>
+    <text class="bp-sub">{{activeCard.title}}</text>
+    <view class="bp-kpi-row">
+      <view class="bp-kpi">
+        <text class="bk-num">300+</text>
+        <text class="bk-lbl">高净值私董</text>
+      </view>
+      <view class="bp-kpi-split"></view>
+      <view class="bp-kpi">
+        <text class="bk-num">10+年</text>
+        <text class="bk-lbl">实战操盘</text>
+      </view>
+      <view class="bp-kpi-split"></view>
+      <view class="bp-kpi">
+        <text class="bk-num">8.6x</text>
+        <text class="bk-lbl">平均客单跃迁</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 5. 公司简介图文段落 -->
+  <view class="article-body">
+    <view class="sec-block" wx:for="{{brochure.sections}}" wx:key="heading">
+      <text class="sec-heading">{{item.heading}}</text>
+      <text class="sec-content">{{item.content}}</text>
+    </view>
+  </view>
+
+  <!-- 6. 承接转化直达区 -->
+  <view class="convert-card">
+    <text class="cc-title">想进一步了解合作与实战案例？</text>
+    <text class="cc-sub">点击下方按钮可直接浏览标杆客户转型战果，或预约 1V1 深度问诊</text>
+    <view class="cc-btns">
+      <view class="cc-btn outline" bindtap="goToCases">看实战案例 ›</view>
+      <view class="cc-btn solid" bindtap="goToServices">查看服务方案 ›</view>
+    </view>
+  </view>
+
+  <!-- 7. 底部悬浮一键分享操作条 -->
+  <view class="share-bottom-bar">
+    <view class="sb-wechat-btn" bindtap="openWechatModal">💬 加微信</view>
+    <button class="sb-share-btn" open-type="share">↪ 点击分享给好友</button>
+  </view>
+
+  <!-- ==================== 弹窗：加微信专属获客名片 ==================== -->
+  <view class="modal-mask" wx:if="{{wechatModalVisible}}" bindtap="closeWechatModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <view class="wm-top">
+        <image class="wm-avatar" src="{{activeCard.avatar}}" mode="aspectFill"></image>
+        <view class="wm-info">
+          <text class="wm-name">{{activeCard.name}} · {{activeCard.brandName}}</text>
+          <text class="wm-title">{{activeCard.title}}</text>
+        </view>
+      </view>
+
+      <view class="wm-id-box">
+        <text class="wm-id-label">专属顾问微信号</text>
+        <text class="wm-id-val">{{activeCard.wechat}}</text>
+        <text class="wm-note">{{activeCard.wechatNote}}</text>
+      </view>
+
+      <view class="wm-btns">
+        <view class="wm-btn cancel" bindtap="closeWechatModal">关闭</view>
+        <view class="wm-btn confirm" bindtap="copyWechatId">一键复制微信号</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 弹窗：顾问快捷编辑宣传单与名片 ==================== -->
+  <view class="modal-mask" wx:if="{{editModalVisible}}" bindtap="closeEditModal">
+    <view class="modal-box edit-box" catchtap="preventBubble">
+      <text class="em-title">编辑公司简介电子宣传单</text>
+      <scroll-view class="em-scroll" scroll-y="true">
+        <view class="ef-group">
+          <text class="ef-label">宣传单主标题 *</text>
+          <input class="ef-input" value="{{editForm.title}}" bindinput="onEditTitle" />
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">名片展示名称 *</text>
+          <input class="ef-input" value="{{editForm.brandName}}" bindinput="onEditBrandName" />
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">名片一句话简介</text>
+          <input class="ef-input" value="{{editForm.tagline}}" bindinput="onEditTagline" />
+        </view>
+        <view class="ef-row">
+          <view class="ef-group half">
+            <text class="ef-label">联系电话</text>
+            <input class="ef-input" value="{{editForm.phone}}" bindinput="onEditPhone" />
+          </view>
+          <view class="ef-group half">
+            <text class="ef-label">顾问微信号</text>
+            <input class="ef-input" value="{{editForm.wechat}}" bindinput="onEditWechat" />
+          </view>
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">开篇欢迎导语</text>
+          <textarea class="ef-textarea small" value="{{editForm.greeting}}" bindinput="onEditGreeting"></textarea>
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">一、关于我们（正文）</text>
+          <textarea class="ef-textarea" value="{{editForm.aboutContent}}" bindinput="onEditAbout"></textarea>
+        </view>
+      </scroll-view>
+      <view class="wm-btns">
+        <view class="wm-btn cancel" bindtap="closeEditModal">取消</view>
+        <view class="wm-btn confirm" bindtap="saveBrochureEdit">保存立即生效</view>
+      </view>
+    </view>
+  </view>
+</view>

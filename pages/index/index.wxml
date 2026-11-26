@@ -38,6 +38,16 @@
     </view>
   </view>
 
+  <!-- 公司简介电子宣传单与获客名片入口 -->
+  <view class="brochure-entry-card" bindtap="goToBrochure">
+    <view class="be-left">
+      <text class="be-badge">官方电子名片</text>
+      <text class="be-title">📖 岩姐咨询 · 公司简介宣传单</text>
+      <text class="be-sub">含顾问名片、加微信与一键转发好友功能</text>
+    </view>
+    <view class="be-btn">查看/转发 ›</view>
+  </view>
+
   <!-- 已登录用户的咨询交付空间快捷入口（未登录首页不再展示登录条） -->
   <view class="active-portal-card" wx:if="{{auth.role !== 'guest' && latestProject}}">
     <view class="portal-top" bindtap="goToLatestProject">

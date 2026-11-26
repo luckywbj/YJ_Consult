@@ -31,6 +31,12 @@ Page({
     });
   },
 
+  goToBrochure() {
+    wx.navigateTo({
+      url: '/pages/brochure/brochure'
+    });
+  },
+
   goToLatestProject() {
     if (!this.data.latestProject) return;
     wx.navigateTo({

@@ -196,6 +196,12 @@ Page({
     });
   },
 
+  openBrochure() {
+    wx.navigateTo({
+      url: '/pages/brochure/brochure'
+    });
+  },
+
   handleLogout() {
     wx.showModal({
       title: '退出当前身份',

@@ -5,6 +5,7 @@ const STORAGE_KEY = 'yj_consult_projects_v3';
 const AUTH_KEY = 'yj_consult_auth_session_v1';
 const CLIENT_PASSWORDS_KEY = 'yj_consult_client_passwords_v1';
 const ADMIN_ACCOUNTS_KEY = 'yj_consult_admin_accounts_v1';
+const BROCHURE_KEY = 'yj_consult_brochure_v1';
 const ADMIN_PASSCODE = '8888'; // 顾问后台工作人员默认管理口令
 
 // 三大核心服务产品目录
@@ -1096,6 +1097,95 @@ function updateProjectMetrics(projectId, metricsData) {
   return proj;
 }
 
+// ==================== 电子宣传单与获客名片配置 ====================
+
+function getDefaultBrochure() {
+  return {
+    title: '岩姐商业咨询 · 公司简介与高客单操盘体系',
+    author: '岩姐商业咨询',
+    publishDate: '2026-11-26',
+    views: 2486,
+    shares: 427,
+    greeting: 'Hello，欢迎了解岩姐商业咨询——让每一个值得被高估的品牌，用奢侈品思维重做一遍。',
+    activeCardId: 'CARD-001',
+    staffCards: [
+      {
+        cardId: 'CARD-001',
+        name: '岩姐',
+        brandName: '岩姐商业咨询',
+        title: '首席商业操盘顾问 · 奢侈品思维导师',
+        tagline: '专注高客单商业模式设计与成交体系陪跑',
+        avatar: '/images/avatar.png',
+        phone: '4008809966',
+        wechat: 'yanjie_consulting',
+        wechatNote: '添加时请备注【公司+行业】，优先安排 1V1 商业诊断'
+      },
+      {
+        cardId: 'CARD-002',
+        name: '林助教',
+        brandName: '岩姐咨询 · 高客单交付团队',
+        title: '资深商业交付助教 · 方案对接顾问',
+        tagline: '提供私董会排期预约、方案资料获取与标杆案例对接',
+        avatar: '/images/avatar.png',
+        phone: '4008809966',
+        wechat: 'yanjie_assistant',
+        wechatNote: '添加微信领取《高客单破局案例汇编》与私董预约表'
+      }
+    ],
+    sections: [
+      {
+        heading: '一、关于我们',
+        content: '岩姐商业咨询专注服务高成长创始人、垂直行业实体连锁及知识商业 IP，致力于帮助年营收 500 万以上的企业跳出低价团购与同质化内卷，构建高毛利、高溢价、可复制的奢侈品级高客单成交体系。'
+      },
+      {
+        heading: '二、核心操盘理念',
+        content: '所有行业都值得用奢侈品思维重做一遍。我们不教虚无缥缈的理论，只带团队下场重构「高净值产品定价矩阵 + 销冠级价值谈单 SOP + 闭门私享会发售动线」，让客户心甘情愿为稀缺价值买单。'
+      },
+      {
+        heading: '三、五大闭环交付体系',
+        content: '从「01 资质初筛 → 02 深度问诊 → 03 全案输出 → 04 陪跑落地 → 05 复盘迭代」，每次 1V1 咨询结论实时留档、课后落地行动项精准拆解、核心营收指标前后对比追踪，确保咨询成果真正变成账面利润。'
+      },
+      {
+        heading: '四、标杆实战战绩',
+        content: '累计深度陪跑 300+ 高端企业私董与商业 IP，覆盖轻医美、财经知识 IP、高定珠宝、高端定制等领域，帮助合作客户实现平均客单价 8.6 倍跃迁，单场闭门私享会最高转化回款突破 360 万元。'
+      }
+    ]
+  };
+}
+
+function getBrochureConfig() {
+  let config = wx.getStorageSync(BROCHURE_KEY);
+  if (!config || !config.title || !Array.isArray(config.staffCards)) {
+    config = getDefaultBrochure();
+    wx.setStorageSync(BROCHURE_KEY, config);
+  }
+  return config;
+}
+
+function saveBrochureConfig(nextConfig) {
+  const current = getBrochureConfig();
+  const merged = {
+    ...current,
+    ...nextConfig
+  };
+  wx.setStorageSync(BROCHURE_KEY, merged);
+  return merged;
+}
+
+function recordBrochureView() {
+  const current = getBrochureConfig();
+  current.views = (Number(current.views) || 0) + 1;
+  wx.setStorageSync(BROCHURE_KEY, current);
+  return current;
+}
+
+function recordBrochureShare() {
+  const current = getBrochureConfig();
+  current.shares = (Number(current.shares) || 0) + 1;
+  wx.setStorageSync(BROCHURE_KEY, current);
+  return current;
+}
+
 function resetDemoData() {
   const defaults = getDefaultProjects();
   saveProjects(defaults);
@@ -1152,5 +1242,9 @@ module.exports = {
   replySessionFeedback,
   addDeliverable,
   updateProjectMetrics,
+  getBrochureConfig,
+  saveBrochureConfig,
+  recordBrochureView,
+  recordBrochureShare,
   resetDemoData
 };
