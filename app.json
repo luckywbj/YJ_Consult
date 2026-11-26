@@ -5,7 +5,8 @@
     "pages/services/services",
     "pages/mine/mine",
     "pages/project/project",
-    "pages/admin/admin"
+    "pages/admin/admin",
+    "pages/accounts/accounts"
   ],
   "window": {
     "navigationBarBackgroundColor": "#E7D5BF",

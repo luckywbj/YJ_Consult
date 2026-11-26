@@ -4,6 +4,7 @@
 const STORAGE_KEY = 'yj_consult_projects_v3';
 const AUTH_KEY = 'yj_consult_auth_session_v1';
 const CLIENT_PASSWORDS_KEY = 'yj_consult_client_passwords_v1';
+const ADMIN_ACCOUNTS_KEY = 'yj_consult_admin_accounts_v1';
 const ADMIN_PASSCODE = '8888'; // 顾问后台工作人员默认管理口令
 
 // 三大核心服务产品目录
@@ -339,6 +340,192 @@ function resetClientPassword(phone, customPassword) {
   return setClientPassword(phone, targetPass);
 }
 
+// ==================== 顾问团队账号体系与管理 ====================
+
+function getDefaultAdminAccounts() {
+  return [
+    {
+      id: 'ADM-001',
+      username: 'yanjie',
+      name: '岩姐',
+      title: '首席操盘顾问',
+      password: '888888',
+      roleType: 'super',
+      status: 'active',
+      createTime: '2026-11-01 09:00'
+    },
+    {
+      id: 'ADM-002',
+      username: 'assistant',
+      name: '林助教',
+      title: '资深交付助教',
+      password: '666666',
+      roleType: 'staff',
+      status: 'active',
+      createTime: '2026-11-05 10:00'
+    }
+  ];
+}
+
+function getAdminAccounts() {
+  let list = wx.getStorageSync(ADMIN_ACCOUNTS_KEY);
+  if (!list || !Array.isArray(list) || list.length === 0) {
+    list = getDefaultAdminAccounts();
+    wx.setStorageSync(ADMIN_ACCOUNTS_KEY, list);
+  }
+  return list;
+}
+
+function saveAdminAccounts(list) {
+  wx.setStorageSync(ADMIN_ACCOUNTS_KEY, list);
+}
+
+function addAdminAccount(payload) {
+  const username = ((payload && payload.username) || '').trim();
+  const name = ((payload && payload.name) || '').trim();
+  const title = ((payload && payload.title) || '').trim() || '资深咨询顾问';
+  const password = ((payload && payload.password) || '').trim();
+  const roleType = payload && payload.roleType === 'super' ? 'super' : 'staff';
+
+  if (username.length < 3 || !/^[a-zA-Z0-9_-]+$/.test(username)) {
+    return { ok: false, msg: '登录账号需至少 3 位，仅支持字母、数字、下划线或短横线' };
+  }
+  if (!name) {
+    return { ok: false, msg: '请填写顾问姓名' };
+  }
+  if (password.length < 4) {
+    return { ok: false, msg: '初始密码不能少于 4 位' };
+  }
+
+  const list = getAdminAccounts();
+  const exists = list.some(acc => (acc.username || '').toLowerCase() === username.toLowerCase());
+  if (exists) {
+    return { ok: false, msg: `账号 ${username} 已存在，请更换账号名` };
+  }
+
+  const newAcc = {
+    id: 'ADM-' + Date.now().toString().slice(-6),
+    username,
+    name,
+    title,
+    password,
+    roleType,
+    status: 'active',
+    createTime: formatTime(new Date())
+  };
+  list.push(newAcc);
+  saveAdminAccounts(list);
+  return { ok: true, account: newAcc };
+}
+
+function changeAdminPassword(username, oldPass, newPass) {
+  const cleanUser = (username || '').trim().toLowerCase();
+  const cleanOld = (oldPass || '').trim();
+  const cleanNew = (newPass || '').trim();
+  if (!cleanUser) {
+    return { ok: false, msg: '未检测到当前顾问账号' };
+  }
+  const list = getAdminAccounts();
+  const idx = list.findIndex(acc => (acc.username || '').toLowerCase() === cleanUser);
+  if (idx === -1) {
+    return { ok: false, msg: '顾问账号不存在' };
+  }
+  if (!cleanOld) {
+    return { ok: false, msg: '请输入原登录密码' };
+  }
+  if (cleanOld !== list[idx].password) {
+    return { ok: false, msg: '原登录密码不正确' };
+  }
+  if (cleanNew.length < 4) {
+    return { ok: false, msg: '新密码不能少于 4 位' };
+  }
+  list[idx].password = cleanNew;
+  saveAdminAccounts(list);
+  return { ok: true, account: list[idx] };
+}
+
+function resetAdminPassword(accountId, customPassword) {
+  const list = getAdminAccounts();
+  const idx = list.findIndex(acc => acc.id === accountId);
+  if (idx === -1) {
+    return { ok: false, msg: '未找到指定顾问账号' };
+  }
+  const targetPass = (customPassword || '').trim() || generateRandomPassword();
+  if (targetPass.length < 4) {
+    return { ok: false, msg: '新密码不能少于 4 位' };
+  }
+  list[idx].password = targetPass;
+  saveAdminAccounts(list);
+  return { ok: true, password: targetPass, account: list[idx] };
+}
+
+function toggleAdminAccountStatus(accountId) {
+  const list = getAdminAccounts();
+  const idx = list.findIndex(acc => acc.id === accountId);
+  if (idx === -1) {
+    return { ok: false, msg: '未找到指定顾问账号' };
+  }
+  const target = list[idx];
+  const session = getAuthSession();
+  if (session.role === 'admin' && (session.staffId === target.id || session.staffUsername === target.username)) {
+    return { ok: false, msg: '不能停用当前正在登录的账号' };
+  }
+  if (target.status === 'active' && target.roleType === 'super') {
+    const activeSupers = list.filter(a => a.roleType === 'super' && a.status === 'active');
+    if (activeSupers.length <= 1) {
+      return { ok: false, msg: '必须保留至少一个启用中的主管理员账号' };
+    }
+  }
+  target.status = target.status === 'active' ? 'disabled' : 'active';
+  saveAdminAccounts(list);
+  return { ok: true, account: target };
+}
+
+function deleteAdminAccount(accountId) {
+  const list = getAdminAccounts();
+  const idx = list.findIndex(acc => acc.id === accountId);
+  if (idx === -1) {
+    return { ok: false, msg: '未找到指定顾问账号' };
+  }
+  const target = list[idx];
+  const session = getAuthSession();
+  if (session.role === 'admin' && (session.staffId === target.id || session.staffUsername === target.username)) {
+    return { ok: false, msg: '不能删除当前正在登录的账号' };
+  }
+  if (target.roleType === 'super') {
+    const supers = list.filter(a => a.roleType === 'super');
+    if (supers.length <= 1) {
+      return { ok: false, msg: '最后一个主管理员账号不可删除' };
+    }
+  }
+  list.splice(idx, 1);
+  saveAdminAccounts(list);
+  return { ok: true };
+}
+
+function getAllClientAccounts() {
+  const projects = getProjects();
+  const map = {};
+  const result = [];
+  projects.forEach(p => {
+    const phone = (p.phone || '').trim();
+    if (!phone) return;
+    if (!map[phone]) {
+      map[phone] = {
+        phone,
+        name: p.name || '未命名客户',
+        industry: p.industry || '未注明行业',
+        projectCount: 1,
+        password: getClientPassword(phone)
+      };
+      result.push(map[phone]);
+    } else {
+      map[phone].projectCount += 1;
+    }
+  });
+  return result;
+}
+
 // ==================== 登录与权限会话管理 ====================
 
 // 获取当前登录会话：默认未登录访客 ('guest')
@@ -349,7 +536,18 @@ function getAuthSession() {
       role: 'guest', // 'guest' | 'client' | 'admin'
       clientPhone: '',
       clientName: '',
-      staffName: ''
+      staffId: '',
+      staffUsername: '',
+      staffName: '',
+      staffRoleType: ''
+    };
+  }
+  if (session.role === 'admin' && !session.staffUsername) {
+    return {
+      ...session,
+      staffId: session.staffId || 'ADM-001',
+      staffUsername: 'yanjie',
+      staffRoleType: session.staffRoleType || 'super'
     };
   }
   return session;
@@ -390,17 +588,39 @@ function loginAsClient(phone, password) {
   return { ok: true, session, count: matched.length };
 }
 
-// 顾问/后台工作人员口令登录（解锁顾问工作台，可管理全部客户）
-function loginAsAdmin(passcode) {
-  const code = (passcode || '').trim();
-  if (code !== ADMIN_PASSCODE) {
-    return { ok: false, msg: '顾问后台管理口令不正确（演示口令：8888）' };
+// 顾问/后台工作人员账号密码登录（解锁顾问工作台，支持多角色账号管理）
+function loginAsAdmin(username, password) {
+  const cleanUser = (username || '').trim();
+  const cleanPass = (password || '').trim();
+  if (!cleanUser) {
+    return { ok: false, msg: '请输入顾问登录账号' };
   }
+  if (!cleanPass) {
+    return { ok: false, msg: '请输入顾问登录密码' };
+  }
+
+  const accounts = getAdminAccounts();
+  const matched = accounts.find(
+    acc => (acc.username || '').toLowerCase() === cleanUser.toLowerCase()
+  );
+  if (!matched) {
+    return { ok: false, msg: '顾问账号不存在，请核对后重试' };
+  }
+  if (matched.status !== 'active') {
+    return { ok: false, msg: '该顾问账号已被停用，请联系主管理员' };
+  }
+  if (cleanPass !== matched.password) {
+    return { ok: false, msg: '顾问登录密码不正确' };
+  }
+
   const session = {
     role: 'admin',
     clientPhone: '',
     clientName: '',
-    staffName: '岩姐 · 首席顾问后台'
+    staffId: matched.id,
+    staffUsername: matched.username,
+    staffName: `${matched.name} · ${matched.title}`,
+    staffRoleType: matched.roleType
   };
   wx.setStorageSync(AUTH_KEY, session);
   return { ok: true, session };
@@ -412,7 +632,10 @@ function logout() {
     role: 'guest',
     clientPhone: '',
     clientName: '',
-    staffName: ''
+    staffId: '',
+    staffUsername: '',
+    staffName: '',
+    staffRoleType: ''
   };
   wx.setStorageSync(AUTH_KEY, guestSession);
   return guestSession;
@@ -880,6 +1103,7 @@ function resetDemoData() {
     '13888888899': '888899',
     '13988885520': '885520'
   });
+  saveAdminAccounts(getDefaultAdminAccounts());
   return defaults;
 }
 
@@ -901,6 +1125,13 @@ module.exports = {
   setClientPassword,
   changeClientPassword,
   resetClientPassword,
+  getAdminAccounts,
+  addAdminAccount,
+  changeAdminPassword,
+  resetAdminPassword,
+  toggleAdminAccountStatus,
+  deleteAdminAccount,
+  getAllClientAccounts,
   getAuthSession,
   loginAsClient,
   loginAsAdmin,

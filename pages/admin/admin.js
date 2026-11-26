@@ -12,7 +12,8 @@ function getTodayDateStr() {
 Page({
   data: {
     auth: { role: 'guest' },
-    passInput: '8888',
+    userInput: '',
+    passInput: '',
     allProjects: [],
     project: null,
     adminTab: 0,
@@ -106,18 +107,28 @@ Page({
     this.setData(nextData);
   },
 
+  onGuardUserInput(e) {
+    this.setData({ userInput: e.detail.value });
+  },
+
   onGuardPassInput(e) {
     this.setData({ passInput: e.detail.value });
   },
 
   unlockAdmin() {
-    const res = consultStore.loginAsAdmin(this.data.passInput);
+    const res = consultStore.loginAsAdmin(this.data.userInput, this.data.passInput);
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none' });
       return;
     }
     this.loadAdminData();
-    wx.showToast({ title: '已解锁顾问工作台', icon: 'success' });
+    wx.showToast({ title: `欢迎回来，${res.session.staffName}`, icon: 'success' });
+  },
+
+  goToAccounts() {
+    wx.navigateTo({
+      url: '/pages/accounts/accounts'
+    });
   },
 
   goBackClient() {

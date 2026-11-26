@@ -1,0 +1,149 @@
+<!-- pages/accounts/accounts.wxml -->
+<view class="accounts-page" wx:if="{{auth.role === 'admin'}}">
+  <!-- 顶部黑金总览头 -->
+  <view class="acc-header">
+    <view class="acc-h-top">
+      <text class="acc-badge">ACCOUNT CENTER · 权限与账号中心</text>
+      <text class="acc-role-tag">{{auth.staffRoleType === 'super' ? '主管理员' : '顾问助教'}}</text>
+    </view>
+    <text class="acc-title">顾问团队与客户账号管理</text>
+    <text class="acc-sub">当前登录：{{auth.staffName}}（账号：{{auth.staffUsername}}）</text>
+
+    <view class="acc-stats-row">
+      <view class="acc-stat-pill">🛠️ 顾问团队 {{adminAccounts.length}} 人</view>
+      <view class="acc-stat-pill">👤 建档客户 {{clientAccounts.length}} 位</view>
+    </view>
+  </view>
+
+  <!-- 2列抽屉页签切换 -->
+  <view class="acc-tabs">
+    <view class="acc-tab {{activeTab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">
+      🛠️ 顾问团队账号 ({{adminAccounts.length}})
+    </view>
+    <view class="acc-tab {{activeTab === 1 ? 'active' : ''}}" bindtap="switchTab" data-tab="1">
+      👤 客户账号管理 ({{clientAccounts.length}})
+    </view>
+  </view>
+
+  <!-- ==================== TAB 0：顾问团队账号 ==================== -->
+  <view class="acc-body" wx:if="{{activeTab === 0}}">
+    <!-- 主管理员专属：新增顾问账号折叠卡 -->
+    <view class="add-card luxury-card" wx:if="{{auth.staffRoleType === 'super'}}">
+      <view class="add-bar" bindtap="toggleAddForm">
+        <view class="add-bar-left">
+          <text class="add-bar-title">新增顾问 / 助教后台账号</text>
+          <text class="add-bar-sub">为团队成员分配独立登录账号与初始密码</text>
+        </view>
+        <view class="add-toggle-btn">{{showAddForm ? '收起 ▲' : '+ 新增账号'}}</view>
+      </view>
+
+      <view class="add-form" wx:if="{{showAddForm}}">
+        <view class="f-row">
+          <view class="f-group half">
+            <text class="f-label">登录账号 *（英文/数字）</text>
+            <input class="f-input" placeholder="如：mentor01" value="{{newAdminForm.username}}" bindinput="onNewUsername" />
+          </view>
+          <view class="f-group half">
+            <text class="f-label">顾问姓名 *</text>
+            <input class="f-input" placeholder="如：周老师" value="{{newAdminForm.name}}" bindinput="onNewName" />
+          </view>
+        </view>
+
+        <view class="f-row">
+          <view class="f-group half">
+            <text class="f-label">岗位头衔</text>
+            <input class="f-input" placeholder="如：资深咨询顾问" value="{{newAdminForm.title}}" bindinput="onNewTitle" />
+          </view>
+          <view class="f-group half">
+            <text class="f-label">账号权限角色</text>
+            <picker bindchange="onNewRoleChange" value="{{newAdminForm.roleIndex}}" range="{{roleLabels}}">
+              <view class="f-picker">{{roleLabels[newAdminForm.roleIndex]}} ▼</view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="f-group">
+          <text class="f-label">初始登录密码 *（至少4位）</text>
+          <view class="pwd-row">
+            <input class="f-input pwd-input" placeholder="至少4位数字或字母" value="{{newAdminForm.password}}" bindinput="onNewPassword" />
+            <view class="pwd-gen-btn" bindtap="regenerateAdminPass">🎲 随机生成</view>
+          </view>
+        </view>
+
+        <button class="gold-btn full-btn" bindtap="submitAddAdmin">确认开通顾问账号</button>
+      </view>
+    </view>
+
+    <!-- 顾问团队账号列表 -->
+    <view class="list-wrap">
+      <view class="acc-item luxury-card" wx:for="{{adminAccounts}}" wx:key="id">
+        <view class="ai-top">
+          <view class="ai-title-wrap">
+            <text class="ai-name">{{item.name}}</text>
+            <text class="ai-job">{{item.title}}</text>
+            <text class="ai-self-tag" wx:if="{{item.id === auth.staffId || item.username === auth.staffUsername}}">当前登录</text>
+          </view>
+          <text class="ai-status {{item.status === 'active' ? 'on' : 'off'}}">
+            {{item.status === 'active' ? '启用中' : '已停用'}}
+          </text>
+        </view>
+
+        <view class="ai-meta">
+          <text class="ai-pill {{item.roleType === 'super' ? 'super' : ''}}">
+            {{item.roleType === 'super' ? '主管理员' : '普通顾问 / 助教'}}
+          </text>
+          <text class="ai-cred">账号：{{item.username}}</text>
+          <text class="ai-cred" wx:if="{{auth.staffRoleType === 'super' || item.username === auth.staffUsername}}">密码：{{item.password}}</text>
+        </view>
+
+        <view class="ai-actions" wx:if="{{auth.staffRoleType === 'super'}}">
+          <view class="ai-btn" bindtap="onCopyAdminCred" data-id="{{item.id}}">📋 复制凭证</view>
+          <view class="ai-btn" bindtap="onResetAdminPass" data-id="{{item.id}}">🔑 重置密码</view>
+          <view
+            class="ai-btn"
+            wx:if="{{item.id !== auth.staffId && item.username !== auth.staffUsername}}"
+            bindtap="onToggleAdminStatus"
+            data-id="{{item.id}}">
+            {{item.status === 'active' ? '停用' : '启用'}}
+          </view>
+          <view
+            class="ai-btn danger"
+            wx:if="{{item.id !== auth.staffId && item.username !== auth.staffUsername}}"
+            bindtap="onDeleteAdmin"
+            data-id="{{item.id}}">
+            删除
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== TAB 1：客户账号管理 ==================== -->
+  <view class="acc-body" wx:if="{{activeTab === 1}}">
+    <view class="client-tip-bar">
+      <text>客户以绑定手机号作为登录账号；下方支持快速复制凭证发给客户，或当客户忘记密码时为其一键重置。</text>
+    </view>
+
+    <view class="list-wrap">
+      <view class="acc-item luxury-card" wx:for="{{clientAccounts}}" wx:key="phone">
+        <view class="ai-top">
+          <view class="ai-title-wrap">
+            <text class="ai-name">{{item.name}}</text>
+            <text class="ai-job">{{item.industry}}</text>
+          </view>
+          <text class="ai-proj-badge">{{item.projectCount}} 个项目</text>
+        </view>
+
+        <view class="ai-meta">
+          <text class="ai-cred">登录账号：{{item.phone}}</text>
+          <text class="ai-cred highlight">当前密码：{{item.password}}</text>
+        </view>
+
+        <view class="ai-actions">
+          <view class="ai-btn" bindtap="onCopyClientCred" data-phone="{{item.phone}}">📋 复制账号密码</view>
+          <view class="ai-btn primary" bindtap="onResetClientPass" data-phone="{{item.phone}}">🔑 重置密码</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

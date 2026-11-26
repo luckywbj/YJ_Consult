@@ -75,6 +75,22 @@
   letter-spacing: 2rpx;
 }
 
+.ah-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.top-accounts-btn {
+  font-size: 22rpx;
+  color: #F4EAE0;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1rpx solid rgba(255, 255, 255, 0.24);
+  font-weight: 500;
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
+}
+
 .preview-client-btn {
   font-size: 22rpx;
   color: #241E1A;

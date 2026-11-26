@@ -1,14 +1,19 @@
 <!-- pages/admin/admin.wxml -->
-<!-- 若非顾问管理员身份，显示后台权限口令锁屏，彻底阻断非授权访问 -->
+<!-- 若非顾问管理员身份，显示后台账号密码验证锁屏，彻底阻断非授权访问 -->
 <view class="admin-auth-guard" wx:if="{{auth.role !== 'admin'}}">
   <view class="guard-card luxury-card">
     <text class="guard-icon">🔐</text>
     <text class="guard-title">岩姐顾问后台 · 权限验证</text>
-    <text class="guard-sub">此工作台仅限岩姐咨询顾问与内部工作人员进入，请输入后台管理口令解锁：</text>
+    <text class="guard-sub">此工作台仅限岩姐咨询顾问与内部工作人员进入，请输入您的顾问账号与密码（演示：yanjie / 888888）：</text>
+    <input 
+      class="guard-input" 
+      placeholder="请输入顾问登录账号（如：yanjie）" 
+      value="{{userInput}}" 
+      bindinput="onGuardUserInput" />
     <input 
       class="guard-input" 
       password="true" 
-      placeholder="请输入顾问后台口令（演示口令：8888）" 
+      placeholder="请输入顾问登录密码" 
       value="{{passInput}}" 
       bindinput="onGuardPassInput" />
     <button class="gold-btn full-btn" bindtap="unlockAdmin">验证并进入工作台</button>
@@ -21,7 +26,10 @@
   <view class="admin-header">
     <view class="ah-top">
       <text class="ah-badge">CONSULTANT WORKSPACE · 顾问管理端</text>
-      <view class="preview-client-btn" bindtap="goToClientPortal">预览客户视角 ›</view>
+      <view class="ah-top-actions">
+        <view class="top-accounts-btn" bindtap="goToAccounts">👥 账号</view>
+        <view class="preview-client-btn" bindtap="goToClientPortal">预览客户视角 ›</view>
+      </view>
     </view>
     <text class="ah-title">咨询过程与交付成果录入台</text>
 

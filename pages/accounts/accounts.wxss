@@ -1,0 +1,346 @@
+/* pages/accounts/accounts.wxss */
+.accounts-page {
+  min-height: 100vh;
+  background: #F8F6F2;
+  padding-bottom: 80rpx;
+}
+
+.acc-header {
+  background: linear-gradient(155deg, #1E1915 0%, #352920 100%);
+  padding: 28rpx 32rpx 34rpx 32rpx;
+  color: #FFFFFF;
+}
+
+.acc-h-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.acc-badge {
+  font-size: 20rpx;
+  color: #E2B678;
+  letter-spacing: 2rpx;
+}
+
+.acc-role-tag {
+  font-size: 20rpx;
+  color: #241E1A;
+  background: #E2B678;
+  font-weight: 600;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.acc-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #FFF7EB;
+  margin-bottom: 8rpx;
+}
+
+.acc-sub {
+  display: block;
+  font-size: 23rpx;
+  color: #C7B9A8;
+  margin-bottom: 20rpx;
+}
+
+.acc-stats-row {
+  display: flex;
+  gap: 14rpx;
+}
+
+.acc-stat-pill {
+  font-size: 22rpx;
+  color: #F3E3CE;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1rpx solid rgba(226, 182, 120, 0.25);
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
+}
+
+/* 顶部切换 Tab */
+.acc-tabs {
+  display: flex;
+  background: #FFFFFF;
+  border-bottom: 1rpx solid #EAE0D2;
+}
+
+.acc-tab {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 26rpx;
+  color: #7D736A;
+  font-weight: 500;
+  border-bottom: 6rpx solid transparent;
+}
+
+.acc-tab.active {
+  color: #8D6238;
+  font-weight: 600;
+  border-bottom-color: #8D6238;
+}
+
+.acc-body {
+  padding: 24rpx 28rpx;
+}
+
+/* 新增顾问折叠卡片 */
+.add-card {
+  background: #FFFFFF;
+  padding: 26rpx 28rpx;
+  margin-bottom: 24rpx;
+}
+
+.add-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.add-bar-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.add-bar-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.add-bar-sub {
+  font-size: 22rpx;
+  color: #8C8074;
+}
+
+.add-toggle-btn {
+  flex-shrink: 0;
+  background: #241E1A;
+  color: #E2B678;
+  font-size: 23rpx;
+  font-weight: 600;
+  padding: 12rpx 22rpx;
+  border-radius: 28rpx;
+}
+
+.add-form {
+  margin-top: 24rpx;
+  padding-top: 22rpx;
+  border-top: 1rpx solid #EFE8DE;
+}
+
+.f-row {
+  display: flex;
+  gap: 18rpx;
+}
+
+.f-group {
+  margin-bottom: 20rpx;
+}
+
+.f-group.half {
+  flex: 1;
+}
+
+.f-label {
+  display: block;
+  font-size: 23rpx;
+  font-weight: 600;
+  color: #3A312A;
+  margin-bottom: 8rpx;
+}
+
+.f-input,
+.f-picker {
+  background: #F9F7F3;
+  border: 1rpx solid #E4DACD;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-size: 25rpx;
+  color: #241E1A;
+}
+
+.pwd-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.pwd-input {
+  flex: 1;
+}
+
+.pwd-gen-btn {
+  flex-shrink: 0;
+  background: #F6EFE6;
+  border: 1rpx solid #D8C3A8;
+  color: #8D6238;
+  font-size: 23rpx;
+  font-weight: 600;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+}
+
+.full-btn {
+  width: 100%;
+  margin-top: 6rpx;
+}
+
+/* 账号卡片列表 */
+.client-tip-bar {
+  background: #F3ECE2;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-size: 22rpx;
+  color: #6E5D4F;
+  line-height: 1.5;
+  margin-bottom: 20rpx;
+}
+
+.list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.acc-item {
+  background: #FFFFFF;
+  padding: 28rpx;
+}
+
+.ai-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 14rpx;
+}
+
+.ai-title-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.ai-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.ai-job {
+  font-size: 22rpx;
+  color: #7D736A;
+}
+
+.ai-self-tag {
+  font-size: 19rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  border: 1rpx solid #DFCBB2;
+  padding: 2rpx 12rpx;
+  border-radius: 16rpx;
+  font-weight: 600;
+}
+
+.ai-status {
+  font-size: 21rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 18rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ai-status.on {
+  background: #E9F5EB;
+  color: #2E6F3A;
+}
+
+.ai-status.off {
+  background: #F3ECE8;
+  color: #9B5146;
+}
+
+.ai-proj-badge {
+  font-size: 21rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 4rpx 14rpx;
+  border-radius: 16rpx;
+  font-weight: 600;
+}
+
+.ai-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14rpx;
+  background: #FAF7F2;
+  border-radius: 10rpx;
+  padding: 14rpx 18rpx;
+  margin-bottom: 18rpx;
+}
+
+.ai-pill {
+  font-size: 20rpx;
+  color: #5C534A;
+  background: #EDE5DA;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
+.ai-pill.super {
+  background: #241E1A;
+  color: #E2B678;
+}
+
+.ai-cred {
+  font-size: 23rpx;
+  color: #3A312A;
+}
+
+.ai-cred.highlight {
+  color: #8D6238;
+  font-weight: 600;
+}
+
+.ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.ai-btn {
+  flex: 1;
+  min-width: 140rpx;
+  text-align: center;
+  font-size: 22rpx;
+  padding: 12rpx 10rpx;
+  border-radius: 26rpx;
+  background: #FAF7F2;
+  border: 1rpx solid #D8C7B4;
+  color: #4A413A;
+  font-weight: 500;
+}
+
+.ai-btn.primary {
+  background: #8D6238;
+  border-color: #8D6238;
+  color: #FFFFFF;
+}
+
+.ai-btn.danger {
+  color: #B84A39;
+  border-color: #E7C3BD;
+  background: #FDF5F4;
+}

@@ -189,9 +189,22 @@
       </view>
     </view>
 
-    <view class="menu-divider" wx:if="{{auth.role === 'client'}}"></view>
+    <view class="menu-divider" wx:if="{{auth.role === 'admin'}}"></view>
 
-    <view class="menu-row" bindtap="openChangePassModal" wx:if="{{auth.role === 'client'}}">
+    <view class="menu-row" bindtap="openAccountManager" wx:if="{{auth.role === 'admin'}}">
+      <view class="menu-left">
+        <text class="menu-icon">👥</text>
+        <text class="menu-label">账号管理</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-val">顾问团队与客户账号</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-divider" wx:if="{{auth.role !== 'guest'}}"></view>
+
+    <view class="menu-row" bindtap="openChangePassModal" wx:if="{{auth.role !== 'guest'}}">
       <view class="menu-left">
         <text class="menu-icon">🔑</text>
         <text class="menu-label">修改我的登录密码</text>
@@ -289,26 +302,39 @@
 
       <!-- 模式 B：顾问/后台工作人员登录 -->
       <view class="login-body" wx:if="{{loginModal.mode === 'admin'}}">
-        <text class="login-tip">仅限岩姐咨询顾问团队及后台助教人员登录。验证通过后可查看全部客户档案并录入咨询过程与交付结果：</text>
+        <text class="login-tip">仅限岩姐咨询顾问团队及后台助教人员登录。请输入顾问账号与专属密码：</text>
+        <input 
+          class="login-input" 
+          placeholder="请输入顾问登录账号（如：yanjie）" 
+          value="{{loginModal.adminUser}}" 
+          bindinput="onAdminUserInput" />
         <input 
           class="login-input" 
           password="true" 
-          placeholder="请输入顾问后台管理口令（演示口令：8888）" 
+          placeholder="请输入顾问登录密码" 
           value="{{loginModal.adminPass}}" 
           bindinput="onAdminPassInput" />
         <view class="demo-accounts-box">
-          <text class="da-label">💡 演示默认后台管理口令为：8888</text>
+          <text class="da-label">⚡ 点击下方演示顾问账号可一键填入测试：</text>
+          <view class="da-pills">
+            <view class="da-pill" bindtap="quickFillAdmin" data-user="yanjie">
+              主管理员：岩姐 (yanjie · 密码 888888)
+            </view>
+            <view class="da-pill" bindtap="quickFillAdmin" data-user="assistant">
+              交付助教：林助教 (assistant · 密码 666666)
+            </view>
+          </view>
         </view>
-        <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">解锁顾问录入工作台</button>
+        <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">验证并解锁顾问工作台</button>
       </view>
     </view>
   </view>
 
-  <!-- ==================== 弹窗：客户自助修改登录密码 ==================== -->
+  <!-- ==================== 弹窗：自助修改登录密码 ==================== -->
   <view class="login-mask" wx:if="{{changePassModal.visible}}" bindtap="closeChangePassModal">
     <view class="login-box cp-box" catchtap="preventBubble">
       <text class="cp-title">修改登录密码</text>
-      <text class="cp-sub">当前账号：{{auth.clientPhone}}（修改后请妥善保管新密码）</text>
+      <text class="cp-sub">当前账号：{{auth.role === 'admin' ? auth.staffUsername : auth.clientPhone}}（修改后请妥善保管新密码）</text>
       <input
         class="login-input"
         password="true"

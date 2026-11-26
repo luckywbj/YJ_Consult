@@ -10,6 +10,7 @@ Page({
       mode: 'client', // 'client' | 'admin'
       phone: '',
       code: '',
+      adminUser: '',
       adminPass: ''
     },
     changePassModal: {
@@ -63,7 +64,8 @@ Page({
         mode,
         phone: '',
         code: '',
-        adminPass: mode === 'admin' ? '8888' : ''
+        adminUser: '',
+        adminPass: ''
       }
     });
   },
@@ -77,8 +79,7 @@ Page({
   switchLoginMode(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({
-      'loginModal.mode': mode,
-      'loginModal.adminPass': mode === 'admin' ? '8888' : ''
+      'loginModal.mode': mode
     });
   },
 
@@ -88,6 +89,10 @@ Page({
 
   onLoginCodeInput(e) {
     this.setData({ 'loginModal.code': e.detail.value });
+  },
+
+  onAdminUserInput(e) {
+    this.setData({ 'loginModal.adminUser': e.detail.value });
   },
 
   onAdminPassInput(e) {
@@ -103,8 +108,18 @@ Page({
     });
   },
 
+  quickFillAdmin(e) {
+    const username = e.currentTarget.dataset.user;
+    const accounts = consultStore.getAdminAccounts();
+    const matched = accounts.find(a => a.username === username);
+    this.setData({
+      'loginModal.adminUser': username,
+      'loginModal.adminPass': matched ? matched.password : ''
+    });
+  },
+
   openChangePassModal() {
-    if (this.data.auth.role !== 'client') return;
+    if (this.data.auth.role === 'guest') return;
     this.setData({
       changePassModal: {
         visible: true,
@@ -133,11 +148,10 @@ Page({
       wx.showToast({ title: '两次输入的新密码不一致', icon: 'none' });
       return;
     }
-    const res = consultStore.changeClientPassword(
-      this.data.auth.clientPhone,
-      oldPass.trim(),
-      newPass.trim()
-    );
+    const { auth } = this.data;
+    const res = auth.role === 'admin'
+      ? consultStore.changeAdminPassword(auth.staffUsername, oldPass.trim(), newPass.trim())
+      : consultStore.changeClientPassword(auth.clientPhone, oldPass.trim(), newPass.trim());
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none' });
       return;
@@ -162,8 +176,8 @@ Page({
   },
 
   submitAdminLogin() {
-    const { adminPass } = this.data.loginModal;
-    const res = consultStore.loginAsAdmin(adminPass);
+    const { adminUser, adminPass } = this.data.loginModal;
+    const res = consultStore.loginAsAdmin(adminUser, adminPass);
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none', duration: 2500 });
       return;
@@ -171,8 +185,14 @@ Page({
     this.setData({ 'loginModal.visible': false });
     this.refreshState();
     wx.showToast({
-      title: '已进入顾问管理视角',
+      title: `欢迎回来，${res.session.staffName}`,
       icon: 'success'
+    });
+  },
+
+  openAccountManager() {
+    wx.navigateTo({
+      url: '/pages/accounts/accounts'
     });
   },
 
