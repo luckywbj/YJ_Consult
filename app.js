@@ -4,8 +4,15 @@ const consultStore = require('./utils/consultStore');
 App({
   onLaunch() {
     console.log('岩姐商业咨询小程序初始化成功');
-    // 初始化咨询订单、每次咨询过程与交付结果数据中心
+    if (wx.cloud) {
+      wx.cloud.init({
+        env: consultStore.CLOUD_ENV_ID,
+        traceUser: true
+      });
+    }
+    // 初始化本地默认数据并尝试与微信云开发同步
     consultStore.getProjects();
+    consultStore.syncFromCloud();
   },
   globalData: {
     brandName: '岩姐咨询',

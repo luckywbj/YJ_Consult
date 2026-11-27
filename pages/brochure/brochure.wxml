@@ -1,12 +1,13 @@
 <!-- pages/brochure/brochure.wxml -->
 <view class="brochure-page" wx:if="{{brochure && activeCard}}">
-  <!-- 顾问专属管理条（支持千人千名片切换 + 一键改文案） -->
+  <!-- 顾问专属管理条（访客雷达 + 千人千名片切换 + 免发版改内容） -->
   <view class="staff-toolbar" wx:if="{{auth.role === 'admin'}}">
     <view class="st-left">
-      <text class="st-badge">顾问获客工具</text>
-      <text class="st-desc">当前名片：{{activeCard.name}}</text>
+      <text class="st-badge">顾问获客</text>
+      <text class="st-desc">{{activeCard.name}}</text>
     </view>
     <view class="st-btns">
+      <text class="st-btn" bindtap="openVisitorModal">📊 访客雷达</text>
       <text class="st-btn" bindtap="switchStaffCard">🔄 换名片</text>
       <text class="st-btn gold" bindtap="openEditModal">✏️ 改内容</text>
     </view>
@@ -94,7 +95,7 @@
     <button class="sb-share-btn" open-type="share">↪ 点击分享给好友</button>
   </view>
 
-  <!-- ==================== 弹窗：加微信专属获客名片 ==================== -->
+  <!-- ==================== 弹窗：加微信专属获客名片（支持长按识别云端二维码） ==================== -->
   <view class="modal-mask" wx:if="{{wechatModalVisible}}" bindtap="closeWechatModal">
     <view class="modal-box" catchtap="preventBubble">
       <view class="wm-top">
@@ -103,6 +104,11 @@
           <text class="wm-name">{{activeCard.name}} · {{activeCard.brandName}}</text>
           <text class="wm-title">{{activeCard.title}}</text>
         </view>
+      </view>
+
+      <view class="wm-qr-wrap" wx:if="{{activeCard.wechatQr}}">
+        <image class="wm-qr-img" src="{{activeCard.wechatQr}}" mode="aspectFit" show-menu-by-longpress="true"></image>
+        <text class="wm-qr-tip">长按上方二维码，直接识别添加顾问微信</text>
       </view>
 
       <view class="wm-id-box">
@@ -118,10 +124,10 @@
     </view>
   </view>
 
-  <!-- ==================== 弹窗：顾问快捷编辑宣传单与名片 ==================== -->
+  <!-- ==================== 弹窗：顾问快捷编辑宣传单与名片（免发版云端更新） ==================== -->
   <view class="modal-mask" wx:if="{{editModalVisible}}" bindtap="closeEditModal">
     <view class="modal-box edit-box" catchtap="preventBubble">
-      <text class="em-title">编辑公司简介电子宣传单</text>
+      <text class="em-title">编辑宣传单与名片（保存即同步云端）</text>
       <scroll-view class="em-scroll" scroll-y="true">
         <view class="ef-group">
           <text class="ef-label">宣传单主标题 *</text>
@@ -145,6 +151,19 @@
             <input class="ef-input" value="{{editForm.wechat}}" bindinput="onEditWechat" />
           </view>
         </view>
+
+        <view class="ef-group">
+          <text class="ef-label">顾问微信二维码（免发版云端换图）</text>
+          <view class="qr-upload-row">
+            <image class="qr-thumb" wx:if="{{editForm.wechatQr}}" src="{{editForm.wechatQr}}" mode="aspectFill"></image>
+            <view class="qr-empty" wx:else>暂无图片</view>
+            <view class="qr-upload-btns">
+              <text class="qr-u-btn" bindtap="uploadWechatQr">{{editForm.wechatQr ? '更换二维码图' : '+ 从相册上传二维码'}}</text>
+              <text class="qr-u-btn clear" wx:if="{{editForm.wechatQr}}" bindtap="clearWechatQr">清除</text>
+            </view>
+          </view>
+        </view>
+
         <view class="ef-group">
           <text class="ef-label">开篇欢迎导语</text>
           <textarea class="ef-textarea small" value="{{editForm.greeting}}" bindinput="onEditGreeting"></textarea>
@@ -156,7 +175,64 @@
       </scroll-view>
       <view class="wm-btns">
         <view class="wm-btn cancel" bindtap="closeEditModal">取消</view>
-        <view class="wm-btn confirm" bindtap="saveBrochureEdit">保存立即生效</view>
+        <view class="wm-btn confirm" bindtap="saveBrochureEdit">保存并同步云端</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 弹窗：📊 访客与转发雷达 ==================== -->
+  <view class="modal-mask" wx:if="{{visitorModalVisible}}" bindtap="closeVisitorModal">
+    <view class="modal-box radar-box" catchtap="preventBubble">
+      <view class="radar-head">
+        <view>
+          <text class="em-title">📊 电子宣传单访客与转发雷达</text>
+          <text class="radar-source">{{visitorSource === 'cloud' ? '☁️ 云端全网实时追踪（按 OpenID 与账号识别）' : '📱 本地缓存演示（部署 consultApi 云函数后显示全网访客）'}}</text>
+        </view>
+        <text class="radar-refresh" bindtap="refreshVisitors">刷新</text>
+      </view>
+
+      <view class="radar-kpi-grid">
+        <view class="rk-cell">
+          <text class="rk-num">{{visitorStats.totalVisitors}}</text>
+          <text class="rk-lbl">独立访客</text>
+        </view>
+        <view class="rk-cell">
+          <text class="rk-num">{{visitorStats.totalViews}}</text>
+          <text class="rk-lbl">累计浏览</text>
+        </view>
+        <view class="rk-cell">
+          <text class="rk-num">{{visitorStats.totalShares}}</text>
+          <text class="rk-lbl">转发次数</text>
+        </view>
+        <view class="rk-cell">
+          <text class="rk-num hot">{{visitorStats.totalLeads}}</text>
+          <text class="rk-lbl">加微/拨号意向</text>
+        </view>
+      </view>
+
+      <scroll-view class="radar-scroll" scroll-y="true">
+        <view class="radar-empty" wx:if="{{visitorList.length === 0}}">
+          暂无访客记录，转发给好友或打开页面后即可实时捕捉
+        </view>
+        <view class="radar-item" wx:for="{{visitorList}}" wx:key="openid">
+          <view class="ri-top">
+            <view class="ri-name-wrap">
+              <text class="ri-name">{{item.viewerName}}</text>
+              <text class="ri-acc" wx:if="{{item.viewerAccount}}">账号: {{item.viewerAccount}}</text>
+            </view>
+            <text class="ri-time">{{item.lastVisitTime}}</text>
+          </view>
+          <view class="ri-tags">
+            <text class="ri-tag">看过 {{item.viewCount}} 次</text>
+            <text class="ri-tag share" wx:if="{{item.shareCount > 0}}">转发 {{item.shareCount}} 次</text>
+            <text class="ri-tag invite" wx:if="{{item.inviteCount > 0}}">带来 {{item.inviteCount}} 位新客</text>
+            <text class="ri-tag lead" wx:if="{{item.wechatClickCount > 0 || item.phoneClickCount > 0}}">点过加微/拨号</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="wm-btns">
+        <view class="wm-btn confirm" bindtap="closeVisitorModal">关闭雷达</view>
       </view>
     </view>
   </view>

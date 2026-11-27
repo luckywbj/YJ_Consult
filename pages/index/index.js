@@ -20,6 +20,11 @@ Page({
 
   onShow() {
     this.refreshLatestProject();
+    consultStore.syncFromCloud().then(res => {
+      if (res && res.ok) {
+        this.refreshLatestProject();
+      }
+    });
   },
 
   refreshLatestProject() {

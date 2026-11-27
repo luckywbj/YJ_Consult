@@ -27,6 +27,11 @@ Page({
 
   onShow() {
     this.loadAccounts();
+    consultStore.syncFromCloud().then(res => {
+      if (res && res.ok) {
+        this.loadAccounts();
+      }
+    });
   },
 
   loadAccounts() {

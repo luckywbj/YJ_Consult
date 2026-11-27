@@ -24,12 +24,22 @@
     }
   },
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions/",
   "libVersion": "3.3.4",
   "appid": "wx3aa3136395317b1f",
   "projectname": "yanjie-consulting",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": ".codegraph"
+      },
+      {
+        "type": "folder",
+        "value": ".codebase-memory"
+      }
+    ],
     "include": []
   },
   "editorSetting": {}

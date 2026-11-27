@@ -6,7 +6,70 @@ const AUTH_KEY = 'yj_consult_auth_session_v1';
 const CLIENT_PASSWORDS_KEY = 'yj_consult_client_passwords_v1';
 const ADMIN_ACCOUNTS_KEY = 'yj_consult_admin_accounts_v1';
 const BROCHURE_KEY = 'yj_consult_brochure_v1';
+const BROCHURE_VISITS_KEY = 'yj_consult_brochure_visits_v1';
+const MY_OPENID_KEY = 'yj_consult_my_openid_v1';
+const CLOUD_ENV_ID = 'cloud1-d7gf2c2g59cc2a156';
+const CLOUD_FUNCTION_NAME = 'consultApi';
 const ADMIN_PASSCODE = '8888'; // 顾问后台工作人员默认管理口令
+
+// ==================== 微信云开发通信辅助 ====================
+
+function callCloudApi(action, payload = {}) {
+  if (typeof wx === 'undefined' || !wx.cloud || typeof wx.cloud.callFunction !== 'function') {
+    return Promise.resolve({ ok: false, fallback: true });
+  }
+  return wx.cloud
+    .callFunction({
+      name: CLOUD_FUNCTION_NAME,
+      data: { action, ...payload }
+    })
+    .then(res => (res && res.result ? res.result : { ok: false, fallback: true }))
+    .catch(() => ({ ok: false, fallback: true }));
+}
+
+function pushStateToCloud(key, value) {
+  return callCloudApi('saveState', { key, value });
+}
+
+function getMyOpenid() {
+  return wx.getStorageSync(MY_OPENID_KEY) || '';
+}
+
+function syncFromCloud() {
+  const localDefaults = {
+    projects: getProjects(),
+    adminAccounts: getAdminAccounts(),
+    clientPasswords: getClientPasswordMap(),
+    brochure: getBrochureConfig()
+  };
+
+  return callCloudApi('syncAll', { defaults: localDefaults }).then(res => {
+    if (!res || !res.ok || !res.data) {
+      return { ok: false, source: 'local' };
+    }
+    if (res.openid) {
+      wx.setStorageSync(MY_OPENID_KEY, res.openid);
+    }
+    const { projects, adminAccounts, clientPasswords, brochure } = res.data;
+    if (Array.isArray(projects) && projects.length > 0) {
+      wx.setStorageSync(STORAGE_KEY, projects);
+    }
+    if (Array.isArray(adminAccounts) && adminAccounts.length > 0) {
+      wx.setStorageSync(ADMIN_ACCOUNTS_KEY, adminAccounts);
+    }
+    if (clientPasswords && typeof clientPasswords === 'object') {
+      wx.setStorageSync(CLIENT_PASSWORDS_KEY, clientPasswords);
+    }
+    if (brochure && brochure.title) {
+      const mergedBrochure = {
+        ...getDefaultBrochure(),
+        ...brochure
+      };
+      wx.setStorageSync(BROCHURE_KEY, mergedBrochure);
+    }
+    return { ok: true, source: 'cloud', openid: res.openid || '' };
+  });
+}
 
 // 三大核心服务产品目录
 const SERVICES_CATALOG = [
@@ -290,6 +353,7 @@ function getClientPasswordMap() {
 
 function saveClientPasswordMap(map) {
   wx.setStorageSync(CLIENT_PASSWORDS_KEY, map);
+  pushStateToCloud('client_passwords', map);
 }
 
 function getClientPassword(phone) {
@@ -379,6 +443,7 @@ function getAdminAccounts() {
 
 function saveAdminAccounts(list) {
   wx.setStorageSync(ADMIN_ACCOUNTS_KEY, list);
+  pushStateToCloud('admin_accounts', list);
 }
 
 function addAdminAccount(payload) {
@@ -680,6 +745,7 @@ function getProjects() {
 
 function saveProjects(list) {
   wx.setStorageSync(STORAGE_KEY, list);
+  pushStateToCloud('projects', list);
 }
 
 function getProjectById(id) {
@@ -1118,6 +1184,7 @@ function getDefaultBrochure() {
         avatar: '/images/avatar.png',
         phone: '4008809966',
         wechat: 'yanjie_consulting',
+        wechatQr: '',
         wechatNote: '添加时请备注【公司+行业】，优先安排 1V1 商业诊断'
       },
       {
@@ -1129,6 +1196,7 @@ function getDefaultBrochure() {
         avatar: '/images/avatar.png',
         phone: '4008809966',
         wechat: 'yanjie_assistant',
+        wechatQr: '',
         wechatNote: '添加微信领取《高客单破局案例汇编》与私董预约表'
       }
     ],
@@ -1169,6 +1237,7 @@ function saveBrochureConfig(nextConfig) {
     ...nextConfig
   };
   wx.setStorageSync(BROCHURE_KEY, merged);
+  pushStateToCloud('brochure_config', merged);
   return merged;
 }
 
@@ -1184,6 +1253,132 @@ function recordBrochureShare() {
   current.shares = (Number(current.shares) || 0) + 1;
   wx.setStorageSync(BROCHURE_KEY, current);
   return current;
+}
+
+function getLocalVisitorList() {
+  const list = wx.getStorageSync(BROCHURE_VISITS_KEY);
+  return Array.isArray(list) ? list : [];
+}
+
+function summarizeLocalVisitors(list) {
+  let totalViews = 0;
+  let totalShares = 0;
+  let totalInvites = 0;
+  let totalLeads = 0;
+  list.forEach(item => {
+    totalViews += Number(item.viewCount) || 0;
+    totalShares += Number(item.shareCount) || 0;
+    totalInvites += Number(item.inviteCount) || 0;
+    if ((Number(item.wechatClickCount) || 0) > 0 || (Number(item.phoneClickCount) || 0) > 0) {
+      totalLeads += 1;
+    }
+  });
+  return {
+    totalVisitors: list.length,
+    totalViews,
+    totalShares,
+    totalInvites,
+    totalLeads
+  };
+}
+
+function trackBrochureEvent(eventType, extra = {}) {
+  const session = getAuthSession();
+  let viewerName = '';
+  let viewerAccount = '';
+  if (session.role === 'client') {
+    viewerName = session.clientName || '签约客户';
+    viewerAccount = session.clientPhone || '';
+  } else if (session.role === 'admin') {
+    viewerName = session.staffName || '内部顾问';
+    viewerAccount = session.staffUsername || '';
+  }
+
+  let localBrochure = getBrochureConfig();
+  if (eventType === 'view') {
+    localBrochure = recordBrochureView();
+  } else if (eventType === 'share') {
+    localBrochure = recordBrochureShare();
+  }
+
+  // 同步记录本地访客演示明细（云函数未部署时也可预览雷达效果）
+  const localId = getMyOpenid() || (viewerAccount ? `USER_${viewerAccount}` : 'LOCAL_GUEST');
+  const visitors = getLocalVisitorList();
+  const nowStr = formatTime(new Date());
+  const nowTs = Date.now();
+  let v = visitors.find(item => item.openid === localId);
+  if (!v) {
+    v = {
+      openid: localId,
+      shortId: localId.slice(-4).toUpperCase(),
+      viewerName: viewerName || '本机体验访客',
+      viewerAccount,
+      viewerRole: session.role,
+      lastCardId: extra.cardId || 'CARD-001',
+      viewCount: eventType === 'view' ? 1 : 0,
+      shareCount: eventType === 'share' ? 1 : 0,
+      wechatClickCount: eventType === 'wechat' ? 1 : 0,
+      phoneClickCount: eventType === 'phone' ? 1 : 0,
+      inviteCount: 0,
+      firstVisitTime: nowStr,
+      lastVisitTime: nowStr,
+      lastVisitTs: nowTs
+    };
+    visitors.unshift(v);
+  } else {
+    if (viewerName) v.viewerName = viewerName;
+    if (viewerAccount) v.viewerAccount = viewerAccount;
+    if (session.role && session.role !== 'guest') v.viewerRole = session.role;
+    v.lastCardId = extra.cardId || v.lastCardId;
+    v.lastVisitTime = nowStr;
+    v.lastVisitTs = nowTs;
+    if (eventType === 'view') v.viewCount = (Number(v.viewCount) || 0) + 1;
+    if (eventType === 'share') v.shareCount = (Number(v.shareCount) || 0) + 1;
+    if (eventType === 'wechat') v.wechatClickCount = (Number(v.wechatClickCount) || 0) + 1;
+    if (eventType === 'phone') v.phoneClickCount = (Number(v.phoneClickCount) || 0) + 1;
+  }
+  wx.setStorageSync(BROCHURE_VISITS_KEY, visitors.slice(0, 100));
+
+  return callCloudApi('trackBrochureEvent', {
+    eventType,
+    cardId: extra.cardId || 'CARD-001',
+    fromOpenid: extra.fromOpenid || '',
+    viewerName,
+    viewerAccount,
+    viewerRole: session.role
+  }).then(res => {
+    if (res && res.ok) {
+      if (res.openid) {
+        wx.setStorageSync(MY_OPENID_KEY, res.openid);
+      }
+      const latest = getBrochureConfig();
+      if (typeof res.views === 'number') latest.views = res.views;
+      if (typeof res.shares === 'number') latest.shares = res.shares;
+      wx.setStorageSync(BROCHURE_KEY, latest);
+      return { ok: true, brochure: latest, openid: res.openid || '' };
+    }
+    return { ok: false, brochure: localBrochure, openid: getMyOpenid() };
+  });
+}
+
+function getBrochureVisitors() {
+  return callCloudApi('getBrochureVisitors').then(res => {
+    if (res && res.ok) {
+      return {
+        ok: true,
+        source: 'cloud',
+        stats: res.stats || { totalVisitors: 0, totalViews: 0, totalShares: 0, totalInvites: 0, totalLeads: 0 },
+        list: Array.isArray(res.list) ? res.list : []
+      };
+    }
+    const localList = getLocalVisitorList();
+    return {
+      ok: true,
+      source: 'local',
+      stats: summarizeLocalVisitors(localList),
+      list: localList
+    };
+  });
 }
 
 function resetDemoData() {
@@ -1207,9 +1402,12 @@ function formatTime(date) {
 }
 
 module.exports = {
+  CLOUD_ENV_ID,
   ADMIN_PASSCODE,
   SERVICES_CATALOG,
   DELIVERY_STEPS,
+  syncFromCloud,
+  getMyOpenid,
   generateRandomPassword,
   getClientPassword,
   setClientPassword,
@@ -1246,5 +1444,7 @@ module.exports = {
   saveBrochureConfig,
   recordBrochureView,
   recordBrochureShare,
+  trackBrochureEvent,
+  getBrochureVisitors,
   resetDemoData
 };

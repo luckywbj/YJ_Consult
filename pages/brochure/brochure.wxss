@@ -558,3 +558,230 @@
 .ef-textarea.small {
   height: 108rpx;
 }
+
+/* 二维码展示与云存储上传 */
+.wm-qr-wrap {
+  text-align: center;
+  margin-bottom: 18rpx;
+  background: #FAF7F2;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.wm-qr-img {
+  width: 280rpx;
+  height: 280rpx;
+  display: block;
+  margin: 0 auto 10rpx auto;
+  border-radius: 12rpx;
+}
+
+.wm-qr-tip {
+  font-size: 21rpx;
+  color: #8D6238;
+  font-weight: 500;
+}
+
+.qr-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: #F9F7F3;
+  border: 1rpx solid #E4DACD;
+  border-radius: 12rpx;
+  padding: 14rpx 18rpx;
+}
+
+.qr-thumb,
+.qr-empty {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 10rpx;
+  flex-shrink: 0;
+}
+
+.qr-empty {
+  background: #EFE8DE;
+  color: #8C8074;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-upload-btns {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.qr-u-btn {
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  border: 1rpx solid #DFCBB2;
+  padding: 10rpx 18rpx;
+  border-radius: 22rpx;
+  font-weight: 600;
+}
+
+.qr-u-btn.clear {
+  color: #8C8074;
+  background: #FFFFFF;
+  border-color: #DCD2C5;
+}
+
+/* 访客与转发雷达弹窗 */
+.radar-box {
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.radar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.radar-source {
+  display: block;
+  font-size: 20rpx;
+  color: #8D6238;
+  margin-top: -10rpx;
+}
+
+.radar-refresh {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 8rpx 18rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.radar-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10rpx;
+  margin-bottom: 18rpx;
+}
+
+.rk-cell {
+  background: #FAF7F2;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 12rpx;
+  padding: 14rpx 6rpx;
+  text-align: center;
+}
+
+.rk-num {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #241E1A;
+}
+
+.rk-num.hot {
+  color: #D24943;
+}
+
+.rk-lbl {
+  display: block;
+  font-size: 19rpx;
+  color: #7D736A;
+  margin-top: 2rpx;
+}
+
+.radar-scroll {
+  max-height: 45vh;
+  margin-bottom: 20rpx;
+}
+
+.radar-empty {
+  text-align: center;
+  padding: 40rpx 20rpx;
+  font-size: 24rpx;
+  color: #8C8074;
+}
+
+.radar-item {
+  background: #FAF7F2;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 12rpx;
+  padding: 16rpx 18rpx;
+  margin-bottom: 12rpx;
+}
+
+.ri-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 8rpx;
+}
+
+.ri-name-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.ri-name {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #241E1A;
+}
+
+.ri-acc {
+  font-size: 20rpx;
+  color: #8D6238;
+  background: #EFE5D8;
+  padding: 2rpx 10rpx;
+  border-radius: 10rpx;
+}
+
+.ri-time {
+  font-size: 20rpx;
+  color: #9A8E82;
+  flex-shrink: 0;
+}
+
+.ri-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.ri-tag {
+  font-size: 20rpx;
+  color: #5C534A;
+  background: #FFFFFF;
+  border: 1rpx solid #E3D9CB;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.ri-tag.share {
+  color: #2E6F3A;
+  background: #E9F5EB;
+  border-color: #C7E1CB;
+}
+
+.ri-tag.invite {
+  color: #8D6238;
+  background: #FFF6E8;
+  border-color: #E7CCA6;
+}
+
+.ri-tag.lead {
+  color: #B82931;
+  background: #FDEEEF;
+  border-color: #F2C4C7;
+}

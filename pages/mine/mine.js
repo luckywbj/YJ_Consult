@@ -40,6 +40,11 @@ Page({
 
   onShow() {
     this.refreshState();
+    consultStore.syncFromCloud().then(res => {
+      if (res && res.ok) {
+        this.refreshState();
+      }
+    });
     const pendingLoginMode = wx.getStorageSync('pending_login_modal');
     if (pendingLoginMode) {
       wx.removeStorageSync('pending_login_modal');
@@ -160,8 +165,11 @@ Page({
     wx.showToast({ title: '登录密码修改成功', icon: 'success' });
   },
 
-  submitClientLogin() {
+  async submitClientLogin() {
     const { phone, code } = this.data.loginModal;
+    try {
+      await consultStore.syncFromCloud();
+    } catch (e) {}
     const res = consultStore.loginAsClient(phone, code);
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none', duration: 2500 });
@@ -175,8 +183,11 @@ Page({
     });
   },
 
-  submitAdminLogin() {
+  async submitAdminLogin() {
     const { adminUser, adminPass } = this.data.loginModal;
+    try {
+      await consultStore.syncFromCloud();
+    } catch (e) {}
     const res = consultStore.loginAsAdmin(adminUser, adminPass);
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none', duration: 2500 });

@@ -40,6 +40,11 @@ Page({
 
   onShow() {
     this.loadData();
+    consultStore.syncFromCloud().then(res => {
+      if (res && res.ok) {
+        this.loadData();
+      }
+    });
   },
 
   loadData() {

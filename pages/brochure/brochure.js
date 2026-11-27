@@ -8,6 +8,16 @@ Page({
     activeCard: null,
     wechatModalVisible: false,
     editModalVisible: false,
+    visitorModalVisible: false,
+    visitorSource: 'local',
+    visitorStats: {
+      totalVisitors: 0,
+      totalViews: 0,
+      totalShares: 0,
+      totalInvites: 0,
+      totalLeads: 0
+    },
+    visitorList: [],
     editForm: {
       title: '',
       greeting: '',
@@ -15,24 +25,51 @@ Page({
       tagline: '',
       phone: '',
       wechat: '',
+      wechatQr: '',
       aboutContent: ''
     }
   },
 
   onLoad(options) {
     this.incomingCardId = (options && options.cardId) || '';
+    this.fromOpenid = (options && options.fromUid) || '';
+
     if (typeof wx.showShareMenu === 'function') {
       wx.showShareMenu({
         withShareTicket: true,
         menus: ['shareAppMessage', 'shareTimeline']
       });
     }
-    const updated = consultStore.recordBrochureView();
-    this.syncBrochureState(updated);
+
+    // 先以本地数据秒开渲染，再拉取云端最新配置并上报本次访问
+    const initial = consultStore.getBrochureConfig();
+    this.syncBrochureState(initial);
+
+    consultStore
+      .syncFromCloud()
+      .then(() => {
+        const latest = consultStore.getBrochureConfig();
+        this.syncBrochureState(latest);
+        const cardId = (this.data.activeCard && this.data.activeCard.cardId) || latest.activeCardId;
+        return consultStore.trackBrochureEvent('view', {
+          cardId,
+          fromOpenid: this.fromOpenid
+        });
+      })
+      .then(trackRes => {
+        if (trackRes && trackRes.brochure) {
+          this.syncBrochureState(trackRes.brochure);
+        }
+      });
   },
 
   onShow() {
     this.syncBrochureState(consultStore.getBrochureConfig());
+    consultStore.syncFromCloud().then(res => {
+      if (res && res.ok) {
+        this.syncBrochureState(consultStore.getBrochureConfig());
+      }
+    });
   },
 
   syncBrochureState(brochure) {
@@ -49,6 +86,11 @@ Page({
 
   callCardPhone() {
     const phone = (this.data.activeCard && this.data.activeCard.phone) || '4008809966';
+    const cardId = (this.data.activeCard && this.data.activeCard.cardId) || 'CARD-001';
+    consultStore.trackBrochureEvent('phone', {
+      cardId,
+      fromOpenid: this.fromOpenid
+    });
     wx.makePhoneCall({
       phoneNumber: phone,
       fail: () => {
@@ -58,6 +100,11 @@ Page({
   },
 
   openWechatModal() {
+    const cardId = (this.data.activeCard && this.data.activeCard.cardId) || 'CARD-001';
+    consultStore.trackBrochureEvent('wechat', {
+      cardId,
+      fromOpenid: this.fromOpenid
+    });
     this.setData({ wechatModalVisible: true });
   },
 
@@ -107,6 +154,7 @@ Page({
         tagline: activeCard.tagline || '',
         phone: activeCard.phone || '',
         wechat: activeCard.wechat || '',
+        wechatQr: activeCard.wechatQr || '',
         aboutContent: firstSec.content || ''
       }
     });
@@ -124,8 +172,48 @@ Page({
   onEditWechat(e) { this.setData({ 'editForm.wechat': e.detail.value }); },
   onEditAbout(e) { this.setData({ 'editForm.aboutContent': e.detail.value }); },
 
+  uploadWechatQr() {
+    const cardId = (this.data.activeCard && this.data.activeCard.cardId) || 'CARD-001';
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempPath = res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath;
+        if (!tempPath) return;
+
+        if (!wx.cloud || typeof wx.cloud.uploadFile !== 'function') {
+          this.setData({ 'editForm.wechatQr': tempPath });
+          wx.showToast({ title: '已本地预览，部署云开发后可跨手机同步', icon: 'none' });
+          return;
+        }
+
+        wx.showLoading({ title: '正在上传二维码...' });
+        const cloudPath = `brochure/qr_${cardId}_${Date.now()}.png`;
+        wx.cloud.uploadFile({
+          cloudPath,
+          filePath: tempPath,
+          success: (uploadRes) => {
+            wx.hideLoading();
+            this.setData({ 'editForm.wechatQr': uploadRes.fileID });
+            wx.showToast({ title: '二维码已上传至云端', icon: 'success' });
+          },
+          fail: () => {
+            wx.hideLoading();
+            this.setData({ 'editForm.wechatQr': tempPath });
+            wx.showToast({ title: '云存储未就绪，暂用本地预览', icon: 'none' });
+          }
+        });
+      }
+    });
+  },
+
+  clearWechatQr() {
+    this.setData({ 'editForm.wechatQr': '' });
+  },
+
   saveBrochureEdit() {
-    const { title, greeting, brandName, tagline, phone, wechat, aboutContent } = this.data.editForm;
+    const { title, greeting, brandName, tagline, phone, wechat, wechatQr, aboutContent } = this.data.editForm;
     if (!title.trim() || !brandName.trim()) {
       wx.showToast({ title: '标题和名片名称不能为空', icon: 'none' });
       return;
@@ -139,7 +227,8 @@ Page({
         brandName: brandName.trim(),
         tagline: tagline.trim() || c.tagline,
         phone: phone.trim() || c.phone,
-        wechat: wechat.trim() || c.wechat
+        wechat: wechat.trim() || c.wechat,
+        wechatQr: wechatQr || ''
       };
     });
 
@@ -160,7 +249,28 @@ Page({
 
     this.setData({ editModalVisible: false });
     this.syncBrochureState(updated);
-    wx.showToast({ title: '宣传单与名片已更新', icon: 'success' });
+    wx.showToast({ title: '已同步云端，全网客户免发版生效', icon: 'success' });
+  },
+
+  openVisitorModal() {
+    this.setData({ visitorModalVisible: true });
+    this.refreshVisitors();
+  },
+
+  closeVisitorModal() {
+    this.setData({ visitorModalVisible: false });
+  },
+
+  refreshVisitors() {
+    wx.showLoading({ title: '读取访客记录...' });
+    consultStore.getBrochureVisitors().then(res => {
+      wx.hideLoading();
+      this.setData({
+        visitorSource: res.source || 'local',
+        visitorStats: res.stats || {},
+        visitorList: res.list || []
+      });
+    });
   },
 
   goToServices() {
@@ -172,23 +282,35 @@ Page({
   },
 
   onShareAppMessage() {
-    const updated = consultStore.recordBrochureShare();
-    this.syncBrochureState(updated);
     const cardId = (this.data.activeCard && this.data.activeCard.cardId) || 'CARD-001';
+    const myUid = consultStore.getMyOpenid();
+    consultStore.trackBrochureEvent('share', {
+      cardId,
+      fromOpenid: this.fromOpenid
+    }).then(trackRes => {
+      if (trackRes && trackRes.brochure) {
+        this.syncBrochureState(trackRes.brochure);
+      }
+    });
+    const title = (this.data.brochure && this.data.brochure.title) || '岩姐商业咨询 · 公司简介';
     return {
-      title: updated.title,
-      path: `/pages/brochure/brochure?cardId=${cardId}`,
+      title,
+      path: `/pages/brochure/brochure?cardId=${cardId}&fromUid=${myUid}`,
       imageUrl: '/images/avatar.png'
     };
   },
 
   onShareTimeline() {
-    const updated = consultStore.recordBrochureShare();
-    this.syncBrochureState(updated);
     const cardId = (this.data.activeCard && this.data.activeCard.cardId) || 'CARD-001';
+    const myUid = consultStore.getMyOpenid();
+    consultStore.trackBrochureEvent('share', {
+      cardId,
+      fromOpenid: this.fromOpenid
+    });
+    const title = (this.data.brochure && this.data.brochure.title) || '岩姐商业咨询 · 公司简介';
     return {
-      title: updated.title,
-      query: `cardId=${cardId}`,
+      title,
+      query: `cardId=${cardId}&fromUid=${myUid}`,
       imageUrl: '/images/avatar.png'
     };
   }

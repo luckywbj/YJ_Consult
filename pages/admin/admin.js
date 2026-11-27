@@ -77,6 +77,11 @@ Page({
 
   onShow() {
     this.loadAdminData();
+    consultStore.syncFromCloud().then(res => {
+      if (res && res.ok) {
+        this.loadAdminData();
+      }
+    });
   },
 
   loadAdminData() {
@@ -115,7 +120,10 @@ Page({
     this.setData({ passInput: e.detail.value });
   },
 
-  unlockAdmin() {
+  async unlockAdmin() {
+    try {
+      await consultStore.syncFromCloud();
+    } catch (e) {}
     const res = consultStore.loginAsAdmin(this.data.userInput, this.data.passInput);
     if (!res.ok) {
       wx.showToast({ title: res.msg, icon: 'none' });
