@@ -4,7 +4,7 @@
   <view class="guard-card luxury-card">
     <text class="guard-icon">🔐</text>
     <text class="guard-title">岩姐顾问后台 · 权限验证</text>
-    <text class="guard-sub">此工作台仅限岩姐咨询顾问与内部工作人员进入，请输入您的顾问账号与密码（演示：yanjie / 888888）：</text>
+    <text class="guard-sub">此工作台仅限岩值咨询顾问与内部工作人员进入，请输入您的顾问账号与密码（演示：yanjie / 888888）：</text>
     <input 
       class="guard-input" 
       placeholder="请输入顾问登录账号（如：yanjie）" 
@@ -130,7 +130,7 @@
       </view>
 
       <view class="f-group">
-        <text class="f-label">02 · 岩姐咨询破局重构解法 *</text>
+        <text class="f-label">02 · 岩值咨询破局重构解法 *</text>
         <textarea class="f-textarea" placeholder="记录本次给出的高客单定价策略、成交漏斗设计或组织操盘解法..." value="{{sessionForm.solution}}" bindinput="onSesSolution"></textarea>
       </view>
 

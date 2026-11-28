@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>岩值咨询 · IP实战陪跑营 PC 交付后台</title>
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body>
+  <!-- 登录界面 -->
+  <section id="loginView" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div>
+          <h1>岩值咨询 · 交付中心</h1>
+          <p>IP实战陪跑营双线交付系统 · PC 顾问工作台</p>
+        </div>
+        <span id="loginModeBadge" class="mode-pill demo">本地演示模式</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">顾问 / 助教登录账号</label>
+        <input id="loginUsername" class="form-control" type="text" placeholder="如：yanjie 或 assistant" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">登录密码</label>
+        <input id="loginPassword" class="form-control" type="password" placeholder="请输入密码" />
+      </div>
+
+      <div class="demo-fill-row">
+        <button type="button" class="btn btn-outline btn-sm" id="btnFillYanjie">填入首席顾问 (yanjie / 888888)</button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnFillAssistant">填入交付助教 (assistant / 666666)</button>
+      </div>
+
+      <button type="button" class="btn btn-primary" id="btnLoginSubmit" style="width:100%; padding: 11px;">
+        登录顾问/助教交付后台
+      </button>
+
+      <div class="login-cloud-box">
+        <div style="font-weight: 600; color: #2e2722; margin-bottom: 6px;">连接微信云开发 HTTP 访问服务（可选）</div>
+        <div style="display:flex; gap:8px;">
+          <input id="loginCloudUrl" class="form-control" type="text" placeholder="留空则使用本地演示模式；填入 https://.../consultApi 可直连小程序云库" />
+          <button type="button" class="btn btn-outline btn-sm" id="btnLoginSaveCloud">测试并保存</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主后台工作台 -->
+  <section id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <div class="sb-title">岩 值 咨 询</div>
+        <div class="sb-sub">PC 顾问与助教交付后台</div>
+      </div>
+
+      <nav class="sb-nav" id="sidebarNav">
+        <div class="nav-item active" data-view="board">
+          <span>📊 全局交付看板</span>
+          <span class="nav-count" id="navProjectCount">0</span>
+        </div>
+        <div class="nav-item" data-view="cockpit">
+          <span>🧭 学员陪跑驾驶舱</span>
+        </div>
+        <div class="nav-item" data-view="scripts">
+          <span>💬 标准话术与SOP库</span>
+        </div>
+        <div class="nav-item" data-view="radar">
+          <span>📡 获客访客雷达</span>
+        </div>
+        <div class="nav-item" data-view="accounts">
+          <span>🔐 账号与权限中心</span>
+        </div>
+        <div class="nav-item" data-view="settings">
+          <span>☁️ 云开发连接设置</span>
+        </div>
+      </nav>
+
+      <div class="sb-footer">
+        <div>对照《IP实战陪跑营流程》</div>
+        <div style="margin-top:4px;">10步运营线 · 12板块42节点</div>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div class="tb-left">
+          <div class="tb-page-title" id="topbarTitle">全局交付看板</div>
+          <span class="mode-pill demo" id="topbarModeBadge">本地演示模式</span>
+        </div>
+        <div class="tb-right">
+          <button type="button" class="btn btn-outline btn-sm" id="btnRefreshData">🔄 同步数据</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewStudent">+ 新建学员建档</button>
+          <span class="user-chip" id="topbarUserChip">岩姐 · 首席操盘顾问</span>
+          <button type="button" class="btn btn-outline btn-sm" id="btnLogout">退出</button>
+        </div>
+      </header>
+
+      <main id="mainAppContent" class="content-body"></main>
+    </div>
+  </section>
+
+  <!-- 导出/打印专用区域 -->
+  <div id="printReportArea"></div>
+
+  <!-- 通用弹窗容器 -->
+  <div id="modalContainer" class="modal-mask hidden"></div>
+
+  <!-- 全局轻提示 -->
+  <div id="toastBox" class="toast hidden"></div>
+
+  <script src="./js/workflowTemplate.js?v=20261128b"></script>
+  <script src="./js/api.js?v=20261128b"></script>
+  <script src="./js/app.js?v=20261128b"></script>
+</body>
+</html>

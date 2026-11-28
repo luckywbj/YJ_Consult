@@ -1,5 +1,5 @@
 // utils/consultStore.js
-// 岩姐商业咨询 · 订单、咨询过程追踪、交付结果与多角色权限隔离中心
+// 岩值商业咨询 · 订单、咨询过程追踪、交付结果与多角色权限隔离中心
 
 const STORAGE_KEY = 'yj_consult_projects_v3';
 const AUTH_KEY = 'yj_consult_auth_session_v1';
@@ -849,7 +849,7 @@ function createOrder(payload) {
       {
         delivId: 'DEL-' + Date.now().toString().slice(-5),
         stage: '01 资质初筛',
-        title: `《${(payload.industry || '企业').trim()} · 岩姐商业咨询诊前调研与立项说明书》`,
+        title: `《${(payload.industry || '企业').trim()} · 岩值商业咨询诊前调研与立项说明书》`,
         fileType: 'PDF / 立项清单',
         deliverTime: nowStr,
         status: isPaid ? '待客户验收' : '已生成预案',
@@ -1140,7 +1140,7 @@ function addDeliverable(projectId, delivData) {
     fileType: delivData.fileType || 'PDF / 核心交付方案',
     deliverTime: nowStr,
     status: '待客户验收',
-    summary: delivData.summary || '岩姐咨询团队独家定制输出的高客单商业操盘交付文档。'
+    summary: delivData.summary || '岩值咨询团队独家定制输出的高客单商业操盘交付文档。'
   };
 
   proj.deliverables.unshift(newDeliv);
@@ -1167,18 +1167,18 @@ function updateProjectMetrics(projectId, metricsData) {
 
 function getDefaultBrochure() {
   return {
-    title: '岩姐商业咨询 · 公司简介与高客单操盘体系',
-    author: '岩姐商业咨询',
+    title: '岩值商业咨询 · 公司简介与高客单操盘体系',
+    author: '岩值商业咨询',
     publishDate: '2026-11-26',
     views: 2486,
     shares: 427,
-    greeting: 'Hello，欢迎了解岩姐商业咨询——让每一个值得被高估的品牌，用奢侈品思维重做一遍。',
+    greeting: 'Hello，欢迎了解岩值商业咨询——让每一个值得被高估的品牌，用奢侈品思维重做一遍。',
     activeCardId: 'CARD-001',
     staffCards: [
       {
         cardId: 'CARD-001',
         name: '岩姐',
-        brandName: '岩姐商业咨询',
+        brandName: '岩值商业咨询',
         title: '首席商业操盘顾问 · 奢侈品思维导师',
         tagline: '专注高客单商业模式设计与成交体系陪跑',
         avatar: '/images/avatar.png',
@@ -1190,7 +1190,7 @@ function getDefaultBrochure() {
       {
         cardId: 'CARD-002',
         name: '林助教',
-        brandName: '岩姐咨询 · 高客单交付团队',
+        brandName: '岩值咨询 · 高客单交付团队',
         title: '资深商业交付助教 · 方案对接顾问',
         tagline: '提供私董会排期预约、方案资料获取与标杆案例对接',
         avatar: '/images/avatar.png',
@@ -1203,7 +1203,7 @@ function getDefaultBrochure() {
     sections: [
       {
         heading: '一、关于我们',
-        content: '岩姐商业咨询专注服务高成长创始人、垂直行业实体连锁及知识商业 IP，致力于帮助年营收 500 万以上的企业跳出低价团购与同质化内卷，构建高毛利、高溢价、可复制的奢侈品级高客单成交体系。'
+        content: '岩值商业咨询专注服务高成长创始人、垂直行业实体连锁及知识商业 IP，致力于帮助年营收 500 万以上的企业跳出低价团购与同质化内卷，构建高毛利、高溢价、可复制的奢侈品级高客单成交体系。'
       },
       {
         heading: '二、核心操盘理念',
@@ -1221,10 +1221,36 @@ function getDefaultBrochure() {
   };
 }
 
+function migrateBrochureBrandName(str) {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/岩姐商业咨询/g, '岩值商业咨询')
+    .replace(/岩姐咨询/g, '岩值咨询');
+}
+
 function getBrochureConfig() {
   let config = wx.getStorageSync(BROCHURE_KEY);
   if (!config || !config.title || !Array.isArray(config.staffCards)) {
     config = getDefaultBrochure();
+    wx.setStorageSync(BROCHURE_KEY, config);
+    return config;
+  }
+  const serialized = JSON.stringify(config);
+  if (serialized.includes('岩姐商业咨询') || serialized.includes('岩姐咨询')) {
+    config.title = migrateBrochureBrandName(config.title);
+    config.author = migrateBrochureBrandName(config.author);
+    config.greeting = migrateBrochureBrandName(config.greeting);
+    config.staffCards = config.staffCards.map(c => ({
+      ...c,
+      brandName: migrateBrochureBrandName(c.brandName)
+    }));
+    if (Array.isArray(config.sections)) {
+      config.sections = config.sections.map(s => ({
+        ...s,
+        heading: migrateBrochureBrandName(s.heading),
+        content: migrateBrochureBrandName(s.content)
+      }));
+    }
     wx.setStorageSync(BROCHURE_KEY, config);
   }
   return config;

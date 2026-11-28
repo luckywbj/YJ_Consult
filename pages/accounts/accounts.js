@@ -126,7 +126,7 @@ Page({
   },
 
   copyAdminText(acc) {
-    const text = `【岩姐商业咨询 · 顾问工作台账号】\n姓名：${acc.name}\n登录账号：${acc.username}\n登录密码：${acc.password}\n（登录后可在「我的-修改我的登录密码」自行修改）`;
+    const text = `【岩值商业咨询 · 顾问工作台账号】\n姓名：${acc.name}\n登录账号：${acc.username}\n登录密码：${acc.password}\n（登录后可在「我的-修改我的登录密码」自行修改）`;
     wx.setClipboardData({
       data: text,
       success: () => {
@@ -223,7 +223,7 @@ Page({
     const phone = e.currentTarget.dataset.phone;
     const client = this.data.clientAccounts.find(c => c.phone === phone);
     if (!client) return;
-    const text = `【岩姐商业咨询】专属交付空间账号\n登录手机号：${client.phone}\n登录密码：${client.password}\n（登录后可在「我的-修改我的登录密码」自行修改）`;
+    const text = `【岩值商业咨询】专属交付空间账号\n登录手机号：${client.phone}\n登录密码：${client.password}\n（登录后可在「我的-修改我的登录密码」自行修改）`;
     wx.setClipboardData({
       data: text,
       success: () => {

@@ -292,7 +292,7 @@ Page({
         this.syncBrochureState(trackRes.brochure);
       }
     });
-    const title = (this.data.brochure && this.data.brochure.title) || '岩姐商业咨询 · 公司简介';
+    const title = (this.data.brochure && this.data.brochure.title) || '岩值商业咨询 · 公司简介';
     return {
       title,
       path: `/pages/brochure/brochure?cardId=${cardId}&fromUid=${myUid}`,
@@ -307,7 +307,7 @@ Page({
       cardId,
       fromOpenid: this.fromOpenid
     });
-    const title = (this.data.brochure && this.data.brochure.title) || '岩姐商业咨询 · 公司简介';
+    const title = (this.data.brochure && this.data.brochure.title) || '岩值商业咨询 · 公司简介';
     return {
       title,
       query: `cardId=${cardId}&fromUid=${myUid}`,

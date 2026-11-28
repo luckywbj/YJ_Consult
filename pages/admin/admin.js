@@ -430,7 +430,7 @@ Page({
     const { project } = this.data;
     if (!project) return;
     const pass = consultStore.getClientPassword(project.phone);
-    const text = `【岩姐商业咨询】专属交付空间账号\n登录手机号：${project.phone}\n登录密码：${pass}\n（登录后可在「我的-修改登录密码」自行修改）`;
+    const text = `【岩值商业咨询】专属交付空间账号\n登录手机号：${project.phone}\n登录密码：${pass}\n（登录后可在「我的-修改登录密码」自行修改）`;
     wx.setClipboardData({
       data: text,
       success: () => {

@@ -5,8 +5,8 @@
 
   <!-- 品牌主标题 -->
   <view class="brand-section">
-    <text class="brand-title">岩 姐 咨 询</text>
-    <text class="brand-subtitle">YANJIE BUSINESS CONSULTING</text>
+    <text class="brand-title">岩 值 咨 询</text>
+    <text class="brand-subtitle">YANZHI BUSINESS CONSULTING</text>
   </view>
 
   <!-- 使命 / 愿景 / 理念 卡片 -->
@@ -42,7 +42,7 @@
   <view class="brochure-entry-card" bindtap="goToBrochure">
     <view class="be-left">
       <text class="be-badge">官方电子名片</text>
-      <text class="be-title">📖 岩姐咨询 · 公司简介宣传单</text>
+      <text class="be-title">📖 岩值咨询 · 公司简介宣传单</text>
       <text class="be-sub">含顾问名片、加微信与一键转发好友功能</text>
     </view>
     <view class="be-btn">查看/转发 ›</view>

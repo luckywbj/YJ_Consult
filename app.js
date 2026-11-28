@@ -3,7 +3,7 @@ const consultStore = require('./utils/consultStore');
 
 App({
   onLaunch() {
-    console.log('岩姐商业咨询小程序初始化成功');
+    console.log('岩值商业咨询小程序初始化成功');
     if (wx.cloud) {
       wx.cloud.init({
         env: consultStore.CLOUD_ENV_ID,
@@ -15,7 +15,7 @@ App({
     consultStore.syncFromCloud();
   },
   globalData: {
-    brandName: '岩姐咨询',
+    brandName: '岩值咨询',
     slogan: '所有行业都值得用奢侈品思维重做一遍',
     consultant: {
       name: '岩姐',

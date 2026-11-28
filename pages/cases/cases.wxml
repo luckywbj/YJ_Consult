@@ -83,7 +83,7 @@
         </view>
 
         <view class="detail-section">
-          <text class="section-badge">02 · 岩姐咨询操盘重构解法</text>
+          <text class="section-badge">02 · 岩值咨询操盘重构解法</text>
           <text class="section-p">{{activeCase.detailSolution}}</text>
         </view>
 

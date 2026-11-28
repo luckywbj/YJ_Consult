@@ -1,5 +1,5 @@
 {
-  "description": "岩姐商业咨询小程序",
+  "description": "岩值商业咨询小程序",
   "setting": {
     "urlCheck": false,
     "es6": true,
@@ -38,6 +38,10 @@
       {
         "type": "folder",
         "value": ".codebase-memory"
+      },
+      {
+        "type": "folder",
+        "value": "pc-web"
       }
     ],
     "include": []

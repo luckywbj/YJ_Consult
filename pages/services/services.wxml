@@ -66,7 +66,7 @@
   <!-- 咨询交付 5 步流程 -->
   <view class="process-section luxury-card">
     <view class="process-title-box">
-      <text class="process-title">岩姐咨询 · 5 步全闭环数字化交付</text>
+      <text class="process-title">岩值咨询 · 5 步全闭环数字化交付</text>
       <text class="process-sub">每一阶段过程与交付物均在小程序内实时留档可查</text>
     </view>
 

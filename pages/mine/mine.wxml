@@ -258,8 +258,8 @@
 
   <!-- 版权信息 -->
   <view class="copyright-bar">
-    <text>岩姐商业咨询 · 版权所有</text>
-    <text class="copyright-en">YANJIE CONSULTING © 2026 ALL RIGHTS RESERVED</text>
+    <text>岩值商业咨询 · 版权所有</text>
+    <text class="copyright-en">YANZHI CONSULTING © 2026 ALL RIGHTS RESERVED</text>
   </view>
 
   <!-- ==================== 弹窗：客户登录 / 顾问后台登录 ==================== -->
@@ -315,7 +315,7 @@
 
       <!-- 模式 B：顾问/后台工作人员登录 -->
       <view class="login-body" wx:if="{{loginModal.mode === 'admin'}}">
-        <text class="login-tip">仅限岩姐咨询顾问团队及后台助教人员登录。请输入顾问账号与专属密码：</text>
+        <text class="login-tip">仅限岩值咨询顾问团队及后台助教人员登录。请输入顾问账号与专属密码：</text>
         <input 
           class="login-input" 
           placeholder="请输入顾问登录账号（如：yanjie）" 

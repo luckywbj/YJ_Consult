@@ -1,7 +1,7 @@
 {
   "name": "consultApi",
   "version": "1.0.0",
-  "description": "岩姐商业咨询云开发核心接口",
+  "description": "岩值商业咨询云开发核心接口",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"

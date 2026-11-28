@@ -95,7 +95,7 @@
         <view class="ses-block highlight">
           <view class="block-tag-row">
             <view class="dot-gold"></view>
-            <text class="block-tag-title">岩姐咨询破局重构方案</text>
+            <text class="block-tag-title">岩值咨询破局重构方案</text>
           </view>
           <text class="block-p">{{ses.solution}}</text>
         </view>
@@ -299,7 +299,7 @@
   <!-- ==================== TAB 2：五步闭环与订单信息 ==================== -->
   <view class="tab-content" wx:if="{{activeTab === 2}}">
     <view class="steps-detail-card luxury-card">
-      <text class="sd-header-title">岩姐咨询 · 5 步全闭环交付里程碑</text>
+      <text class="sd-header-title">岩值咨询 · 5 步全闭环交付里程碑</text>
       <view class="sd-list">
         <view 
           class="sd-item {{project.currentStep > item.step ? 'done' : (project.currentStep === item.step ? 'active' : '')}}" 
