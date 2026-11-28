@@ -3,10 +3,10 @@
 <view class="pf-guard" wx:if="{{!isPlatform}}">
   <view class="guard-card luxury-card">
     <text class="guard-icon">🏛️</text>
-    <text class="guard-title">平台总控台 · 超级管理员验证</text>
-    <text class="guard-sub">仅限平台方使用：为导师开通工作室、续费、冻结、代管后台。</text>
+    <text class="guard-title">臻言咨询总控台 · 超级管理员验证</text>
+    <text class="guard-sub">仅限臻言咨询平台方使用：为导师开通工作室、续费、冻结、代管后台。</text>
     <input class="guard-input" password="true" placeholder="平台管理口令（演示：9999）" value="{{passInput}}" bindinput="onPassInput" />
-    <button class="gold-btn full-btn" bindtap="unlock">进入平台总控台</button>
+    <button class="gold-btn full-btn" bindtap="unlock">进入臻言平台总控台</button>
   </view>
 </view>
 
@@ -14,10 +14,10 @@
   <!-- 平台经营看板 -->
   <view class="pf-header">
     <view class="pf-top">
-      <text class="pf-badge">PLATFORM CONSOLE · 平台方</text>
+      <text class="pf-badge">ZHENYAN PLATFORM · 臻言咨询平台方</text>
       <text class="pf-logout" bindtap="logoutPlatform">退出</text>
     </view>
-    <text class="pf-title">入驻工作室管理</text>
+    <text class="pf-title">臻言严选入驻工作室管理</text>
     <view class="pf-kpis">
       <view class="kpi"><text class="kpi-n">{{summary.tenantCount}}</text><text class="kpi-t">入驻工作室</text></view>
       <view class="kpi"><text class="kpi-n">{{summary.activeCount}}</text><text class="kpi-t">服务中</text></view>

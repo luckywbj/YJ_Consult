@@ -6,7 +6,9 @@ Page({
     showModal: false,
     brand: {},
     auth: { role: 'guest' },
-    tenantsList: [],
+    mentorsList: [],
+    mentorPickerOptions: [],
+    selectedMentorIndex: 0,
     latestProject: null,
     form: {
       name: '',
@@ -40,23 +42,32 @@ Page({
     const brand = consultStore.getBrandConfig();
     const auth = consultStore.getAuthSession();
     const visibleProjects = consultStore.getVisibleProjects();
-    const tenantsList = consultStore.getTenants();
+    const mentorsList = consultStore.getPublicMentors();
+    const mentorPickerOptions = ['由臻言平台顾问智能匹配'].concat(
+      mentorsList.map(m => `${m.mentorName} · ${m.studioName}`)
+    );
     if (brand && brand.navTitle) {
       wx.setNavigationBarTitle({ title: brand.navTitle });
     }
     this.setData({
       brand,
       auth,
-      tenantsList,
+      mentorsList,
+      mentorPickerOptions,
       latestProject: visibleProjects.length > 0 ? visibleProjects[0] : null
     });
   },
 
-  enterStudioPortal(e) {
+  viewMentorProfile(e) {
     const tid = e.currentTarget.dataset.id;
-    consultStore.setCurrentTenant(tid);
-    this.refreshLatestProject();
-    wx.showToast({ title: `已进入「${this.data.brand.navTitle}」`, icon: 'none' });
+    if (!tid) return;
+    wx.navigateTo({
+      url: `/pages/brochure/brochure?tenantId=${encodeURIComponent(tid)}&preview=1`
+    });
+  },
+
+  onMentorPickChange(e) {
+    this.setData({ selectedMentorIndex: Number(e.detail.value) || 0 });
   },
 
   exitCurrentStudio() {
@@ -69,19 +80,8 @@ Page({
     wx.navigateTo({ url: '/pages/register/register' });
   },
 
-  goToLogin() {
-    wx.setStorageSync('pending_login_modal', 'client');
-    wx.switchTab({
-      url: '/pages/mine/mine'
-    });
-  },
-
-  goToLoginWithMode(e) {
-    const mode = e.currentTarget.dataset.mode || 'client';
-    wx.setStorageSync('pending_login_modal', mode);
-    wx.switchTab({
-      url: '/pages/mine/mine'
-    });
+  goToBrochure() {
+    wx.navigateTo({ url: '/pages/brochure/brochure' });
   },
 
   goToLatestProject() {
@@ -99,10 +99,6 @@ Page({
   },
 
   openConsultModal() {
-    if (!consultStore.getCurrentTenantId()) {
-      wx.showToast({ title: '请先在上方选择一个导师工作室进入', icon: 'none' });
-      return;
-    }
     this.setData({ showModal: true });
   },
 
@@ -139,8 +135,19 @@ Page({
       return;
     }
 
-    const services = (this.data.brand && this.data.brand.services) || consultStore.SERVICES_CATALOG;
+    const currentTid = consultStore.getCurrentTenantId();
+    const { mentorsList, selectedMentorIndex } = this.data;
+    let targetTenantId = currentTid;
+    if (!targetTenantId && mentorsList.length > 0) {
+      targetTenantId = selectedMentorIndex > 0 && mentorsList[selectedMentorIndex - 1]
+        ? mentorsList[selectedMentorIndex - 1].tenantId
+        : mentorsList[0].tenantId;
+    }
+
+    const targetBrand = consultStore.getBrandConfig(targetTenantId);
+    const services = (targetBrand && targetBrand.services) || consultStore.SERVICES_CATALOG;
     const newOrder = consultStore.createOrder({
+      tenantId: targetTenantId,
       name: name.trim(),
       phone: phone.trim(),
       industry: industry.trim() || '未注明行业',
@@ -152,13 +159,14 @@ Page({
 
     this.setData({
       showModal: false,
+      selectedMentorIndex: 0,
       form: { name: '', phone: '', industry: '', problem: '' }
     });
     this.refreshLatestProject();
 
     wx.showModal({
       title: '预约立项成功',
-      content: `已为您自动绑定手机号（${newOrder.phone}）并开通专属咨询交付空间，仅您本人可查阅。`,
+      content: `已为您自动绑定账号（${newOrder.phone}）并开通专属咨询交付空间。\n初始登录密码：${newOrder.assignedPassword}（可在「我的-修改我的登录密码」修改）`,
       confirmText: '进入我的空间',
       cancelText: '稍后查看',
       confirmColor: '#8D6238',

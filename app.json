@@ -7,12 +7,13 @@
     "pages/project/project",
     "pages/admin/admin",
     "pages/register/register",
-    "pages/platform/platform"
+    "pages/platform/platform",
+    "pages/brochure/brochure"
   ],
   "window": {
     "navigationBarBackgroundColor": "#E7D5BF",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "高定咨询空间",
+    "navigationBarTitleText": "臻言咨询",
     "backgroundColor": "#F8F6F2",
     "backgroundTextStyle": "light"
   },

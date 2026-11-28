@@ -1,0 +1,168 @@
+<!-- pages/brochure/brochure.wxml -->
+<view class="brochure-page" wx:if="{{brochure}}">
+  <!-- 导师专属编辑条（仅已登录对应工作室的导师可见） -->
+  <view class="staff-toolbar" wx:if="{{auth.role === 'admin' && !brochure.isPlatform && auth.tenantId === brochure.tenantId}}">
+    <view class="st-left">
+      <text class="st-badge">工作室获客名片</text>
+      <text class="st-desc">{{brochure.brandName}}</text>
+    </view>
+    <view class="st-btns">
+      <text class="st-btn gold" bindtap="openEditModal">✏️ 编辑本工作室宣传单</text>
+    </view>
+  </view>
+
+  <!-- 1. 文章主标题与阅读/转发热度 -->
+  <view class="article-header">
+    <text class="article-title">{{brochure.title}}</text>
+    <view class="article-meta">
+      <text class="meta-date">{{brochure.publishDate}}</text>
+      <text class="meta-author">{{brochure.author}}</text>
+    </view>
+    <view class="article-stats">
+      有 <text class="stat-num">{{brochure.views}}</text> 人看过
+      <text class="stat-sep">·</text>
+      有 <text class="stat-num hot">{{brochure.shares}}</text> 人转发分享
+    </view>
+  </view>
+
+  <!-- 2. 嵌入式获客名片条 -->
+  <view class="biz-card">
+    <view class="bc-left">
+      <image class="bc-avatar" src="{{brochure.avatar}}" mode="aspectFill"></image>
+      <view class="bc-info">
+        <text class="bc-name">{{brochure.brandName}}</text>
+        <text class="bc-tag">{{brochure.tagline}}</text>
+      </view>
+    </view>
+    <view class="bc-actions">
+      <view class="bc-btn phone" bindtap="callCardPhone">打电话</view>
+      <view class="bc-btn wechat" bindtap="openWechatModal">联系顾问</view>
+    </view>
+  </view>
+
+  <!-- 3. 欢迎导语 -->
+  <view class="greeting-quote">
+    <view class="quote-line"></view>
+    <text class="quote-text">{{brochure.greeting}}</text>
+  </view>
+
+  <!-- 4. 黑金品牌主视觉背书卡 -->
+  <view class="brand-poster-card">
+    <image class="bp-avatar" src="{{brochure.avatar}}" mode="aspectFill"></image>
+    <text class="bp-title">{{brochure.brandName}}</text>
+    <text class="bp-sub">{{brochure.mentorTitle}}</text>
+    <view class="bp-kpi-row">
+      <view class="bp-kpi">
+        <text class="bk-num">一导师一系统</text>
+        <text class="bk-lbl">独立空间隔离</text>
+      </view>
+      <view class="bp-kpi-split"></view>
+      <view class="bp-kpi">
+        <text class="bk-num">5 步闭环</text>
+        <text class="bk-lbl">过程留档交付</text>
+      </view>
+      <view class="bp-kpi-split"></view>
+      <view class="bp-kpi">
+        <text class="bk-num">100%</text>
+        <text class="bk-lbl">客户隐私保护</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 5. 平台 / 工作室简介正文 -->
+  <view class="article-body">
+    <view class="sec-block" wx:for="{{brochure.sections}}" wx:key="heading">
+      <text class="sec-heading">{{item.heading}}</text>
+      <text class="sec-content">{{item.content}}</text>
+    </view>
+  </view>
+
+  <!-- 6. 承接转化直达区 -->
+  <view class="convert-card">
+    <text class="cc-title">{{brochure.isPlatform ? '想入驻臻言咨询或对接商业导师？' : '想进一步了解合作与实战案例？'}}</text>
+    <text class="cc-sub" wx:if="{{isPreview && !brochure.isPlatform}}">了解详情后可联系顾问，或点击进入该导师专属工作室查看完整方案与案例</text>
+    <text class="cc-sub" wx:else>{{brochure.isPlatform ? '支持资深商业顾问 10 秒开通独立工作室，或浏览严选服务案例' : '点击下方按钮可直接浏览标杆客户转型战果，或预约 1V1 深度问诊'}}</text>
+    <view class="cc-btns" wx:if="{{isPreview && !brochure.isPlatform}}">
+      <view class="cc-btn outline" bindtap="openWechatModal">💬 联系该导师</view>
+      <view class="cc-btn solid" bindtap="enterThisStudio">进入该导师独立主页 ›</view>
+    </view>
+    <view class="cc-btns" wx:else>
+      <view class="cc-btn outline" bindtap="goToCases">看实战案例 ›</view>
+      <view class="cc-btn solid" wx:if="{{brochure.isPlatform}}" bindtap="goToRegister">申请入驻开通 ›</view>
+      <view class="cc-btn solid" wx:else bindtap="goToServices">查看服务方案 ›</view>
+    </view>
+  </view>
+
+  <!-- 7. 底部悬浮一键分享操作条 -->
+  <view class="share-bottom-bar">
+    <view class="sb-wechat-btn" bindtap="openWechatModal">💬 联系顾问</view>
+    <button class="sb-share-btn" open-type="share">↪ 点击分享给好友</button>
+  </view>
+
+  <!-- ==================== 弹窗：联系顾问名片 ==================== -->
+  <view class="modal-mask" wx:if="{{wechatModalVisible}}" bindtap="closeWechatModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <view class="wm-top">
+        <image class="wm-avatar" src="{{brochure.avatar}}" mode="aspectFill"></image>
+        <view class="wm-info">
+          <text class="wm-name">{{brochure.mentorName}} · {{brochure.brandName}}</text>
+          <text class="wm-title">{{brochure.mentorTitle}}</text>
+        </view>
+      </view>
+
+      <view class="wm-id-box">
+        <text class="wm-id-label">专属顾问微信号</text>
+        <text class="wm-id-val">{{brochure.wechat}}</text>
+        <text class="wm-note">{{brochure.wechatNote}}</text>
+      </view>
+
+      <view class="wm-btns">
+        <view class="wm-btn cancel" bindtap="closeWechatModal">关闭</view>
+        <view class="wm-btn confirm" bindtap="copyWechatId">一键复制微信号</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 弹窗：编辑本工作室宣传单 ==================== -->
+  <view class="modal-mask" wx:if="{{editModalVisible}}" bindtap="closeEditModal">
+    <view class="modal-box edit-box" catchtap="preventBubble">
+      <text class="em-title">编辑本工作室电子宣传单</text>
+      <scroll-view class="em-scroll" scroll-y="true">
+        <view class="ef-group">
+          <text class="ef-label">宣传单主标题 *</text>
+          <input class="ef-input" value="{{editForm.title}}" bindinput="onEditTitle" />
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">名片展示名称 *</text>
+          <input class="ef-input" value="{{editForm.brandName}}" bindinput="onEditBrandName" />
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">名片一句话简介</text>
+          <input class="ef-input" value="{{editForm.tagline}}" bindinput="onEditTagline" />
+        </view>
+        <view class="ef-row">
+          <view class="ef-group half">
+            <text class="ef-label">联系电话</text>
+            <input class="ef-input" value="{{editForm.phone}}" bindinput="onEditPhone" />
+          </view>
+          <view class="ef-group half">
+            <text class="ef-label">顾问微信号</text>
+            <input class="ef-input" value="{{editForm.wechat}}" bindinput="onEditWechat" />
+          </view>
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">开篇欢迎导语</text>
+          <textarea class="ef-textarea small" value="{{editForm.greeting}}" bindinput="onEditGreeting"></textarea>
+        </view>
+        <view class="ef-group">
+          <text class="ef-label">一、机构简介（正文）</text>
+          <textarea class="ef-textarea" value="{{editForm.aboutContent}}" bindinput="onEditAbout"></textarea>
+        </view>
+      </scroll-view>
+      <view class="wm-btns">
+        <view class="wm-btn cancel" bindtap="closeEditModal">取消</view>
+        <view class="wm-btn confirm" bindtap="saveBrochureEdit">保存立即生效</view>
+      </view>
+    </view>
+  </view>
+</view>

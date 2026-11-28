@@ -10,6 +10,8 @@ const AUTH_KEY = 'yj_saas_auth_session_v1';
 const TENANTS_KEY = 'yj_saas_tenants_v1';
 const CURRENT_TENANT_KEY = 'yj_saas_current_tenant_v1';
 const BRAND_KEY_PREFIX = 'yj_saas_brand_';
+const CLIENT_PASSWORDS_KEY = 'yj_saas_client_passwords_v1';
+const BROCHURE_KEY_PREFIX = 'yj_saas_brochure_';
 const PLATFORM_PASSCODE = '9999'; // 平台方（您本人）超级管理员口令
 const DEFAULT_TENANT_ID = 'tenant_yanjie';
 const TRIAL_DAYS = 14;
@@ -399,28 +401,29 @@ const INDUSTRY_PRESETS = {
 
 // ==================== 白牌化品牌配置读写接口 ====================
 
-// 平台通用中性门户配置（未进入具体工作室 / 导师退出登录后展示，不含任何特定导师品牌）
+// 臻言咨询平台通用中性门户配置（未进入具体工作室 / 导师退出登录后展示，不含任何特定导师个人品牌）
 const PLATFORM_DEFAULT_BRAND = {
   isPlatformDefault: true,
   presetKey: 'platform',
-  navTitle: '高定咨询空间',
-  brandName: '高 定 咨 询 空 间',
-  brandSubtitle: 'PRIVATE CONSULTING SAAS PLATFORM',
-  mission: '为每一位商业咨询导师打造独立的高客单数字化交付系统',
-  vision: '一个账号拥有独立门户 · 客户过程留档 · 交付结果可衡量',
-  philosophy: '每个导师都是独立系统 · 客户商业机密严格一对一隔离',
-  mentorName: '入驻咨询导师',
-  mentorBadge: '多租户 SaaS 平台',
-  mentorTitle: '支持商业操盘 / 财税股权 / 美业大健康等高客单咨询机构入驻',
-  mentorMotto: '“无需自建服务器与小程序，10秒开通属于你的高奢咨询工作室。”',
+  logo: '/images/logo-zhenyan.png',
+  navTitle: '臻言咨询',
+  brandName: '臻 言 咨 询',
+  brandSubtitle: 'ZHENYAN BUSINESS ADVISORY PLATFORM',
+  mission: '汇聚严选商业导师，为企业提供专业、可落地的数字化咨询交付系统',
+  vision: '一个账号拥有独立工作室 · 咨询过程留档 · 交付成果可追踪',
+  philosophy: '每位导师都是独立咨询空间 · 客户商业机密严格一对一隔离',
+  mentorName: '臻言严选导师团',
+  mentorBadge: '臻言咨询官方平台',
+  mentorTitle: '支持商业策略 / 财税股权 / 美业连锁等专业咨询团队入驻',
+  mentorMotto: '“无需自建服务器与小程序，10秒开通属于你的臻言独立咨询工作室。”',
   stat1Num: '1个账号',
   stat1Tag: '拥有独立咨询系统',
   stat2Num: '100%',
   stat2Tag: '跨工作室数据隔离',
   stat3Num: '5步闭环',
-  stat3Tag: '全程留档交付战果',
-  wechat: 'saas_platform_kf',
-  phone: '400-880-0000',
+  stat3Tag: '全程留档交付成果',
+  wechat: 'zhenyan_advisory',
+  phone: '400-880-6699',
   services: INDUSTRY_PRESETS.yanjie.services,
   cases: INDUSTRY_PRESETS.yanjie.cases
 };
@@ -547,6 +550,11 @@ function getDefaultProjects() {
           diagnosis: '销售顾问在报出 2.98 万以上价格时心理发虚，习惯性主动打折让利，缺乏“顾问式价值探寻”与情绪价值铺垫能力。',
           solution: '导入独创「3阶奢侈品价值锚定话术」，将推销单次项目转化为“定制年度年轻态身份方案”，现场逐一通关考核 6 名核心顾问，并敲定周六闭门沙龙促单动线。',
           consultantNote: '团队执行力极强，店长在模拟演练后第二天即用新话术拿下了首单 2.98万 试水成交！',
+          clientRating: 0,
+          clientFeedback: '',
+          clientFeedbackTime: '',
+          consultantReply: '',
+          consultantReplyTime: '',
           actionItems: [
             {
               id: 'ACT-201',
@@ -572,6 +580,11 @@ function getDefaultProjects() {
           diagnosis: '门店过度依赖 399/699 团购引流，顾问每天接待大量羊毛党沦为客服，真正有消费力的高净值客户缺乏专属升单阶梯，净利率不足 12%。',
           solution: '果断砍掉 70% 低效走量耗品，围绕“抗衰长效管理 + 名媛圈层身份认同”重构「2.98万年度美学私享卡」与「9.8万家族高定黑卡」双层高客单产品矩阵。',
           consultantNote: '创始人认知升级非常快，当场拍板停止低价团购投放，全力转向私域高客单深耕。',
+          clientRating: 5,
+          clientFeedback: '第一次跟导师做完底层商业模式拆解，一下看清了之前忙着低价团购却不赚钱的死结！高定黑卡分层设计非常落地，当晚我们就开会拍板执行了。',
+          clientFeedbackTime: '2026-11-12 20:15',
+          consultantReply: '收到李总反馈！执行果断就是核心竞争力，接下来重点盯好 TOP 50 老客分级与 VIP 问诊室落地细节。',
+          consultantReplyTime: '2026-11-12 20:42',
           actionItems: [
             {
               id: 'ACT-101',
@@ -1055,13 +1068,48 @@ function platformEnterTenant(tenantId) {
 }
 
 // 演示用：当前工作室下的客户手机号提示（正式上线请删除）
+// 平台入口（tenantId 为空）时展示跨工作室代表客户及所属工作室名，方便演示自动路由登录
 function getDemoClientHints() {
   const tenantId = getCurrentTenantId();
   const seen = {};
+  if (tenantId) {
+    return getProjects()
+      .filter(p => p.tenantId === tenantId && !seen[p.phone] && (seen[p.phone] = true))
+      .slice(0, 3)
+      .map(p => ({ name: p.name, phone: p.phone }));
+  }
   return getProjects()
-    .filter(p => p.tenantId === tenantId && !seen[p.phone] && (seen[p.phone] = true))
+    .filter(p => p.tenantId && !seen[p.phone] && (seen[p.phone] = true))
     .slice(0, 3)
-    .map(p => ({ name: p.name, phone: p.phone }));
+    .map(p => {
+      const studio = getTenantById(p.tenantId);
+      return {
+        name: p.name,
+        phone: p.phone,
+        studioName: studio ? studio.studioName : ''
+      };
+    });
+}
+
+// 平台首页公开展示的严选导师列表（仅暴露安全公开字段，不含手机号/密码等私密信息）
+function getPublicMentors() {
+  return getTenants()
+    .filter(t => getTenantStatus(t).ok)
+    .map(t => {
+      const brand = getBrandConfig(t.tenantId);
+      return {
+        tenantId: t.tenantId,
+        studioName: t.studioName,
+        mentorName: t.mentorName || brand.mentorName || '',
+        mentorBadge: brand.mentorBadge || '严选导师',
+        mentorTitle: brand.mentorTitle || '',
+        philosophy: brand.philosophy || '',
+        stat1Num: brand.stat1Num || '',
+        stat1Tag: brand.stat1Tag || '',
+        stat2Num: brand.stat2Num || '',
+        stat2Tag: brand.stat2Tag || ''
+      };
+    });
 }
 
 // ==================== 登录与权限会话管理 ====================
@@ -1095,36 +1143,137 @@ function isPlatformSession() {
   return s.role === 'platform' || !!s.byPlatform;
 }
 
-function loginAsClient(phone, verifyCode) {
+// ==================== 客户专属密码管理 ====================
+
+function defaultPasswordFromPhone(phone) {
+  const clean = (phone || '').replace(/\s+/g, '');
+  return clean.length >= 6 ? clean.slice(-6) : '123456';
+}
+
+function generateRandomPassword() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function getClientPasswordMap() {
+  const map = wx.getStorageSync(CLIENT_PASSWORDS_KEY);
+  return map && typeof map === 'object' ? map : {};
+}
+
+function saveClientPasswordMap(map) {
+  wx.setStorageSync(CLIENT_PASSWORDS_KEY, map);
+}
+
+function getClientPassword(phone) {
   const cleanPhone = (phone || '').trim();
+  if (!cleanPhone) return '';
+  const map = getClientPasswordMap();
+  if (typeof map[cleanPhone] === 'string' && map[cleanPhone]) {
+    return map[cleanPhone];
+  }
+  return defaultPasswordFromPhone(cleanPhone);
+}
+
+function setClientPassword(phone, password) {
+  const cleanPhone = (phone || '').trim();
+  const cleanPass = (password || '').trim();
+  if (!cleanPhone) return { ok: false, msg: '手机号不能为空' };
+  if (cleanPass.length < 4) return { ok: false, msg: '登录密码不能少于 4 位' };
+  const map = getClientPasswordMap();
+  map[cleanPhone] = cleanPass;
+  saveClientPasswordMap(map);
+  return { ok: true, password: cleanPass };
+}
+
+function changeClientPassword(phone, oldPass, newPass) {
+  const cleanPhone = (phone || '').trim();
+  const cleanOld = (oldPass || '').trim();
+  const cleanNew = (newPass || '').trim();
+  if (!cleanPhone) return { ok: false, msg: '未检测到登录手机号' };
+  if (!cleanOld) return { ok: false, msg: '请输入原登录密码' };
+  if (cleanOld !== getClientPassword(cleanPhone)) return { ok: false, msg: '原登录密码不正确' };
+  if (cleanNew.length < 4) return { ok: false, msg: '新密码不能少于 4 位' };
+  return setClientPassword(cleanPhone, cleanNew);
+}
+
+function resetClientPassword(phone, customPassword) {
+  const targetPass = (customPassword || '').trim() || generateRandomPassword();
+  return setClientPassword(phone, targetPass);
+}
+
+function loginAsClient(phone, password) {
+  const cleanPhone = (phone || '').trim();
+  const cleanPass = (password || '').trim();
   if (!cleanPhone) {
     return { ok: false, msg: '请输入您下单时预留的手机号' };
   }
-  const tenantId = getCurrentTenantId();
-  if (!tenantId) {
-    return {
-      ok: false,
-      msg: '请先选择您签约的导师工作室（或从导师分享链接进入）后再登录'
-    };
+  if (!cleanPass) {
+    return { ok: false, msg: '请输入专属登录密码' };
   }
+
+  const currentTid = getCurrentTenantId();
   const all = getProjects();
-  // 只在当前工作室内查找该手机号的项目
-  const matched = all.filter(p => p.phone === cleanPhone && p.tenantId === tenantId);
-  if (matched.length === 0) {
+
+  if (currentTid) {
+    // 已在具体工作室内：严格按当前工作室隔离校验
+    const matched = all.filter(p => p.phone === cleanPhone && p.tenantId === currentTid);
+    if (matched.length === 0) {
+      return {
+        ok: false,
+        msg: '未查询到该手机号名下的咨询项目，请先在线下单或联系顾问建档'
+      };
+    }
+    if (cleanPass !== getClientPassword(cleanPhone)) {
+      return {
+        ok: false,
+        msg: '登录密码不正确，请核对后重试或联系导师重置'
+      };
+    }
+    const session = {
+      role: 'client',
+      tenantId: currentTid,
+      clientPhone: cleanPhone,
+      clientName: matched[0].name,
+      staffName: ''
+    };
+    wx.setStorageSync(AUTH_KEY, session);
+    return { ok: true, session, count: matched.length, autoRoutedStudio: '' };
+  }
+
+  // 处于平台总入口：先校验手机号是否有项目及密码是否正确，再自动路由到所属工作室
+  const matchedAll = all.filter(p => p.phone === cleanPhone && p.tenantId);
+  if (matchedAll.length === 0) {
     return {
       ok: false,
-      msg: '未查询到该手机号名下的咨询项目，请先在线下单或联系顾问建档'
+      msg: '未查询到该手机号名下的咨询项目，请先预约立项或联系顾问建档'
     };
   }
+  if (cleanPass !== getClientPassword(cleanPhone)) {
+    return {
+      ok: false,
+      msg: '登录密码不正确，请核对后重试或联系导师重置'
+    };
+  }
+  const targetTid = matchedAll[0].tenantId;
+  const studio = getTenantById(targetTid);
+  if (!studio) {
+    return { ok: false, msg: '所属导师工作室不存在，请联系平台客服' };
+  }
+  setCurrentTenant(targetTid);
+  const tenantMatches = matchedAll.filter(p => p.tenantId === targetTid);
   const session = {
     role: 'client',
-    tenantId,
+    tenantId: targetTid,
     clientPhone: cleanPhone,
-    clientName: matched[0].name,
+    clientName: tenantMatches[0].name,
     staffName: ''
   };
   wx.setStorageSync(AUTH_KEY, session);
-  return { ok: true, session, count: matched.length };
+  return {
+    ok: true,
+    session,
+    count: tenantMatches.length,
+    autoRoutedStudio: studio.studioName
+  };
 }
 
 // 导师（工作室主理人）登录：手机号 + 密码，登录后自动切换到自己的工作室
@@ -1248,7 +1397,10 @@ function getProjectById(id) {
 
 function createOrder(payload) {
   const list = getProjects();
-  const cfg = getBrandConfig();
+  const targetTenantId = (payload.tenantId && getTenantById(payload.tenantId))
+    ? payload.tenantId
+    : getCurrentTenantId();
+  const cfg = getBrandConfig(targetTenantId);
   const catalog = cfg.services || INDUSTRY_PRESETS.yanjie.services;
   const plan = catalog.find(s => s.name === payload.type) || catalog[0];
   const isPaid = payload.isPaid;
@@ -1274,7 +1426,7 @@ function createOrder(payload) {
 
   const newOrder = {
     id: 'YY' + Date.now().toString().slice(-8),
-    tenantId: getCurrentTenantId(),
+    tenantId: targetTenantId,
     name: cleanName,
     phone: cleanPhone,
     industry: (payload.industry || '未注明行业').trim(),
@@ -1314,6 +1466,11 @@ function createOrder(payload) {
         diagnosis: `客户核心诉求：${(payload.problem || '期待突破低客单内卷，打造高溢价商业闭环').trim()}`,
         solution: '首次问诊将重点拆解现有产品线利润结构、目标高净值客群画像，并制定第一阶段高客单破局切入点。',
         consultantNote: isPaid ? '客户已支付立项，优先安排本周核心排期。' : '待顾问与客户确认具体问诊时间。',
+        clientRating: 0,
+        clientFeedback: '',
+        clientFeedbackTime: '',
+        consultantReply: '',
+        consultantReplyTime: '',
         actionItems: [
           {
             id: 'ACT-' + Date.now().toString().slice(-4) + '1',
@@ -1347,11 +1504,26 @@ function createOrder(payload) {
   list.unshift(newOrder);
   saveProjects(list);
 
+  // 为该客户手机号初始化或更新专属登录密码
+  const passMap = getClientPasswordMap();
+  const customPass = (payload.clientPassword || '').trim();
+  if (customPass.length >= 4) {
+    passMap[cleanPhone] = customPass;
+    saveClientPasswordMap(passMap);
+  } else if (!passMap[cleanPhone]) {
+    passMap[cleanPhone] = defaultPasswordFromPhone(cleanPhone);
+    saveClientPasswordMap(passMap);
+  }
+  newOrder.assignedPassword = getClientPassword(cleanPhone);
+
   const currentSession = getAuthSession();
   if (!payload.fromAdmin && currentSession.role !== 'admin') {
+    if (targetTenantId) {
+      setCurrentTenant(targetTenantId);
+    }
     wx.setStorageSync(AUTH_KEY, {
       role: 'client',
-      tenantId: getCurrentTenantId(),
+      tenantId: targetTenantId,
       clientPhone: cleanPhone,
       clientName: cleanName,
       staffName: ''
@@ -1473,12 +1645,17 @@ function addConsultSession(projectId, sessionData) {
     sessionId: 'SES-' + Date.now().toString().slice(-6),
     sessionNo: nextNo,
     title: sessionData.title || `第 ${nextNo} 次商业闭门深度咨询推演`,
-    date: sessionData.date || nowStr,
+    date: (sessionData.date || '').trim() || nowStr,
     mode: sessionData.mode || '1V1 闭门私董会推演',
     participants: sessionData.participants || `${cfg.mentorName}、${proj.name}及核心高管`,
     diagnosis: sessionData.diagnosis || '',
     solution: sessionData.solution || '',
     consultantNote: sessionData.consultantNote || '请按课后行动清单推进执行，随时在群内及小程序反馈卡点。',
+    clientRating: 0,
+    clientFeedback: '',
+    clientFeedbackTime: '',
+    consultantReply: '',
+    consultantReplyTime: '',
     actionItems: actionItems
   };
 
@@ -1487,6 +1664,102 @@ function addConsultSession(projectId, sessionData) {
   if (proj.status === '待初审') {
     proj.status = '服务进行中';
   }
+  saveProjects(list);
+  return proj;
+}
+
+function updateConsultSession(projectId, sessionId, sessionData) {
+  const list = getProjects();
+  const proj = list.find(p => p.id === projectId);
+  if (!proj || !Array.isArray(proj.sessions)) return null;
+
+  const session = proj.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return proj;
+
+  const nowStr = formatTime(new Date());
+  if (typeof sessionData.title === 'string' && sessionData.title.trim()) {
+    session.title = sessionData.title.trim();
+  }
+  if (typeof sessionData.date === 'string' && sessionData.date.trim()) {
+    session.date = sessionData.date.trim();
+  }
+  if (typeof sessionData.mode === 'string') {
+    session.mode = sessionData.mode.trim() || session.mode;
+  }
+  if (typeof sessionData.participants === 'string') {
+    session.participants = sessionData.participants.trim() || session.participants;
+  }
+  if (typeof sessionData.diagnosis === 'string') {
+    session.diagnosis = sessionData.diagnosis.trim();
+  }
+  if (typeof sessionData.solution === 'string') {
+    session.solution = sessionData.solution.trim();
+  }
+  if (typeof sessionData.consultantNote === 'string') {
+    session.consultantNote = sessionData.consultantNote.trim();
+  }
+
+  if (typeof sessionData.actionsText === 'string') {
+    const rawActions = sessionData.actionsText
+      .split(/[\n；;]/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (rawActions.length > 0) {
+      const existing = Array.isArray(session.actionItems) ? session.actionItems : [];
+      session.actionItems = rawActions.map((txt, i) => {
+        const matched = existing.find(item => item.text === txt);
+        if (matched) return matched;
+        return {
+          id: 'ACT-' + Date.now().toString().slice(-5) + i,
+          text: txt,
+          done: false,
+          feedback: ''
+        };
+      });
+    }
+  }
+
+  proj.updateTime = nowStr;
+  saveProjects(list);
+  return proj;
+}
+
+function saveSessionClientFeedback(projectId, sessionId, payload) {
+  const list = getProjects();
+  const proj = list.find(p => p.id === projectId);
+  if (!proj || !Array.isArray(proj.sessions)) return null;
+
+  const session = proj.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return proj;
+
+  const rawRating = Number(payload && payload.rating);
+  const clampedRating = Number.isFinite(rawRating)
+    ? Math.min(5, Math.max(1, Math.round(rawRating)))
+    : 5;
+  const nowStr = formatTime(new Date());
+
+  session.clientRating = clampedRating;
+  session.clientFeedback = ((payload && payload.feedback) || '').trim();
+  session.clientFeedbackTime = nowStr;
+
+  proj.updateTime = nowStr;
+  saveProjects(list);
+  return proj;
+}
+
+function replySessionFeedback(projectId, sessionId, replyText) {
+  const list = getProjects();
+  const proj = list.find(p => p.id === projectId);
+  if (!proj || !Array.isArray(proj.sessions)) return null;
+
+  const session = proj.sessions.find(s => s.sessionId === sessionId);
+  if (!session) return proj;
+
+  const nowStr = formatTime(new Date());
+  session.consultantReply = (replyText || '').trim();
+  session.consultantReplyTime = nowStr;
+
+  proj.updateTime = nowStr;
   saveProjects(list);
   return proj;
 }
@@ -1527,6 +1800,130 @@ function updateProjectMetrics(projectId, metricsData) {
   return proj;
 }
 
+// ==================== 多租户电子宣传单与获客名片配置 ====================
+
+function brochureKey(tenantId) {
+  return BROCHURE_KEY_PREFIX + (tenantId || 'platform');
+}
+
+function buildDefaultBrochure(tenantId) {
+  const tid = tenantId !== undefined ? tenantId : getCurrentTenantId();
+  if (!tid) {
+    return {
+      isPlatform: true,
+      tenantId: '',
+      title: '臻言咨询 · 商业顾问与企业交付协同平台',
+      author: '臻言咨询官方平台',
+      publishDate: '2026-11-27',
+      views: 2486,
+      shares: 427,
+      greeting: 'Hello，欢迎了解臻言咨询——汇聚严选实战商业导师，为成长型企业与创始人提供专业咨询与交付服务。',
+      brandName: '臻言咨询',
+      mentorName: '臻言严选导师团',
+      mentorTitle: '严选商业策略 / 财税股权 / 美业连锁多领域顾问',
+      tagline: '严选实战导师入驻 · 一客一档全闭环咨询交付',
+      avatar: '/images/logo-zhenyan.png',
+      phone: '400-880-6699',
+      wechat: 'zhenyan_advisory',
+      wechatNote: '添加平台客服微信，为您匹配对应赛道实战导师或办理导师入驻',
+      sections: [
+        {
+          heading: '一、关于臻言咨询',
+          content: '臻言咨询是面向企业主、实体连锁及知识商业创始人的商业顾问服务平台，汇聚商业模式操盘、财税股权、高端美业等多赛道严选导师，帮助企业打造高价值产品体系与可复制成交模型。'
+        },
+        {
+          heading: '二、五大闭环交付标准',
+          content: '从「01 资质初筛 → 02 深度问诊 → 03 全案输出 → 04 陪跑落地 → 05 复盘迭代」，每一次 1V1 咨询结论实时留档、课后落地行动项打卡反馈、阶段交付文档确认验收，让咨询价值清晰可见。'
+        },
+        {
+          heading: '三、严格隐私与独立空间',
+          content: '平台采用「工作室物理隔离 + 客户账号密码」双层加密体系，每位签约客户拥有独立专属空间，仅限本人凭账号密码查阅与反馈，商业机密绝不外泄。'
+        },
+        {
+          heading: '四、欢迎咨询导师入驻',
+          content: '在细分赛道具备成熟方法论与交付能力的资深顾问、私董导师，无需自建服务器或开发小程序，10 秒即可在臻言平台开通独立工作室门户与客户交付工作台。'
+        }
+      ]
+    };
+  }
+
+  const brand = getBrandConfig(tid);
+  return {
+    isPlatform: false,
+    tenantId: tid,
+    title: `${brand.navTitle} · 机构简介与顾问服务方案`,
+    author: brand.navTitle,
+    publishDate: '2026-11-27',
+    views: 1280,
+    shares: 215,
+    greeting: `Hello，欢迎了解${brand.navTitle}——${brand.philosophy}`,
+    brandName: brand.navTitle,
+    mentorName: brand.mentorName,
+    mentorTitle: brand.mentorTitle,
+    tagline: brand.mission,
+    avatar: '/images/avatar.png',
+    phone: brand.phone,
+    wechat: brand.wechat,
+    wechatNote: `添加时请备注【公司+行业】，由${brand.mentorName}团队为您安排 1V1 咨询评估`,
+    sections: [
+      {
+        heading: '一、机构简介',
+        content: `${brand.navTitle}由${brand.mentorName}领衔（${brand.mentorTitle}），专注于${brand.mission}。`
+      },
+      {
+        heading: '二、咨询核心理念',
+        content: `${brand.philosophy}。${brand.vision}。`
+      },
+      {
+        heading: '三、标准五步交付闭环',
+        content: '依托臻言咨询平台标准化交付底座，全流程留档每次 1V1 深度问诊诊断、落地方案与课后执行打卡，客户可对每次咨询进行评分与反馈，确保交付效果持续可见。'
+      },
+      {
+        heading: '四、合作与预约方式',
+        content: `已服务的标杆成果指标：${brand.stat1Num}${brand.stat1Tag}、${brand.stat2Num}${brand.stat2Tag}。点击上方「打电话」或「联系顾问」即可对接预约 1V1 商业诊断。`
+      }
+    ]
+  };
+}
+
+function getBrochureConfig(tenantId) {
+  const tid = tenantId !== undefined ? tenantId : getCurrentTenantId();
+  const key = brochureKey(tid);
+  let cfg = wx.getStorageSync(key);
+  if (!cfg || !cfg.title || !Array.isArray(cfg.sections)) {
+    cfg = buildDefaultBrochure(tid);
+    wx.setStorageSync(key, cfg);
+  }
+  return cfg;
+}
+
+function saveBrochureConfig(patch, tenantId) {
+  const tid = tenantId !== undefined ? tenantId : getCurrentTenantId();
+  const current = getBrochureConfig(tid);
+  const merged = {
+    ...current,
+    ...patch
+  };
+  wx.setStorageSync(brochureKey(tid), merged);
+  return merged;
+}
+
+function recordBrochureView(tenantId) {
+  const tid = tenantId !== undefined ? tenantId : getCurrentTenantId();
+  const current = getBrochureConfig(tid);
+  current.views = (Number(current.views) || 0) + 1;
+  wx.setStorageSync(brochureKey(tid), current);
+  return current;
+}
+
+function recordBrochureShare(tenantId) {
+  const tid = tenantId !== undefined ? tenantId : getCurrentTenantId();
+  const current = getBrochureConfig(tid);
+  current.shares = (Number(current.shares) || 0) + 1;
+  wx.setStorageSync(brochureKey(tid), current);
+  return current;
+}
+
 // 只重置「当前工作室」的数据，不影响其他导师
 function resetDemoData() {
   const tenantId = getCurrentTenantId();
@@ -1555,6 +1952,11 @@ module.exports = {
   DELIVERY_STEPS,
   PLATFORM_PASSCODE,
   TRIAL_DAYS,
+  generateRandomPassword,
+  getClientPassword,
+  setClientPassword,
+  changeClientPassword,
+  resetClientPassword,
   getBrandConfig,
   saveBrandConfig,
   applyIndustryPreset,
@@ -1572,6 +1974,7 @@ module.exports = {
   toggleFreezeTenant,
   getTenantStats,
   platformEnterTenant,
+  getPublicMentors,
   getDemoClientHints,
   getAuthSession,
   isPlatformSession,
@@ -1591,7 +1994,14 @@ module.exports = {
   saveClientReview,
   updateProjectStep,
   addConsultSession,
+  updateConsultSession,
+  saveSessionClientFeedback,
+  replySessionFeedback,
   addDeliverable,
   updateProjectMetrics,
+  getBrochureConfig,
+  saveBrochureConfig,
+  recordBrochureView,
+  recordBrochureShare,
   resetDemoData
 };

@@ -1,5 +1,5 @@
 {
-  "description": "岩姐商业咨询小程序",
+  "description": "臻言咨询 · 商业咨询与导师交付平台",
   "setting": {
     "urlCheck": false,
     "es6": true,
@@ -26,10 +26,19 @@
   "compileType": "miniprogram",
   "libVersion": "3.3.4",
   "appid": "wx79292bd386fd65f9",
-  "projectname": "yanjie-consulting",
+  "projectname": "zhenyan-consulting",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": ".codegraph"
+      },
+      {
+        "type": "folder",
+        "value": ".codebase-memory"
+      }
+    ],
     "include": []
   },
   "editorSetting": {}

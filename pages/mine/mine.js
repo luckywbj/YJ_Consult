@@ -13,9 +13,15 @@ Page({
       visible: false,
       mode: 'client', // 'client' | 'admin'
       phone: '',
-      code: '6666',
+      code: '',
       mentorPhone: '',
       adminPass: ''
+    },
+    changePassModal: {
+      visible: false,
+      oldPass: '',
+      newPass: '',
+      confirmPass: ''
     },
     faqList: [
       {
@@ -63,11 +69,8 @@ Page({
     });
   },
 
-  enterStudio(e) {
-    const tid = e.currentTarget.dataset.id;
-    consultStore.setCurrentTenant(tid);
-    this.refreshState();
-    wx.showToast({ title: `已进入「${this.data.brand.navTitle}」`, icon: 'none' });
+  goToHome() {
+    wx.switchTab({ url: '/pages/index/index' });
   },
 
   exitStudioToPlatform() {
@@ -92,7 +95,7 @@ Page({
         visible: true,
         mode,
         phone: '',
-        code: '6666',
+        code: '',
         mentorPhone: mode === 'admin' && tenant ? tenant.ownerPhone : '',
         adminPass: mode === 'admin' ? '8888' : ''
       }
@@ -133,10 +136,54 @@ Page({
 
   quickFillClient(e) {
     const phone = e.currentTarget.dataset.phone;
+    const currentPass = consultStore.getClientPassword(phone);
     this.setData({
       'loginModal.phone': phone,
-      'loginModal.code': '6666'
+      'loginModal.code': currentPass
     });
+  },
+
+  openChangePassModal() {
+    if (this.data.auth.role !== 'client') return;
+    this.setData({
+      changePassModal: {
+        visible: true,
+        oldPass: '',
+        newPass: '',
+        confirmPass: ''
+      }
+    });
+  },
+
+  closeChangePassModal() {
+    this.setData({ 'changePassModal.visible': false });
+  },
+
+  onOldPassInput(e) { this.setData({ 'changePassModal.oldPass': e.detail.value }); },
+  onNewPassInput(e) { this.setData({ 'changePassModal.newPass': e.detail.value }); },
+  onConfirmPassInput(e) { this.setData({ 'changePassModal.confirmPass': e.detail.value }); },
+
+  submitChangePassword() {
+    const { oldPass, newPass, confirmPass } = this.data.changePassModal;
+    if (!oldPass.trim() || !newPass.trim()) {
+      wx.showToast({ title: '请填写原密码与新密码', icon: 'none' });
+      return;
+    }
+    if (newPass.trim() !== confirmPass.trim()) {
+      wx.showToast({ title: '两次输入的新密码不一致', icon: 'none' });
+      return;
+    }
+    const res = consultStore.changeClientPassword(
+      this.data.auth.clientPhone,
+      oldPass.trim(),
+      newPass.trim()
+    );
+    if (!res.ok) {
+      wx.showToast({ title: res.msg, icon: 'none' });
+      return;
+    }
+    this.setData({ 'changePassModal.visible': false });
+    wx.showToast({ title: '登录密码修改成功', icon: 'success' });
   },
 
   quickFillMentor(e) {
@@ -157,7 +204,7 @@ Page({
     this.setData({ 'loginModal.visible': false });
     this.refreshState();
     wx.showToast({
-      title: `欢迎您，${res.session.clientName}`,
+      title: res.autoRoutedStudio ? `已自动进入「${res.autoRoutedStudio}」空间` : `欢迎您，${res.session.clientName}`,
       icon: 'success'
     });
   },
@@ -203,6 +250,10 @@ Page({
 
   goToPlatform() {
     wx.navigateTo({ url: '/pages/platform/platform' });
+  },
+
+  openBrochure() {
+    wx.navigateTo({ url: '/pages/brochure/brochure' });
   },
 
   openProjectSpace(e) {

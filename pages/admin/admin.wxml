@@ -68,28 +68,38 @@
     </view>
   </view>
 
-  <!-- 操作模块切换导航（5个模块一屏完整并排展示，无需左右滑动） -->
-  <view class="admin-tabs">
-    <view class="a-tab {{adminTab === 0 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="0">
-      1.录过程
+  <!-- 操作模块切换导航（5张无序号抽屉卡片，高亮卡片向下延伸与下方正文面板融为一体） -->
+  <view class="module-nav-row">
+    <view class="module-card {{adminTab === 0 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="0">
+      <text class="mc-icon">📝</text>
+      <text class="mc-name">咨询</text>
+      <view class="mc-bridge" wx:if="{{adminTab === 0}}"></view>
     </view>
-    <view class="a-tab {{adminTab === 1 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="1">
-      2.发方案
+    <view class="module-card {{adminTab === 1 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="1">
+      <text class="mc-icon">📄</text>
+      <text class="mc-name">方案</text>
+      <view class="mc-bridge" wx:if="{{adminTab === 1}}"></view>
     </view>
-    <view class="a-tab {{adminTab === 2 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="2">
-      3.改战果
+    <view class="module-card {{adminTab === 2 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="2">
+      <text class="mc-icon">📈</text>
+      <text class="mc-name">战果</text>
+      <view class="mc-bridge" wx:if="{{adminTab === 2}}"></view>
     </view>
-    <view class="a-tab {{adminTab === 3 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="3">
-      4.新建档
+    <view class="module-card {{adminTab === 3 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="3">
+      <text class="mc-icon">👤</text>
+      <text class="mc-name">建档</text>
+      <view class="mc-bridge" wx:if="{{adminTab === 3}}"></view>
     </view>
-    <view class="a-tab highlight-tab {{adminTab === 4 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="4">
-      5.⚙️标品装修
+    <view class="module-card highlight-card {{adminTab === 4 ? 'active' : ''}}" bindtap="switchAdminTab" data-tab="4">
+      <text class="mc-icon">⚙️</text>
+      <text class="mc-name">装修</text>
+      <view class="mc-bridge" wx:if="{{adminTab === 4}}"></view>
     </view>
   </view>
 
   <!-- 新工作室还没有客户时，前三个模块给出引导 -->
-  <view class="admin-panel" wx:if="{{!project && adminTab < 3}}">
-    <view class="panel-card luxury-card empty-guide">
+  <view class="admin-panel tab-{{adminTab}}" wx:if="{{!project && adminTab < 3}}">
+    <view class="panel-card luxury-card empty-guide connected-panel">
       <text class="eg-icon">🗂️</text>
       <text class="panel-title">还没有客户项目</text>
       <text class="panel-sub">先为客户建档，或把你的门户分享给客户在线下单，之后就能在这里录入咨询过程与交付方案。</text>
@@ -98,17 +108,30 @@
   </view>
 
   <!-- ==================== 模块 0：录入每次咨询过程记录 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 0 && project}}">
-    <view class="panel-card luxury-card">
+  <view class="admin-panel tab-0" wx:if="{{adminTab === 0 && project}}">
+    <view class="panel-card luxury-card connected-panel">
       <view class="panel-title-row">
-        <text class="panel-title">新增第 {{project.sessions.length + 1}} 次咨询过程纪要</text>
-        <text class="quick-fill-btn" bindtap="fillDemoSession">⚡ 一键填入示例数据</text>
+        <text class="panel-title">{{editingSessionId ? '编辑第 ' + editingSessionNo + ' 次咨询过程纪要' : '新增第 ' + (project.sessions.length + 1) + ' 次咨询过程纪要'}}</text>
+        <view class="title-actions">
+          <text class="cancel-edit-btn" wx:if="{{editingSessionId}}" bindtap="cancelEditSession">取消编辑</text>
+          <text class="quick-fill-btn" wx:else bindtap="fillDemoSession">⚡ 一键填入示例数据</text>
+        </view>
       </view>
       <text class="panel-sub">保存后将实时同步至【{{project.name}}】的咨询过程时间轴，并向客户派发课后落地行动项。</text>
 
       <view class="f-group">
         <text class="f-label">本次咨询主题 *</text>
         <input class="f-input" placeholder="如：高客单产品矩阵重构与首场私享会发售推演" value="{{sessionForm.title}}" bindinput="onSesTitle" />
+      </view>
+
+      <view class="f-group">
+        <view class="label-with-action">
+          <text class="f-label">咨询日期 / 时间 *</text>
+          <picker mode="date" value="{{sessionForm.date}}" bindchange="onSesDatePick">
+            <text class="date-pick-tag">📅 日历选期</text>
+          </picker>
+        </view>
+        <input class="f-input" placeholder="如：2026-11-27 或 2026-11-27 14:30" value="{{sessionForm.date}}" bindinput="onSesDate" />
       </view>
 
       <view class="f-row">
@@ -142,26 +165,57 @@
         <input class="f-input" placeholder="对客户团队执行力的点评或下一阶段重点叮嘱" value="{{sessionForm.consultantNote}}" bindinput="onSesNote" />
       </view>
 
-      <button class="gold-btn full-btn" bindtap="submitNewSession">保存并同步至客户交付空间</button>
+      <button class="gold-btn full-btn" bindtap="submitNewSession">{{editingSessionId ? '保存修改并同步至客户空间' : '保存并同步至客户交付空间'}}</button>
     </view>
 
     <!-- 已录入的咨询场次列表预览 -->
     <view class="history-card luxury-card">
-      <text class="his-title">该项目已录入的咨询过程 ({{project.sessions.length}} 场)</text>
+      <view class="his-head-row">
+        <text class="his-title">该项目已录入的咨询过程 ({{project.sessions.length}} 场)</text>
+        <text class="his-feedback-stat" wx:if="{{feedbackCount > 0}}">{{feedbackCount}} 场有评价</text>
+      </view>
       <view class="his-item" wx:for="{{project.sessions}}" wx:key="sessionId">
         <view class="his-top">
-          <text class="his-badge">第 {{item.sessionNo}} 次</text>
-          <text class="his-date">{{item.date}}</text>
+          <view class="his-top-left">
+            <text class="his-badge">第 {{item.sessionNo}} 次</text>
+            <text class="his-date">{{item.date}}</text>
+          </view>
+          <text class="his-edit-btn" bindtap="editSessionItem" data-sesid="{{item.sessionId}}">✏️ 编辑</text>
         </view>
         <text class="his-name">{{item.title}}</text>
         <text class="his-sub">含 {{item.actionItems.length}} 项课后落地任务</text>
+
+        <!-- 客户单场反馈及导师回复 -->
+        <view class="his-client-fb" wx:if="{{item.clientFeedback || item.clientRating > 0}}">
+          <view class="hcf-top">
+            <text class="hcf-tag">客户评价 · {{item.clientRating || 5}}.0 ★</text>
+            <text class="hcf-time" wx:if="{{item.clientFeedbackTime}}">{{item.clientFeedbackTime}}</text>
+          </view>
+          <text class="hcf-txt" wx:if="{{item.clientFeedback}}">“{{item.clientFeedback}}”</text>
+
+          <view class="hcf-reply" wx:if="{{item.consultantReply}}">
+            <text class="hcf-reply-label">我的回复：</text>
+            <text class="hcf-reply-txt">{{item.consultantReply}}</text>
+          </view>
+          <view class="hcf-actions">
+            <text
+              class="reply-trigger-btn"
+              bindtap="openReplyModal"
+              data-sesid="{{item.sessionId}}"
+              data-sesno="{{item.sessionNo}}"
+              data-sestitle="{{item.title}}"
+              data-feedback="{{item.clientFeedback || ''}}"
+              data-reply="{{item.consultantReply || ''}}"
+            >{{item.consultantReply ? '修改回复' : '💬 回复客户评价'}}</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
 
   <!-- ==================== 模块 1：上传/发布阶段交付成果方案 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 1 && project}}">
-    <view class="panel-card luxury-card">
+  <view class="admin-panel tab-1" wx:if="{{adminTab === 1 && project}}">
+    <view class="panel-card luxury-card connected-panel">
       <view class="panel-title-row">
         <text class="panel-title">发布阶段交付方案 / SOP 文档</text>
         <text class="quick-fill-btn" bindtap="fillDemoDeliverable">⚡ 一键填入示例方案</text>
@@ -208,9 +262,9 @@
   </view>
 
   <!-- ==================== 模块 2：推进五步阶段与更新商业战果看板 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 2 && project}}">
+  <view class="admin-panel tab-2" wx:if="{{adminTab === 2 && project}}">
     <!-- 推进 5 步里程碑 -->
-    <view class="panel-card luxury-card">
+    <view class="panel-card luxury-card connected-panel">
       <text class="panel-title">推进项目 5 步闭环交付阶段</text>
       <text class="panel-sub">点击下方阶段节点，立即切换【{{project.name}}】当前所处的交付里程碑：</text>
 
@@ -286,10 +340,10 @@
   </view>
 
   <!-- ==================== 模块 3：为线下签约客户建档立项 ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 3}}">
-    <view class="panel-card luxury-card">
+  <view class="admin-panel tab-3" wx:if="{{adminTab === 3}}">
+    <view class="panel-card luxury-card connected-panel">
       <text class="panel-title">为线下签约客户新建咨询档案</text>
-      <text class="panel-sub">建档后，客户在小程序「我的」页面输入下方绑定的手机号登录，即可查看自己的专属咨询交付空间（与其他客户严格隔离）。</text>
+      <text class="panel-sub">建档后，客户在小程序「我的」页面输入下方绑定的手机号及专属密码登录，即可查看自己的专属咨询交付空间（与其他客户严格隔离）。</text>
 
       <view class="f-group">
         <text class="f-label">客户称呼 / 创始人姓名 *</text>
@@ -299,6 +353,14 @@
       <view class="f-group">
         <text class="f-label">客户登录绑定手机号 *（客户凭此号码登录）</text>
         <input class="f-input highlight" type="number" placeholder="如：13688889999" value="{{newClientForm.phone}}" bindinput="onNewClientPhone" />
+      </view>
+
+      <view class="f-group">
+        <view class="label-with-action">
+          <text class="f-label">客户专属登录密码（4位以上，留空默认手机号后6位）</text>
+          <text class="quick-fill-btn" bindtap="genRandomClientPass">🎲 随机生成</text>
+        </view>
+        <input class="f-input highlight" placeholder="可直接输入或点击右侧随机生成 6 位数字密码" value="{{newClientForm.password}}" bindinput="onNewClientPassword" />
       </view>
 
       <view class="f-group">
@@ -334,9 +396,9 @@
   </view>
 
   <!-- ==================== 模块 4：⚙️ 标品白牌化装修中心（White-Label SaaS 配置） ==================== -->
-  <view class="admin-panel" wx:if="{{adminTab === 4}}">
+  <view class="admin-panel tab-4" wx:if="{{adminTab === 4}}">
     <!-- 卡片1：销售谈单神器——一键切换三大行业标品母版 -->
-    <view class="panel-card luxury-card">
+    <view class="panel-card luxury-card connected-panel">
       <text class="panel-title">⚡ 一键切换行业标品演示母版</text>
       <text class="panel-sub">向不同行业的咨询导师/机构主理人销售演示时，点击下方行业模板即可在 1 秒内完成全站品牌、套餐与案例库切换：</text>
 
@@ -545,6 +607,27 @@
       </view>
 
       <button class="gold-btn full-btn" bindtap="publishNewCase">发布新案例至前端案例库</button>
+    </view>
+  </view>
+
+  <!-- 弹窗：导师回复客户单场反馈 -->
+  <view class="modal-mask" wx:if="{{replyModal.visible}}" bindtap="closeReplyModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <text class="modal-title">回复第 {{replyModal.sessionNo}} 次咨询客户评价</text>
+      <text class="modal-sub">{{replyModal.sessionTitle}}</text>
+      <view class="modal-quote" wx:if="{{replyModal.clientFeedback}}">
+        <text class="mq-txt">客户原话：“{{replyModal.clientFeedback}}”</text>
+      </view>
+      <textarea
+        class="modal-textarea"
+        placeholder="输入导师针对本场反馈的回应或下阶段重点安排..."
+        value="{{replyModal.replyText}}"
+        bindinput="onReplyInput"
+      ></textarea>
+      <view class="modal-btns">
+        <view class="m-btn cancel" bindtap="closeReplyModal">取消</view>
+        <view class="m-btn confirm" bindtap="submitReplyFeedback">发送回复</view>
+      </view>
     </view>
   </view>
 </view>

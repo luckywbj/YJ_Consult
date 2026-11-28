@@ -31,6 +31,7 @@ App({
   },
 
   globalData: {
-    platformName: '高定咨询工作室'
+    platformName: '臻言咨询',
+    platformSubtitle: 'ZHENYAN ADVISORY PLATFORM'
   }
 });

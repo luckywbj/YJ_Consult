@@ -140,6 +140,39 @@
           <text class="remark-label">顾问复盘批注：</text>
           <text class="remark-txt">{{ses.consultantNote}}</text>
         </view>
+
+        <!-- 客户单场满意度评价与建议 -->
+        <view class="session-feedback-box">
+          <view class="sf-header">
+            <view class="sf-title-wrap">
+              <text class="sf-title">本场服务反馈与评价</text>
+              <view class="sf-stars" wx:if="{{ses.clientRating > 0}}">
+                <text class="sf-star {{ses.clientRating >= star ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this">★</text>
+                <text class="sf-score">{{ses.clientRating}}.0分</text>
+              </view>
+            </view>
+            <text
+              class="sf-action-btn"
+              bindtap="openSessionFeedbackModal"
+              data-sesid="{{ses.sessionId}}"
+              data-sesno="{{ses.sessionNo}}"
+              data-sestitle="{{ses.title}}"
+              data-rating="{{ses.clientRating || 5}}"
+              data-feedback="{{ses.clientFeedback || ''}}"
+            >{{ses.clientFeedback ? '修改评价' : '+ 评价本场咨询'}}</text>
+          </view>
+
+          <view class="sf-content" wx:if="{{ses.clientFeedback}}">
+            <text class="sf-text">“{{ses.clientFeedback}}”</text>
+            <text class="sf-time" wx:if="{{ses.clientFeedbackTime}}">评价于 {{ses.clientFeedbackTime}}</text>
+          </view>
+          <text class="sf-empty" wx:else>每次 1V1 咨询结束后，欢迎为顾问的诊断深度与落地帮助打分建议。</text>
+
+          <view class="sf-reply-box" wx:if="{{ses.consultantReply}}">
+            <text class="sf-reply-label">导师回复：</text>
+            <text class="sf-reply-txt">{{ses.consultantReply}}</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
@@ -304,6 +337,48 @@
       <view class="modal-btns">
         <view class="m-btn cancel" bindtap="closeFeedbackModal">取消</view>
         <view class="m-btn confirm" bindtap="saveActionFeedback">保存并打卡完成</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 弹窗：客户对单场咨询满意度评价 -->
+  <view class="modal-mask" wx:if="{{sessionFeedbackModal.visible}}" bindtap="closeSessionFeedbackModal">
+    <view class="modal-box" catchtap="preventBubble">
+      <text class="modal-title">第 {{sessionFeedbackModal.sessionNo}} 次咨询服务评价</text>
+      <text class="modal-sub">{{sessionFeedbackModal.sessionTitle}}</text>
+
+      <view class="star-picker-row">
+        <text
+          class="star-pick-item {{sessionFeedbackModal.rating >= star ? 'active' : ''}}"
+          wx:for="{{[1,2,3,4,5]}}"
+          wx:for-item="star"
+          wx:key="*this"
+          bindtap="onSessionRatingSelect"
+          data-rating="{{star}}"
+        >★</text>
+        <text class="star-pick-label">{{ratingLabels[sessionFeedbackModal.rating - 1]}}</text>
+      </view>
+
+      <view class="quick-tags-row">
+        <text
+          class="q-tag"
+          wx:for="{{quickFeedbackTags}}"
+          wx:key="*this"
+          bindtap="appendFeedbackTag"
+          data-tag="{{item}}"
+        >+ {{item}}</text>
+      </view>
+
+      <textarea
+        class="modal-textarea"
+        placeholder="请分享本场诊断对您的启发，或希望顾问下次重点补充的方向..."
+        value="{{sessionFeedbackModal.feedback}}"
+        bindinput="onSessionFeedbackInput"
+      ></textarea>
+
+      <view class="modal-btns">
+        <view class="m-btn cancel" bindtap="closeSessionFeedbackModal">取消</view>
+        <view class="m-btn confirm" bindtap="submitSessionFeedback">提交本场评价</view>
       </view>
     </view>
   </view>

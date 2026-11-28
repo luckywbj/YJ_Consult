@@ -3,30 +3,17 @@
   <!-- 顶部奢华暖金渐变背景装饰 -->
   <view class="header-glow"></view>
 
-  <!-- 品牌主标题（动态读取白牌标品配置） -->
-  <view class="brand-section">
-    <text class="brand-title">{{brand.brandName}}</text>
-    <text class="brand-subtitle">{{brand.brandSubtitle}}</text>
+  <!-- 已进入具体导师工作室时，顶部显示轻量工作室位置条 -->
+  <view class="studio-context-strip" wx:if="{{!brand.isPlatformDefault}}">
+    <text class="scs-name">📍 {{brand.navTitle}}</text>
+    <text class="scs-exit" wx:if="{{auth.role !== 'admin'}}" bindtap="exitCurrentStudio">返回臻言广场 ›</text>
   </view>
 
-  <!-- 顶部常驻：当前登录权限状态与快捷登录栏 -->
-  <view class="top-auth-bar luxury-card">
-    <view class="tab-status-row">
-      <text class="tab-role-label" wx:if="{{auth.role === 'guest'}}">
-        {{brand.isPlatformDefault ? '🏛️ 当前位置：平台总入口（尚未进入导师工作室）' : ('🔒 当前权限：未登录访客（' + brand.navTitle + '）')}}
-      </text>
-      <text class="tab-role-label client" wx:elif="{{auth.role === 'client'}}">👤 当前权限：客户（{{auth.clientName}} {{auth.clientPhone}}）</text>
-      <text class="tab-role-label admin" wx:elif="{{auth.role === 'admin'}}">🛠️ 当前权限：{{brand.navTitle}} · 工作室主理人</text>
-      <text class="exit-studio-link" wx:if="{{!brand.isPlatformDefault && auth.role !== 'admin'}}" bindtap="exitCurrentStudio">切换工作室 ›</text>
-    </view>
-    <view class="tab-btn-row">
-      <view class="mini-login-btn client-btn" bindtap="goToLoginWithMode" data-mode="client">
-        👤 客户手机号登录
-      </view>
-      <view class="mini-login-btn admin-btn" bindtap="goToLoginWithMode" data-mode="admin">
-        🛠️ 导师工作室登录
-      </view>
-    </view>
+  <!-- 品牌主标题（平台态展示臻言咨询 Logo，工作室态展示该导师白牌） -->
+  <view class="brand-section">
+    <image class="brand-logo" wx:if="{{brand.isPlatformDefault}}" src="/images/logo-zhenyan.png" mode="aspectFill"></image>
+    <text class="brand-title">{{brand.brandName}}</text>
+    <text class="brand-subtitle">{{brand.brandSubtitle}}</text>
   </view>
 
   <!-- 使命 / 愿景 / 理念 卡片（动态配置） -->
@@ -58,55 +45,61 @@
     </view>
   </view>
 
+  <!-- 电子宣传单与获客名片入口 -->
+  <view class="brochure-entry-card" bindtap="goToBrochure">
+    <view class="be-left">
+      <text class="be-badge">{{brand.isPlatformDefault ? '臻言咨询官方名片' : '工作室电子名片'}}</text>
+      <text class="be-title">📖 {{brand.isPlatformDefault ? '臻言咨询 · 平台电子宣传单' : (brand.navTitle + ' · 简介宣传单')}}</text>
+      <text class="be-sub">含顾问联系名片与一键转发好友卡片</text>
+    </view>
+    <view class="be-btn">查看/转发 ›</view>
+  </view>
+
   <!-- 实时进行中的咨询交付空间快捷入口（严格按登录身份 & 工作室隔离） -->
-  <!-- 情况1：当前处于平台总入口（未进入具体工作室 / 导师退出登录后） -->
+  <!-- 情况1：当前处于臻言咨询平台广场（未进入具体工作室，仅浏览严选导师简介卡片） -->
   <view class="active-portal-card" wx:if="{{brand.isPlatformDefault}}">
     <view class="portal-top">
       <view class="portal-badge-group">
         <text class="portal-live-dot">✦</text>
-        <text class="portal-badge-txt">多租户咨询交付平台 · 一导师一独立系统</text>
+        <text class="portal-badge-txt">臻言严选顾问团 · 资深商业导师名录</text>
       </view>
-      <text class="portal-enter" bindtap="goToRegister">免费开通 ›</text>
+      <text class="portal-enter" bindtap="goToRegister">申请入驻 ›</text>
     </view>
     <view class="portal-body">
-      <text class="portal-plan">请选择要访问的导师工作室，或登录/开通你自己的工作室</text>
-      <view class="studio-pick-list">
-        <view 
-          class="studio-pick-chip" 
-          wx:for="{{tenantsList}}" 
-          wx:key="tenantId" 
-          bindtap="enterStudioPortal" 
+      <text class="portal-plan">浏览导师履历与代表战绩，按需了解或预约 1V1 深度问诊</text>
+      <view class="mentor-showcase-list">
+        <view
+          class="mentor-showcase-card"
+          wx:for="{{mentorsList}}"
+          wx:key="tenantId"
+          bindtap="viewMentorProfile"
           data-id="{{item.tenantId}}">
-          <text class="spc-name">{{item.studioName}}</text>
-          <text class="spc-mentor">{{item.mentorName}} · 点击进入 ›</text>
+          <view class="msc-top">
+            <image class="msc-avatar" src="/images/avatar.png" mode="aspectFill"></image>
+            <view class="msc-main">
+              <view class="msc-name-row">
+                <text class="msc-name">{{item.mentorName}}</text>
+                <text class="msc-badge">{{item.mentorBadge}}</text>
+              </view>
+              <text class="msc-studio">{{item.studioName}}</text>
+              <text class="msc-title" wx:if="{{item.mentorTitle}}">{{item.mentorTitle}}</text>
+            </view>
+          </view>
+          <view class="msc-bottom">
+            <text class="msc-stat" wx:if="{{item.stat1Num}}">{{item.stat1Num}} {{item.stat1Tag}}</text>
+            <text class="msc-link">查看简介 ›</text>
+          </view>
         </view>
       </view>
     </view>
     <view class="portal-actions">
-      <view class="portal-btn primary" bindtap="goToLoginWithMode" data-mode="admin">导师登录我的工作室</view>
-      <view class="portal-btn secondary" bindtap="goToRegister">开通新工作室</view>
+      <view class="portal-btn primary" bindtap="openConsultModal">预约 1V1 深度问诊</view>
+      <view class="portal-btn secondary" bindtap="goToRegister">✨ 入驻开通工作室</view>
     </view>
   </view>
 
-  <!-- 情况2：已进入具体某位导师的门户，但客户尚未登录 -->
-  <view class="active-portal-card" wx:elif="{{auth.role === 'guest'}}" bindtap="goToLogin">
-    <view class="portal-top">
-      <view class="portal-badge-group">
-        <text class="portal-live-dot">🔒</text>
-        <text class="portal-badge-txt">{{brand.navTitle}} · 一客一档加密保护</text>
-      </view>
-      <text class="portal-enter">客户登录 ›</text>
-    </view>
-    <view class="portal-body">
-      <text class="portal-plan">已签约客户，请登录查阅咨询过程与交付方案</text>
-    </view>
-    <view class="portal-actions">
-      <view class="portal-btn primary">手机号登录查阅我的项目</view>
-      <view class="portal-btn secondary" catchtap="openConsultModal">新客户预约立项</view>
-    </view>
-  </view>
-
-  <view class="active-portal-card" wx:elif="{{latestProject}}">
+  <!-- 情况2：已登录且有所属工作室项目 -->
+  <view class="active-portal-card" wx:elif="{{auth.role !== 'guest' && latestProject}}">
     <view class="portal-top" bindtap="goToLatestProject">
       <view class="portal-badge-group">
         <text class="portal-live-dot">●</text>
@@ -236,7 +229,17 @@
         <view class="modal-close" bindtap="closeConsultModal">×</view>
       </view>
       <view class="modal-body">
-        <text class="modal-tip">请留下您的联系方式与企业现状，{{brand.mentorName}}团队将在 24 小时内与您初步沟通并安排深度问诊。</text>
+        <text class="modal-tip">请留下您的联系方式与企业现状，{{brand.isPlatformDefault ? '臻言咨询严选导师团队' : brand.mentorName + '团队'}}将在 24 小时内与您初步沟通并安排深度问诊。</text>
+        <picker
+          wx:if="{{brand.isPlatformDefault && mentorPickerOptions.length > 0}}"
+          range="{{mentorPickerOptions}}"
+          value="{{selectedMentorIndex}}"
+          bindchange="onMentorPickChange">
+          <view class="modal-picker">
+            <text class="mp-label">意向咨询导师 / 赛道</text>
+            <text class="mp-val">{{mentorPickerOptions[selectedMentorIndex]}} ▼</text>
+          </view>
+        </picker>
         <input class="modal-input" placeholder="您的姓名 / 称呼" value="{{form.name}}" bindinput="onInputName" />
         <input class="modal-input" type="number" placeholder="联系电话 / 微信" value="{{form.phone}}" bindinput="onInputPhone" />
         <input class="modal-input" placeholder="当前所在行业 / 经营项目" value="{{form.industry}}" bindinput="onInputIndustry" />

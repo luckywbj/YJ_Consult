@@ -170,8 +170,8 @@ Page({
     wx.showModal({
       title: isPaid ? '立项成功 · 交付空间已开启' : '预约申请已建档',
       content: isPaid
-        ? `项目编号：${newOrder.id}\n已为您生成 5 步交付空间与首次 1V1 问诊准备清单，是否立即前往查看？`
-        : `项目编号：${newOrder.id}\n您可以前往专属咨询空间查看初审进度、补充资料或随时在线支付立项。`,
+        ? `项目编号：${newOrder.id}\n登录账号：${newOrder.phone}\n初始密码：${newOrder.assignedPassword}（可在「我的-修改我的登录密码」修改）\n\n已为您生成 5 步交付空间与首次 1V1 问诊准备清单，是否立即前往查看？`
+        : `项目编号：${newOrder.id}\n登录账号：${newOrder.phone}\n初始密码：${newOrder.assignedPassword}（可在「我的-修改我的登录密码」修改）\n\n您可以前往专属咨询空间查看初审进度或随时在线支付立项。`,
       confirmText: '进入交付空间',
       cancelText: '留在本页',
       confirmColor: '#8D6238',

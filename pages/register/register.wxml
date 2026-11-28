@@ -1,8 +1,8 @@
 <!-- pages/register/register.wxml -->
 <view class="reg-page">
   <view class="reg-hero">
-    <text class="reg-badge">无需注册小程序 · 无需服务器 · 10 秒开通</text>
-    <text class="reg-title">开通你的专属咨询工作室</text>
+    <text class="reg-badge">臻言咨询平台 · 无需注册小程序 · 10 秒开通</text>
+    <text class="reg-title">入驻臻言 · 开通专属咨询工作室</text>
     <text class="reg-sub">一个账号，即可拥有独立品牌门户、客户下单入口、一客一档咨询交付后台。开通即享 {{trialDays}} 天免费试用。</text>
   </view>
 

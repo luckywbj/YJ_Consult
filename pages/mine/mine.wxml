@@ -39,22 +39,25 @@
       <view class="logout-link" bindtap="handleLogout">退出</view>
     </view>
 
-    <!-- 始终可见的登录/切换身份按钮组 -->
-    <view class="auth-btn-group">
+    <!-- 未登录时显示统一的账号登录入口 -->
+    <view class="auth-btn-group" wx:if="{{auth.role === 'guest'}}">
       <view class="auth-action-btn primary" bindtap="openLoginModal" data-mode="client">
-        👤 客户手机号登录
+        👤 客户账号登录
       </view>
       <view class="auth-action-btn admin-outline" bindtap="openLoginModal" data-mode="admin">
         🛠️ 导师工作室登录
       </view>
     </view>
+    <view class="top-order-link" wx:if="{{auth.role === 'guest'}}" bindtap="goToServices">
+      尚未立项？前往「服务」页在线下单 ›
+    </view>
   </view>
 
-  <!-- 当前访问的工作室 + SaaS 开通入口 -->
+  <!-- 当前访问的工作室 + 臻言平台入驻入口 -->
   <view class="studio-strip">
-    <text class="ss-txt">{{brand.isPlatformDefault ? '当前位置：平台通用入口（未进入导师系统）' : ('当前门户：' + brand.navTitle)}}</text>
-    <text class="ss-open" bindtap="exitStudioToPlatform" wx:if="{{!brand.isPlatformDefault && auth.role !== 'admin'}}">切换工作室 ›</text>
-    <text class="ss-open" bindtap="goToRegister" wx:elif="{{brand.isPlatformDefault}}">开通工作室 ›</text>
+    <text class="ss-txt">{{brand.isPlatformDefault ? '当前位置：臻言咨询平台广场' : ('当前门户：' + brand.navTitle)}}</text>
+    <text class="ss-open" bindtap="exitStudioToPlatform" wx:if="{{!brand.isPlatformDefault && auth.role !== 'admin'}}">返回臻言广场 ›</text>
+    <text class="ss-open" bindtap="goToRegister" wx:elif="{{brand.isPlatformDefault}}">入驻臻言 ›</text>
   </view>
 
   <!-- 顾问端工作台入口卡片（仅在顾问后台登录 role === 'admin' 时显示，客户完全不可见！） -->
@@ -72,34 +75,21 @@
     </view>
   </view>
 
-  <!-- 我的咨询项目与交付空间（严格按登录身份隔离展示） -->
-  <view class="section-block luxury-card">
+  <!-- 我的咨询项目与交付空间（平台态展示双端快捷指引；进入后仅登录后展示项目） -->
+  <view class="section-block luxury-card" wx:if="{{brand.isPlatformDefault || auth.role !== 'guest'}}">
     <view class="block-header">
-      <text class="block-title">{{auth.role === 'admin' ? '本工作室客户咨询项目档案' : '我的专属咨询交付空间'}}</text>
+      <text class="block-title">{{brand.isPlatformDefault ? '臻言咨询 · 双端快捷指引' : (auth.role === 'admin' ? '本工作室客户咨询项目档案' : '我的专属咨询交付空间')}}</text>
       <text class="record-count" wx:if="{{auth.role !== 'guest'}}">共 {{appointments.length}} 个项目</text>
     </view>
 
-    <!-- 未进入具体导师工作室时（平台中性态），先引导选择工作室或导师登录 -->
+    <!-- 未进入具体导师工作室时（平台中性态），提供双端清晰入口而不直接暴露他人工作室切入 -->
     <view class="privacy-lock-box" wx:if="{{brand.isPlatformDefault}}">
       <text class="lock-icon">🏛️</text>
-      <text class="lock-title">每个导师就是一个独立系统</text>
-      <text class="lock-sub">请选择你要进入的导师工作室，或直接用导师/客户账号登录：</text>
-      <view class="studio-pick-col">
-        <view class="sp-row" wx:for="{{tenantsList}}" wx:key="tenantId" bindtap="enterStudio" data-id="{{item.tenantId}}">
-          <text class="sp-name">{{item.studioName}}（{{item.mentorName}}）</text>
-          <text class="sp-go">进入该系统 ›</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 未登录时的隐私保护锁屏提示 -->
-    <view class="privacy-lock-box" wx:elif="{{auth.role === 'guest'}}">
-      <text class="lock-icon">🛡️</text>
-      <text class="lock-title">客户商业咨询档案已加密隔离</text>
-      <text class="lock-sub">每位客户的痛点诊断、咨询过程纪要及交付方案仅限本人登录后查阅。</text>
-      <view class="lock-actions">
-        <button class="gold-btn lock-btn" bindtap="openLoginModal" data-mode="client">客户手机号登录查阅</button>
-        <view class="go-order-link" bindtap="goToServices">尚未立项？前往「服务」页在线下单 ›</view>
+      <text class="lock-title">一导师一独立交付系统</text>
+      <text class="lock-sub">已签约客户点击上方「客户账号登录」即可凭手机号与密码自动进入所属导师的专属交付空间；导师点击「导师工作室登录」进入独立后台。</text>
+      <view class="auth-btn-group">
+        <view class="auth-action-btn primary" bindtap="goToHome">🏛️ 去首页看严选导师</view>
+        <view class="auth-action-btn admin-outline" bindtap="goToRegister">✨ 10 秒开通我的工作室</view>
       </view>
     </view>
 
@@ -134,7 +124,7 @@
         <!-- 快捷操作按钮 -->
         <view class="item-actions">
           <view class="act-btn outline" catchtap="openProjectSpace" data-id="{{item.id}}" data-tab="0">
-            查看咨询过程
+            咨询记录与反馈
           </view>
           <view class="act-btn primary" catchtap="openProjectSpace" data-id="{{item.id}}" data-tab="1">
             查看交付结果看板
@@ -183,6 +173,19 @@
 
   <!-- 官方服务与联系 -->
   <view class="menu-group luxury-card">
+    <view class="menu-row" bindtap="openBrochure">
+      <view class="menu-left">
+        <text class="menu-icon">📖</text>
+        <text class="menu-label">电子宣传单与获客名片</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-val">查看 / 一键转发</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-divider"></view>
+
     <view class="menu-row" bindtap="copyWechat">
       <view class="menu-left">
         <text class="menu-icon">💬</text>
@@ -212,7 +215,7 @@
     <view class="menu-row" bindtap="goToRegister">
       <view class="menu-left">
         <text class="menu-icon">✨</text>
-        <text class="menu-label">开通我的咨询工作室</text>
+        <text class="menu-label">入驻臻言咨询（开通工作室）</text>
       </view>
       <view class="menu-right">
         <text class="menu-val">{{trialDays}}天免费试用</text>
@@ -225,10 +228,23 @@
     <view class="menu-row" bindtap="goToPlatform">
       <view class="menu-left">
         <text class="menu-icon">🏛️</text>
-        <text class="menu-label">平台总控台（平台方专用）</text>
+        <text class="menu-label">臻言平台总控台（平台方专用）</text>
       </view>
       <view class="menu-right">
         <text class="menu-val">开号 / 续费</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="menu-divider" wx:if="{{auth.role === 'client'}}"></view>
+
+    <view class="menu-row" bindtap="openChangePassModal" wx:if="{{auth.role === 'client'}}">
+      <view class="menu-left">
+        <text class="menu-icon">🔑</text>
+        <text class="menu-label">修改我的登录密码</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-val">保护隐私安全</text>
         <text class="menu-arrow">›</text>
       </view>
     </view>
@@ -263,7 +279,7 @@
 
   <!-- 版权信息 -->
   <view class="copyright-bar">
-    <text>{{brand.navTitle}} · 商业咨询数字化交付空间</text>
+    <text>{{brand.isPlatformDefault ? '臻言咨询 · 商业顾问服务平台' : (brand.navTitle + ' · 臻言咨询入驻工作室')}}</text>
     <text class="copyright-en">{{brand.brandSubtitle}} © 2026</text>
   </view>
 
@@ -288,7 +304,7 @@
 
       <!-- 模式 A：客户手机号登录 -->
       <view class="login-body" wx:if="{{loginModal.mode === 'client'}}">
-        <text class="login-tip">请输入您在线下单或线下签约建档时预留的手机号，系统将为您加载专属咨询空间（仅显示您本人的项目）：</text>
+        <text class="login-tip">请输入导师为您开通的手机号与专属登录密码（忘记密码请联系导师重置）：</text>
         <input 
           class="login-input" 
           type="number" 
@@ -297,17 +313,17 @@
           bindinput="onLoginPhoneInput" />
         <input 
           class="login-input" 
-          type="number" 
-          placeholder="短信验证码 / 项目口令（演示任意填如 6666）" 
+          password="true"
+          placeholder="请输入专属登录密码" 
           value="{{loginModal.code}}" 
           bindinput="onLoginCodeInput" />
 
         <!-- 快捷体验测试账号（方便演示不同客户之间的数据完全隔离） -->
         <view class="demo-accounts-box">
-          <text class="da-label">⚡ 本工作室演示客户账号，点击填入（正式上线时移除）：</text>
+          <text class="da-label">{{brand.isPlatformDefault ? '⚡ 演示客户账号（点击自动识别所属导师空间，默认密码手机号后6位）：' : '⚡ 本工作室演示客户账号（默认密码手机号后6位），点击填入：'}}</text>
           <view class="da-pills">
             <view class="da-pill" wx:for="{{demoClients}}" wx:key="phone" bindtap="quickFillClient" data-phone="{{item.phone}}">
-              {{item.name}}（{{item.phone}}）
+              {{item.name}}{{item.studioName ? ' · ' + item.studioName : ''}} ({{item.phone}})
             </view>
             <text class="da-empty" wx:if="{{demoClients.length === 0}}">当前工作室暂无客户项目</text>
           </view>
@@ -342,6 +358,36 @@
         </view>
         <button class="gold-btn login-submit-btn" bindtap="submitAdminLogin">登录我的工作室</button>
         <view class="register-link" bindtap="goToRegister">还没有工作室？立即开通（免费试用） ›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 弹窗：客户自助修改登录密码 ==================== -->
+  <view class="login-mask" wx:if="{{changePassModal.visible}}" bindtap="closeChangePassModal">
+    <view class="login-box cp-box" catchtap="preventBubble">
+      <text class="cp-title">修改登录密码</text>
+      <text class="cp-sub">当前账号：{{auth.clientPhone}}（修改后请妥善保管新密码）</text>
+      <input
+        class="login-input"
+        password="true"
+        placeholder="请输入原登录密码"
+        value="{{changePassModal.oldPass}}"
+        bindinput="onOldPassInput" />
+      <input
+        class="login-input"
+        password="true"
+        placeholder="请输入新密码（至少4位）"
+        value="{{changePassModal.newPass}}"
+        bindinput="onNewPassInput" />
+      <input
+        class="login-input"
+        password="true"
+        placeholder="请再次确认新密码"
+        value="{{changePassModal.confirmPass}}"
+        bindinput="onConfirmPassInput" />
+      <view class="cp-btns">
+        <view class="cp-btn cancel" bindtap="closeChangePassModal">取消</view>
+        <view class="cp-btn confirm" bindtap="submitChangePassword">确认修改</view>
       </view>
     </view>
   </view>

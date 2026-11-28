@@ -245,45 +245,90 @@
   color: #D8C7B4;
 }
 
-/* 工作台模块导航（一屏5列完整显示） */
-.admin-tabs {
+/* 工作台模块导航（5张抽屉卡片，与下方内容区融为一体） */
+.module-nav-row {
   display: flex;
-  background: #FFFFFF;
-  border-bottom: 1rpx solid #EAE1D5;
-  width: 100%;
+  gap: 10rpx;
+  padding: 20rpx 32rpx 0;
+  position: relative;
+  z-index: 2;
 }
 
-.a-tab {
+.module-card {
   flex: 1;
-  text-align: center;
-  padding: 24rpx 4rpx;
-  font-size: 23rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18rpx 6rpx 16rpx;
+  background: #EFE9DF;
+  border: 1rpx solid #E2D7C6;
+  border-bottom: none;
+  border-radius: 14rpx 14rpx 0 0;
   color: #7D736A;
-  font-weight: 500;
-  border-bottom: 6rpx solid transparent;
-  white-space: nowrap;
 }
 
-.a-tab.highlight-tab {
+.module-card.highlight-card {
+  background: #F6ECE0;
   color: #8D6238;
-  font-weight: 600;
-  background: #FDF9F2;
 }
 
-.a-tab.active {
+.module-card.active {
+  background: #FFFFFF;
+  color: #241E1A;
+  border-color: #E3D6C3;
+  box-shadow: 0 -4rpx 14rpx rgba(60, 44, 28, 0.06);
+  z-index: 4;
+}
+
+.module-card.active .mc-name {
   color: #8D6238;
   font-weight: 700;
-  border-bottom-color: #8D6238;
+}
+
+.mc-icon {
+  font-size: 28rpx;
+  margin-bottom: 6rpx;
+}
+
+.mc-name {
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.mc-bridge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6rpx;
+  height: 10rpx;
+  background: #FFFFFF;
+  z-index: 5;
 }
 
 .admin-panel {
-  padding: 28rpx 32rpx;
+  padding: 0 32rpx 28rpx;
+  position: relative;
+  z-index: 3;
 }
 
 .panel-card {
   background: #FFFFFF;
   padding: 36rpx 32rpx;
   margin-bottom: 28rpx;
+}
+
+.panel-card.connected-panel {
+  border-top: 1rpx solid #E3D6C3;
+}
+
+.admin-panel.tab-0 .panel-card.connected-panel {
+  border-top-left-radius: 0;
+}
+
+.admin-panel.tab-4 .panel-card.connected-panel {
+  border-top-right-radius: 0;
 }
 
 .panel-title-row {
@@ -551,4 +596,225 @@
   font-weight: 600;
   color: #8D6238;
   margin-bottom: 16rpx;
+}
+
+/* ==================== 咨询编辑、客户反馈回复与弹窗 ==================== */
+.title-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.cancel-edit-btn {
+  font-size: 22rpx;
+  color: #8B4E44;
+  background: #FBEDE9;
+  padding: 8rpx 18rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.label-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.label-with-action .f-label {
+  margin-bottom: 0;
+}
+
+.date-pick-tag {
+  font-size: 21rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 6rpx 14rpx;
+  border-radius: 16rpx;
+  font-weight: 600;
+}
+
+.his-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18rpx;
+}
+
+.his-feedback-stat {
+  font-size: 21rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.his-top-left {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.his-edit-btn {
+  font-size: 22rpx;
+  color: #8D6238;
+  background: #F6EFE6;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.his-client-fb {
+  margin-top: 16rpx;
+  padding: 16rpx 18rpx;
+  background: #FBF8F3;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 12rpx;
+}
+
+.hcf-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.hcf-tag {
+  font-size: 21rpx;
+  font-weight: 600;
+  color: #B4782C;
+}
+
+.hcf-time {
+  font-size: 20rpx;
+  color: #9A8F84;
+}
+
+.hcf-txt {
+  display: block;
+  font-size: 24rpx;
+  color: #3A322B;
+  line-height: 1.5;
+}
+
+.hcf-reply {
+  margin-top: 12rpx;
+  padding: 12rpx 14rpx;
+  background: #FFFFFF;
+  border-left: 6rpx solid #8D6238;
+  border-radius: 8rpx;
+}
+
+.hcf-reply-label {
+  font-size: 21rpx;
+  font-weight: 600;
+  color: #8D6238;
+}
+
+.hcf-reply-txt {
+  font-size: 22rpx;
+  color: #4A4038;
+  line-height: 1.45;
+}
+
+.hcf-actions {
+  margin-top: 12rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reply-trigger-btn {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #8D6238;
+  background: #F3E9DB;
+  padding: 8rpx 18rpx;
+  border-radius: 22rpx;
+}
+
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(20, 17, 16, 0.56);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  z-index: 999;
+}
+
+.modal-box {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 36rpx 30rpx;
+  box-sizing: border-box;
+}
+
+.modal-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #241E1A;
+  margin-bottom: 8rpx;
+}
+
+.modal-sub {
+  display: block;
+  font-size: 22rpx;
+  color: #8C8074;
+  margin-bottom: 18rpx;
+}
+
+.modal-quote {
+  background: #FBF8F3;
+  border-left: 6rpx solid #D49A35;
+  padding: 14rpx 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 18rpx;
+}
+
+.mq-txt {
+  font-size: 23rpx;
+  color: #5A4E43;
+  line-height: 1.5;
+}
+
+.modal-textarea {
+  width: 100%;
+  height: 180rpx;
+  background: #F9F7F3;
+  border: 1rpx solid #E5DDD2;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+  margin-bottom: 24rpx;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 20rpx;
+}
+
+.m-btn {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+}
+
+.m-btn.cancel {
+  background: #F2EDE6;
+  color: #6B6158;
+}
+
+.m-btn.confirm {
+  background: #8D6238;
+  color: #FFFFFF;
 }

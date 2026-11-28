@@ -903,3 +903,150 @@
   background: #8D6238;
   color: #FFFFFF;
 }
+
+/* ==================== 单场咨询客户反馈与导师回复 ==================== */
+.session-feedback-box {
+  margin-top: 22rpx;
+  padding: 20rpx 22rpx;
+  background: #FBF8F3;
+  border: 1rpx solid #EAE0D2;
+  border-radius: 14rpx;
+}
+
+.sf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.sf-title-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.sf-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #3D332B;
+}
+
+.sf-stars {
+  display: flex;
+  align-items: center;
+  gap: 2rpx;
+}
+
+.sf-star {
+  font-size: 24rpx;
+  color: #DCD2C5;
+}
+
+.sf-star.on {
+  color: #D49A35;
+}
+
+.sf-score {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #8D6238;
+  margin-left: 6rpx;
+}
+
+.sf-action-btn {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #8D6238;
+  background: #F3E9DB;
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
+  flex-shrink: 0;
+}
+
+.sf-content {
+  margin-top: 6rpx;
+}
+
+.sf-text {
+  display: block;
+  font-size: 25rpx;
+  color: #3A322B;
+  line-height: 1.55;
+}
+
+.sf-time {
+  display: block;
+  font-size: 20rpx;
+  color: #9A8F84;
+  margin-top: 6rpx;
+}
+
+.sf-empty {
+  display: block;
+  font-size: 22rpx;
+  color: #8E8377;
+  line-height: 1.5;
+}
+
+.sf-reply-box {
+  margin-top: 14rpx;
+  padding: 14rpx 16rpx;
+  background: #FFFFFF;
+  border-left: 6rpx solid #8D6238;
+  border-radius: 8rpx;
+}
+
+.sf-reply-label {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #8D6238;
+}
+
+.sf-reply-txt {
+  font-size: 23rpx;
+  color: #4A4038;
+  line-height: 1.5;
+}
+
+.star-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 18rpx;
+}
+
+.star-pick-item {
+  font-size: 46rpx;
+  color: #DDD4C8;
+  line-height: 1;
+}
+
+.star-pick-item.active {
+  color: #D49A35;
+}
+
+.star-pick-label {
+  font-size: 22rpx;
+  color: #8D6238;
+  font-weight: 600;
+  margin-left: 8rpx;
+}
+
+.quick-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 18rpx;
+}
+
+.q-tag {
+  font-size: 21rpx;
+  color: #7A542F;
+  background: #F5ECE0;
+  border: 1rpx solid #E3D3BC;
+  padding: 6rpx 14rpx;
+  border-radius: 20rpx;
+}
